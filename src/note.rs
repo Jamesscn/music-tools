@@ -1,6 +1,5 @@
 pub use regex::Regex;
-pub use crate::pitchclass::get_pitch_class;
-pub use crate::pitchclass::PitchClass;
+pub use crate::pitchclass::{PitchClass, get_pitch_class};
 
 pub struct Note {
     pub pitch_class: &'static PitchClass,
@@ -21,7 +20,7 @@ impl Note {
             pitch_class: pitch_class,
             octave: octave,
             value: octave as u32 * 12 + pitch_class.value as u32,
-            frequency: 27.5 as f32 * (2.0 as f32).powf(octave as f32 + (pitch_class.value - 9) as f32 / 12 as f32)
+            frequency: 27.5 as f32 * (2.0 as f32).powf(octave as f32 + (pitch_class.value as i8 - 9) as f32 / 12 as f32)
         };
     }
 }
