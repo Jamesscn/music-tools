@@ -54,30 +54,6 @@ const PITCH_CLASSES: [PitchClass; 12] = [
     }
 ];
 
-pub trait PitchClassTrait {
-    fn get_pitch_class(&self) -> &PitchClass;
-}
-
-impl PitchClassTrait for PitchClass {
-    fn get_pitch_class(&self) -> &PitchClass {
-        return self;
-    }
-}
-
-impl PitchClassTrait for String {
-    fn get_pitch_class(&self) -> &PitchClass {
-        for pitch_class_index in 0..12 {
-            let current_pitch_class = &PITCH_CLASSES[pitch_class_index];
-            for current_name in current_pitch_class.names {
-                if current_name.0 == self {
-                    return &PITCH_CLASSES[pitch_class_index];
-                } 
-            }
-        }
-        panic!("Pitch class {0} does not exist.", self);
-    }
-}
-
 const LETTERS: [&'static str; 7] = ["A", "B", "C", "D", "E", "F", "G"];
 
 pub fn get_letter_at_increment(letter: String, increment: i8) -> String {
@@ -91,12 +67,19 @@ pub fn get_letter_at_increment(letter: String, increment: i8) -> String {
     panic!("The letter {0} is not valid.", letter);
 }
 
-pub fn get_pitch_class(pitch_class: &impl PitchClassTrait) -> &PitchClass {
-    return pitch_class.get_pitch_class();
+pub fn get_pitch_class(pitch_class_name: String) -> &'static PitchClass {
+    for pitch_class_index in 0..12 {
+        let current_pitch_class = &PITCH_CLASSES[pitch_class_index];
+        for current_name in current_pitch_class.names {
+            if current_name.0 == pitch_class_name {
+                return &PITCH_CLASSES[pitch_class_index];
+            } 
+        }
+    }
+    panic!("Pitch class {0} does not exist.", pitch_class_name);
 }
 
-pub fn get_pitch_class_at_increment(pitch_class: &impl PitchClassTrait, increment: i8) -> &PitchClass {
-    let current_pitch_class = pitch_class.get_pitch_class();
+pub fn get_pitch_class_at_increment(current_pitch_class: PitchClass, increment: i8) -> &'static PitchClass {
     let current_pitch_value = current_pitch_class.value as i8;
     let next_pitch_value = (current_pitch_value + increment) % 12;
     return &PITCH_CLASSES[next_pitch_value as usize];
