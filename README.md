@@ -15,14 +15,16 @@ A set of tools related to music theory.
   - This struct also calculates the frequency of the note.
 - The audio module contains a wavetable oscillator which allows one to play certain frequencies or notes as sine waves.
   - Currently only sine waves are supported.
+- The scale module can make the following scales:
+  - Chromatic scales
+  - Diatonic scales
+    - Scales for the seven modes
+  - Pentatonic scales
+  - A few other scales
 
 ## Things that will be implemented in the future:
 
 - Getting intervals between notes
-- Getting scales
-  - Chromatic scales
-  - Diatonic scales
-  - Pentatonic scales
 - Create a struct for triads
   - Major, minor, sus2, sus4, diminished and augmented
   - Allow one to add a seventh note on top
