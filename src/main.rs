@@ -22,9 +22,10 @@ fn play_note(note: &Note, stream_handle_ref: &OutputStreamHandle, sinks: &mut Ve
 }
 
 fn main() {
-    let tonic = PitchClasses::C;
-    let chord = get_chord_with_quality(tonic, ChordQuality::Minor, Seventh::Minor, 0);
+    let tonic = PitchClasses::D_FLAT;
+    let chord = get_chord_with_quality(tonic, ChordQuality::Minor, Seventh::Major, 1);
     let chord_pitch_classes = chord.get_pitch_classes();
+    println!("Playing {0}", chord.get_short_name());
     for pitch_class in chord_pitch_classes {
         let mut sinks: Vec<Sink> = Vec::new();
         let (_stream, stream_handle) = OutputStream::try_default().unwrap();

@@ -21,13 +21,17 @@ A set of tools related to music theory.
     - Scales for the seven modes
   - Pentatonic scales
   - A few other scales
+- The chord module can return the following types of triads/tetrads
+  - Inversions of chords
+  - Tetrads of triads with sevenths
+  - Major and minor triads
+  - sus2 and sus4 triads
+  - Augmented and diminished triads
+  - The short name of the triad, e.g. C#/Em(maj7)
 
 ## Things that will be implemented in the future:
 
 - Getting intervals between notes
-- Create a struct for triads
-  - Major, minor, sus2, sus4, diminished and augmented
-  - Allow one to add a seventh note on top
 - Functional harmony
   - Get the diatonic chords of any key and mode
   - Get a diatonic chord given a roman numeral

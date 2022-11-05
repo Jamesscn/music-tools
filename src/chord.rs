@@ -33,6 +33,40 @@ impl Chord {
     pub fn get_seventh(&self) -> &Seventh {
         return &self.seventh;
     }
+
+    pub fn get_tonic(&self) -> &'static PitchClass {
+        return self.pitch_classes[self.inversion as usize];
+    }
+
+    pub fn get_short_name(&self) -> String {
+        let mut short_name: String = String::new();
+        if self.inversion != 0 {
+            short_name.push_str(self.pitch_classes[0].get_name());
+            short_name.push_str("/");
+        }
+        short_name.push_str(self.get_tonic().get_name());
+        let quality_name: &'static str = match self.quality {
+            ChordQuality::Minor => "m",
+            ChordQuality::Augmented => "+",
+            ChordQuality::Diminished => "°",
+            _ => ""
+        };
+        short_name.push_str(quality_name);
+        let seventh_name: &'static str;
+        if self.seventh == Seventh::Major {
+            if self.quality == ChordQuality::Minor {
+                seventh_name = "(maj7)";
+            } else {
+                seventh_name = "maj7";
+            }
+        } else if self.seventh == Seventh::Minor {
+            seventh_name = "7"
+        } else {
+            seventh_name = ""
+        }
+        short_name.push_str(seventh_name);
+        return short_name;
+    }
 }
 
 pub fn get_chord_with_quality(tonic: &'static PitchClass, quality: ChordQuality, seventh: Seventh, inversion: u8) -> Chord {
