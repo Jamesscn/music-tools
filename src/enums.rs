@@ -1,5 +1,3 @@
-//pitch class enum?
-
 #[derive(PartialEq, Eq)]
 pub enum ScaleType {
     Ionian,

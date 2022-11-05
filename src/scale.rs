@@ -1,4 +1,4 @@
-pub use crate::pitchclass::{PitchClass, PITCH_CLASSES, get_pitch_class_at_increment, get_letter_at_increment};
+pub use crate::pitchclass::{PitchClass, PitchClasses, get_pitch_class_at_increment, get_letter_at_increment};
 pub use crate::enums::{ScaleType, Pentatonic};
 
 pub struct Scale {
@@ -9,13 +9,12 @@ pub struct Scale {
 
 impl Scale {
     pub fn get_consecutive_pitch_class_names(&self) -> Vec<&'static str> {
-        for tonic_names in self.pitch_classes[0].names {
+        for tonic_name in self.pitch_classes[0].get_all_names() {
             let mut names: Vec<&'static str> = Vec::new();
-            let mut current_name = tonic_names.0;
+            let mut current_name = tonic_name;
             names.push(current_name);
             for pitch_class in &self.pitch_classes[1..] {
-                for pitch_class_names in pitch_class.names {
-                    let pitch_class_name = pitch_class_names.0;
+                for pitch_class_name in pitch_class.get_all_names() {
                     if pitch_class_name.as_bytes()[0] as char == get_letter_at_increment(current_name.as_bytes()[0] as char, 1) {
                         names.push(pitch_class_name);
                         current_name = pitch_class_name;
