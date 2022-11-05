@@ -1,9 +1,10 @@
 pub use crate::pitchclass::{PitchClass, PITCH_CLASSES, get_pitch_class_at_increment, get_letter_at_increment};
+pub use crate::enums::{ScaleType, Pentatonic};
 
 pub struct Scale {
-    pub pitch_classes: Vec<&'static PitchClass>,
-    pub scale: &'static str,
-    pub pentatonic: &'static str
+    pitch_classes: Vec<&'static PitchClass>,
+    scale: ScaleType,
+    pentatonic: Pentatonic
 }
 
 impl Scale {
@@ -28,24 +29,35 @@ impl Scale {
         }
         panic!("Could not find a consecutive list of pitch class names for the current scale.")
     }
+
+    pub fn get_pitch_classes(&self) -> &Vec<&'static PitchClass> {
+        return &self.pitch_classes;
+    }
+
+    pub fn get_scale(&self) -> &ScaleType {
+        return &self.scale;
+    }
+
+    pub fn get_pentatonic(&self) -> &Pentatonic {
+        return &self.pentatonic;
+    }
 }
 
-pub fn get_scale(tonic: &'static PitchClass, scale: &'static str, pentatonic: &'static str) -> Scale {
+pub fn get_scale(tonic: &'static PitchClass, scale_type: ScaleType, pentatonic: Pentatonic) -> Scale {
     let mut pitch_classes: Vec<&'static PitchClass> = Vec::new();
-    let scale_steps: Vec<i8> = match scale {
-        "major" | "ionian" => Vec::from([2, 2, 1, 2, 2, 2, 1]),
-        "minor" | "aeolian" | "natural minor" | "descending melodic minor" => Vec::from([2, 1, 2, 2, 1, 2, 2]),
-        "dorian" => Vec::from([2, 1, 2, 2, 2, 1, 2]),
-        "phrygian" => Vec::from([1, 2, 2, 2, 1, 2, 2]),
-        "lydian" => Vec::from([2, 2, 2, 1, 2, 2, 1]),
-        "mixolydian" => Vec::from([2, 2, 1, 2, 2, 1, 2]),
-        "locrian" => Vec::from([1, 2, 2, 1, 2, 2, 2]),
-        "harmonic minor" => Vec::from([2, 1, 2, 2, 1, 3, 1]),
-        "ascending melodic minor" => Vec::from([2, 1, 2, 2, 2, 2, 1]),
-        "phrygian dominant" => Vec::from([1, 3, 1, 2, 1, 2, 2]),
-        "whole" => Vec::from([2, 2, 2, 2, 2, 2]),
-        "chromatic" => Vec::from([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
-        _ => panic!("Scale quality/mode {0} is not valid.", scale)
+    let scale_steps: Vec<i8> = match scale_type {
+        ScaleType::Major | ScaleType::Ionian => Vec::from([2, 2, 1, 2, 2, 2, 1]),
+        ScaleType::Minor | ScaleType::Aeolian | ScaleType::NaturalMinor | ScaleType::DescendingMelodicMinor => Vec::from([2, 1, 2, 2, 1, 2, 2]),
+        ScaleType::Dorian => Vec::from([2, 1, 2, 2, 2, 1, 2]),
+        ScaleType::Phrygian => Vec::from([1, 2, 2, 2, 1, 2, 2]),
+        ScaleType::Lydian => Vec::from([2, 2, 2, 1, 2, 2, 1]),
+        ScaleType::Mixolydian => Vec::from([2, 2, 1, 2, 2, 1, 2]),
+        ScaleType::Locrian => Vec::from([1, 2, 2, 1, 2, 2, 2]),
+        ScaleType::HarmonicMinor => Vec::from([2, 1, 2, 2, 1, 3, 1]),
+        ScaleType::AscendingMelodicMinor => Vec::from([2, 1, 2, 2, 2, 2, 1]),
+        ScaleType::PhrygianDominant => Vec::from([1, 3, 1, 2, 1, 2, 2]),
+        ScaleType::Whole => Vec::from([2, 2, 2, 2, 2, 2]),
+        ScaleType::Chromatic => Vec::from([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
     };
     pitch_classes.push(tonic);
     let mut current_pitch_class = tonic;
@@ -54,16 +66,16 @@ pub fn get_scale(tonic: &'static PitchClass, scale: &'static str, pentatonic: &'
         pitch_classes.push(next_pitch_class);
         current_pitch_class = next_pitch_class;
     }
-    if pentatonic == "major" {
+    if pentatonic == Pentatonic::Major {
         pitch_classes.remove(6);
         pitch_classes.remove(3);
-    } else if pentatonic == "minor" {
+    } else if pentatonic == Pentatonic::Minor {
         pitch_classes.remove(5);
         pitch_classes.remove(1);
     }
     return Scale {
         pitch_classes: pitch_classes,
-        scale: scale,
+        scale: scale_type,
         pentatonic: pentatonic
     };
 }

@@ -1,11 +1,13 @@
+pub use crate::enums::{ScaleType, Pentatonic};
 pub use crate::pitchclass::PitchClass;
 pub use crate::scale::get_scale;
+pub use crate::enums::{ChordQuality, Seventh};
 
 pub struct Chord {
-    pub pitch_classes: Vec<&'static PitchClass>,
-    pub inversion: u8,
-    pub quality: &'static str,
-    pub seventh: &'static str
+    pitch_classes: Vec<&'static PitchClass>,
+    inversion: u8,
+    quality: ChordQuality,
+    seventh: Seventh
 }
 
 impl Chord {
@@ -19,26 +21,41 @@ impl Chord {
         pitch_classes.append(&mut second_half);
         return pitch_classes;
     }
+
+    pub fn get_inversion(&self) -> u8 {
+        return self.inversion;
+    }
+
+    pub fn get_quality(&self) -> &ChordQuality {
+        return &self.quality;
+    }
+
+    pub fn get_seventh(&self) -> &Seventh {
+        return &self.seventh;
+    }
 }
 
-pub fn get_chord_with_quality(tonic: &'static PitchClass, quality: &'static str, seventh: &'static str, inversion: u8) -> Chord {
-    let major_scale = get_scale(tonic, "major", "none");
-    let minor_scale = get_scale(tonic, "minor", "none");
-    let whole_scale = get_scale(tonic, "whole", "none");
-    let locrian_scale = get_scale(tonic, "locrian", "none");
+pub fn get_chord_with_quality(tonic: &'static PitchClass, quality: ChordQuality, seventh: Seventh, inversion: u8) -> Chord {
+    let major_scale_obj = get_scale(tonic, ScaleType::Major, Pentatonic::None);
+    let minor_scale_obj = get_scale(tonic, ScaleType::Minor, Pentatonic::None);
+    let whole_scale_obj = get_scale(tonic, ScaleType::Whole, Pentatonic::None);
+    let locrian_scale_obj = get_scale(tonic, ScaleType::Locrian, Pentatonic::None);
+    let major_scale = major_scale_obj.get_pitch_classes();
+    let minor_scale = minor_scale_obj.get_pitch_classes();
+    let whole_scale = whole_scale_obj.get_pitch_classes();
+    let locrian_scale = locrian_scale_obj.get_pitch_classes();
     let mut pitch_classes: Vec<&'static PitchClass> = match quality {
-        "major" =>  Vec::from([major_scale.pitch_classes[0], major_scale.pitch_classes[2], major_scale.pitch_classes[4]]),
-        "minor" =>  Vec::from([minor_scale.pitch_classes[0], minor_scale.pitch_classes[2], minor_scale.pitch_classes[4]]),
-        "sus2" =>  Vec::from([major_scale.pitch_classes[0], major_scale.pitch_classes[1], major_scale.pitch_classes[4]]),
-        "sus4" =>  Vec::from([major_scale.pitch_classes[0], major_scale.pitch_classes[3], major_scale.pitch_classes[4]]),
-        "augmented" =>  Vec::from([whole_scale.pitch_classes[0], whole_scale.pitch_classes[2], whole_scale.pitch_classes[4]]),
-        "diminished" =>  Vec::from([locrian_scale.pitch_classes[0], locrian_scale.pitch_classes[2], locrian_scale.pitch_classes[4]]),
-        _ => panic!("Chord quality/mode {0} is not valid.", quality)
+        ChordQuality::Major =>  Vec::from([major_scale[0], major_scale[2], major_scale[4]]),
+        ChordQuality::Minor =>  Vec::from([minor_scale[0], minor_scale[2], minor_scale[4]]),
+        ChordQuality::Sus2 =>  Vec::from([major_scale[0], major_scale[1], major_scale[4]]),
+        ChordQuality::Sus4 =>  Vec::from([major_scale[0], major_scale[3], major_scale[4]]),
+        ChordQuality::Augmented =>  Vec::from([whole_scale[0], whole_scale[2], whole_scale[4]]),
+        ChordQuality::Diminished =>  Vec::from([locrian_scale[0], locrian_scale[2], locrian_scale[4]])
     };
-    if seventh == "major" {
-        pitch_classes.push(major_scale.pitch_classes[6]);
-    } else if seventh == "minor" {
-        pitch_classes.push(minor_scale.pitch_classes[6]);
+    if seventh == Seventh::Major {
+        pitch_classes.push(major_scale[6]);
+    } else if seventh == Seventh::Minor {
+        pitch_classes.push(minor_scale[6]);
     }
     let num_pitch_classes = pitch_classes.len() as u8;
     return Chord {
