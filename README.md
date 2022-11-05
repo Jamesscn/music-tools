@@ -28,12 +28,11 @@ A set of tools related to music theory.
   - sus2 and sus4 triads
   - Augmented and diminished triads
   - The short name of the triad, e.g. C#/Em(maj7)
+- Functional harmony
+  - You can get the diatonic chords of any key and mode
+  - You can get a diatonic chord given a roman numeral
 
 ## Things that will be implemented in the future:
 
 - Getting intervals between notes
-- Functional harmony
-  - Get the diatonic chords of any key and mode
-  - Get a diatonic chord given a roman numeral
 - Playing multiple notes at the same time
-- Graphical interface to allow the user to try different sounds

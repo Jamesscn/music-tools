@@ -1,4 +1,5 @@
 pub use crate::pitchclass::{PitchClass, PitchClasses, get_pitch_class_at_increment, get_letter_at_increment};
+pub use crate::chord::{Chord, get_chord_from_numeral};
 pub use crate::enums::{ScaleType, Pentatonic};
 
 pub struct Scale {
@@ -46,6 +47,48 @@ impl Scale {
             return true;
         }
         return false;
+    }
+
+    pub fn get_diatonic_chords(&self, with_seventh: bool) -> Vec<Chord> {
+        let minor_numerals: [&str; 7];
+        let ionian_numerals: [&str; 7];
+        let dorian_numerals: [&str; 7];
+        let phrygian_numerals: [&str; 7];
+        let lydian_numerals: [&str; 7];
+        let mixolydian_numerals: [&str; 7];
+        let aeolian_numerals: [&str; 7];
+        let locrian_numerals: [&str; 7];
+        if with_seventh {
+            minor_numerals = ["i7", "ii°7", "IIImaj7", "iv7", "Vmaj7", "VImaj7", "VII7"];
+            ionian_numerals = ["Imaj7", "ii7", "iii7", "IVmaj7", "V7", "vi7", "vii°7"];
+            dorian_numerals = ["i7", "ii7", "IIImaj7", "IV7", "v7", "vi°7", "VIImaj7"];
+            phrygian_numerals = ["i7", "IImaj7", "III7", "iv7", "v°7", "VImaj7", "vii7"];
+            lydian_numerals = ["Imaj7", "II7", "iii7", "iv°7", "Vmaj7", "vi7", "vii7"];
+            mixolydian_numerals = ["I7", "ii7", "iii°7", "IVmaj7", "v7", "vi7", "VIImaj7"];
+            aeolian_numerals = ["i7", "ii°7", "IIImaj7", "iv7", "v7", "VImaj7", "VII7"];
+            locrian_numerals = ["i°7", "IImaj7", "iii7", "iv7", "Vmaj7", "VI7", "vii7"];
+        } else {
+            minor_numerals = ["i", "ii°", "III", "iv", "V", "VI", "VII"];
+            ionian_numerals = ["I", "ii", "iii", "IV", "V", "vi", "vii°"];
+            dorian_numerals = ["i", "ii", "III", "IV", "v", "vi°", "VII"];
+            phrygian_numerals = ["i", "II", "III", "iv", "v°", "VI", "vii"];
+            lydian_numerals = ["I", "II", "iii", "iv°", "V", "vi", "vii"];
+            mixolydian_numerals = ["I", "ii", "iii°", "IV", "v", "vi", "VII"];
+            aeolian_numerals = ["i", "ii°", "III", "iv", "v", "VI", "VII"];
+            locrian_numerals = ["i°", "II", "iii", "iv", "V", "VI", "vii"];
+        }
+        let chords: Vec<Chord> = match self.scale {
+            ScaleType::Minor => minor_numerals.iter().map(|x| get_chord_from_numeral(&self, x)).collect(),
+            ScaleType::Major | ScaleType::Ionian => ionian_numerals.iter().map(|x| get_chord_from_numeral(&self, x)).collect(),
+            ScaleType::Dorian => dorian_numerals.iter().map(|x| get_chord_from_numeral(&self, x)).collect(),
+            ScaleType::Phrygian => phrygian_numerals.iter().map(|x| get_chord_from_numeral(&self, x)).collect(),
+            ScaleType::Lydian => lydian_numerals.iter().map(|x| get_chord_from_numeral(&self, x)).collect(),
+            ScaleType::Mixolydian => mixolydian_numerals.iter().map(|x| get_chord_from_numeral(&self, x)).collect(),
+            ScaleType::Aeolian | ScaleType::NaturalMinor => aeolian_numerals.iter().map(|x| get_chord_from_numeral(&self, x)).collect(),
+            ScaleType::Locrian => locrian_numerals.iter().map(|x| get_chord_from_numeral(&self, x)).collect(),
+            _ => panic!("Cannot get diatonic chords of a non diatonic scale/the mode provided.")
+        };
+        return chords;
     }
 }
 
