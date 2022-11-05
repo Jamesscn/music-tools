@@ -40,6 +40,24 @@ impl Scale {
     pub fn get_pentatonic(&self) -> &Pentatonic {
         return &self.pentatonic;
     }
+
+    pub fn is_diatonic(&self) -> bool {
+        if self.pitch_classes.len() == 8 {
+            return true;
+        }
+        return false;
+    }
+}
+
+pub fn is_scale_type_diatonic(scale_type: ScaleType) -> bool {
+    return match scale_type {
+        ScaleType::Major | ScaleType::Ionian | ScaleType::Minor | ScaleType::Aeolian |
+        ScaleType::NaturalMinor | ScaleType::DescendingMelodicMinor | ScaleType::Dorian |
+        ScaleType::Phrygian | ScaleType::Lydian | ScaleType::Mixolydian | ScaleType::Locrian |
+        ScaleType::HarmonicMinor | ScaleType::AscendingMelodicMinor |
+        ScaleType::PhrygianDominant => true,
+        _ => false
+    }
 }
 
 pub fn get_scale(tonic: &'static PitchClass, scale_type: ScaleType, pentatonic: Pentatonic) -> Scale {
@@ -64,6 +82,10 @@ pub fn get_scale(tonic: &'static PitchClass, scale_type: ScaleType, pentatonic: 
         let next_pitch_class = get_pitch_class_at_increment(current_pitch_class, step);
         pitch_classes.push(next_pitch_class);
         current_pitch_class = next_pitch_class;
+    }
+    let diatonic_scale_type = is_scale_type_diatonic(scale_type);
+    if pentatonic != Pentatonic::None && !diatonic_scale_type {
+        panic!("Cannot create a pentatonic scale out of a scale which is not diatonic.");    
     }
     if pentatonic == Pentatonic::Major {
         pitch_classes.remove(6);

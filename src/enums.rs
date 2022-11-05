@@ -1,4 +1,4 @@
-#[derive(PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum ScaleType {
     Ionian,
     Dorian,
@@ -18,7 +18,7 @@ pub enum ScaleType {
     Chromatic 
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum ChordQuality {
     Major,
     Minor,
@@ -28,14 +28,14 @@ pub enum ChordQuality {
     Diminished
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Pentatonic {
     None,
     Major,
     Minor
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Seventh {
     None,
     Major,

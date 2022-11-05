@@ -1,6 +1,8 @@
+pub use regex::Regex;
 pub use crate::enums::{ScaleType, Pentatonic};
 pub use crate::pitchclass::PitchClass;
-pub use crate::scale::get_scale;
+use crate::scale::get_pitch_class_at_increment;
+pub use crate::scale::{Scale, get_scale};
 pub use crate::enums::{ChordQuality, Seventh};
 
 pub struct Chord {
@@ -98,4 +100,55 @@ pub fn get_chord_with_quality(tonic: &'static PitchClass, quality: ChordQuality,
         quality: quality,
         seventh: seventh
     }
+}
+
+pub fn get_chord_from_numeral(scale: &Scale, input_numeral: &'static str) -> Chord {
+    if !scale.is_diatonic() {
+        panic!("Scale must be diatonic.");
+    }
+    let numeral_array = ["I", "II", "III", "IV", "V", "VI", "VII"];
+    let numeral_regex = Regex::new(r"^(b|\#)?(I|II|III|IV|V|VI|VII|i|ii|iii|iv|v|vi|vii)(°|\+)?(maj7|7)?$").unwrap();
+    assert!(numeral_regex.is_match(&input_numeral));
+    let regex_capture_groups = numeral_regex.captures(&input_numeral).unwrap();
+    let accidental = regex_capture_groups.get(1).map_or("", |m| m.as_str());
+    let numeral = regex_capture_groups.get(2).map_or("", |m| m.as_str());
+    let quality = regex_capture_groups.get(3).map_or("", |m| m.as_str());
+    let seventh = regex_capture_groups.get(4).map_or("", |m| m.as_str());
+    let numeral_value = numeral_array.iter().position(|&x| x == numeral.to_ascii_uppercase()).unwrap();
+    let chord_quality: ChordQuality;
+    let chord_seventh: Seventh;
+    if numeral.chars().all(char::is_uppercase) {
+        if quality == "+" {
+            chord_quality = ChordQuality::Augmented;
+        } else if quality == "°" {
+            panic!("The chord {}° does not exist. Did you mean {}° ?", numeral, numeral.to_ascii_lowercase());
+        } else {
+            chord_quality = ChordQuality::Major;
+        }
+    } else {
+        if quality == "°" {
+            chord_quality = ChordQuality::Diminished;
+        } else if quality == "+" {
+            panic!("The chord {}+ does not exist. Did you mean {}+ ?", numeral, numeral.to_ascii_uppercase());
+        } else {
+            chord_quality = ChordQuality::Minor;
+        }
+    }
+    if seventh == "maj7" {
+        chord_seventh = Seventh::Major;
+    } else if seventh == "7" {
+        chord_seventh = Seventh::Minor;
+    } else {
+        chord_seventh = Seventh::None;
+    }
+    let tonic_without_accidental: &PitchClass = scale.get_pitch_classes()[numeral_value];
+    let chord_tonic: &PitchClass;
+    if accidental == "b" {
+        chord_tonic = get_pitch_class_at_increment(tonic_without_accidental, -1);
+    } else if accidental == "#" {
+        chord_tonic = get_pitch_class_at_increment(tonic_without_accidental, 1);
+    } else {
+        chord_tonic = tonic_without_accidental;
+    }
+    return get_chord_with_quality(chord_tonic, chord_quality, chord_seventh, 0);
 }
