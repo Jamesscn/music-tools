@@ -1,9 +1,8 @@
 pub use regex::Regex;
-pub use crate::enums::{ScaleType, Pentatonic};
+pub use crate::common::{ScaleType, ChordQuality, Pentatonic, Seventh};
 pub use crate::pitchclass::PitchClass;
 use crate::scale::get_pitch_class_at_increment;
 pub use crate::scale::{Scale, get_scale};
-pub use crate::enums::{ChordQuality, Seventh};
 
 pub struct Chord {
     pitch_classes: Vec<&'static PitchClass>,

@@ -1,6 +1,6 @@
 pub use crate::pitchclass::{PitchClass, PitchClasses, get_pitch_class_at_increment, get_letter_at_increment};
 pub use crate::chord::{Chord, get_chord_from_numeral};
-pub use crate::enums::{ScaleType, Pentatonic};
+pub use crate::common::{ScaleType, Pentatonic};
 
 pub struct Scale {
     pitch_classes: Vec<&'static PitchClass>,

@@ -2,7 +2,8 @@ pub mod note;
 pub mod audio;
 pub mod chord;
 pub mod scale;
-pub mod enums;
+pub mod rhythm;
+pub mod common;
 pub mod pitchclass;
 
 pub use std::time::Duration;
@@ -11,11 +12,10 @@ pub use audio::{WavetableOscillator, Source};
 
 pub use chord::get_chord_with_quality;
 pub use pitchclass::{PitchClass, PitchClasses};
-pub use enums::{ChordQuality, Seventh};
+pub use common::{ChordQuality, Seventh, Fraction};
 pub use note::Note;
 pub use scale::{get_scale, ScaleType};
-
-use crate::chord::get_chord_from_numeral;
+pub use rhythm::{Rhythm, Beat};
 
 fn play_note(note: &Note, stream_handle_ref: &OutputStreamHandle, sinks: &mut Vec<Sink>) {
     let oscillator = WavetableOscillator::new(128, note.frequency, 44100);
@@ -24,7 +24,7 @@ fn play_note(note: &Note, stream_handle_ref: &OutputStreamHandle, sinks: &mut Ve
     sinks.push(sink);
 }
 
-fn get_notes_with_octave(pitch_classes: Vec<&'static PitchClass>, starting_octave: u8) -> Vec<Note> {
+fn _get_notes_with_octave(pitch_classes: Vec<&'static PitchClass>, starting_octave: u8) -> Vec<Note> {
     let mut notes: Vec<Note> = Vec::new();
     let mut octave: u8 = starting_octave;
     let mut last_value: i8 = -1;
@@ -41,27 +41,16 @@ fn get_notes_with_octave(pitch_classes: Vec<&'static PitchClass>, starting_octav
 }
 
 fn main() {
-    let tonic = PitchClasses::C;
-    let scale = get_scale(tonic, ScaleType::Major, scale::Pentatonic::None);
-    let progression = ["IV", "V", "iii", "vi", "I", "bVI", "bVII", "I"];
-    let octaves = [4, 4, 4, 4, 4, 4, 4, 5];
-    for (index, numeral) in progression.iter().enumerate() {
-        let chord = get_chord_from_numeral(&scale, numeral);
-        let octave = octaves[index];
-        println!("Playing {}{}", chord.get_short_name(), octave);
-        let mut notes_played = 0;
-        'measure: loop {
-            let notes = get_notes_with_octave(chord.get_pitch_classes(), octave);
-            for note in notes {
-                let mut sinks: Vec<Sink> = Vec::new();
-                let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-                play_note(&note, &stream_handle, &mut sinks);
-                std::thread::sleep(Duration::from_millis(150));
-                notes_played += 1;
-                if notes_played == 8 {
-                    break 'measure;
-                }
-            }
-        }
+    let mut rhythm = Rhythm::from(160.0, Fraction::new(5, 4), Vec::from(
+        [Beat::quarter_dotted(), Beat::quarter_dotted(), Beat::quarter(), Beat::quarter()]
+    ));
+    let note_names = ["G4", "G4", "A#4", "C5", "G4", "G4", "F4", "F#4"];
+    for index in 0..16 {
+        let mut sinks: Vec<Sink> = Vec::new();
+        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let (_beat, seconds) = rhythm.get_next_beat();
+        let note = Note::from_name(note_names[index % note_names.len()]);
+        play_note(&note, &stream_handle, &mut sinks);
+        std::thread::sleep(Duration::from_millis((seconds * 1000.0) as u64));
     }
 }

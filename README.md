@@ -31,6 +31,8 @@ A set of tools related to music theory.
 - Functional harmony
   - You can get the diatonic chords of any key and mode
   - You can get a diatonic chord given a roman numeral
+- The rhythm module allows you to make rhythms
+  - Supports fractional beats
 
 ## Things that will be implemented in the future:
 
