@@ -5,7 +5,7 @@ pub struct Note {
     pub pitch_class: &'static PitchClass,
     pub octave: u8,
     pub value: u32,
-    pub frequency: f32
+    base_frequency: f32
 }
 
 impl Note {
@@ -17,20 +17,28 @@ impl Note {
         let pitch_class_string = String::from(&regex_capture_groups[1]);
         let pitch_class = get_pitch_class_from_name(pitch_class_string);
         return Note {
-            pitch_class: pitch_class,
-            octave: octave,
+            pitch_class,
+            octave,
             value: octave as u32 * 12 + pitch_class.get_value() as u32,
-            frequency: 27.5 as f32 * (2.0 as f32).powf(octave as f32 + (pitch_class.get_value() as i8 - 9) as f32 / 12 as f32)
+            base_frequency: 440.0
         };
     }
 
     pub fn from(pitch_class: &'static PitchClass, octave: u8) -> Note {
         return Note {
-            pitch_class: pitch_class,
-            octave: octave,
+            pitch_class,
+            octave,
             value: octave as u32 * 12 + pitch_class.get_value() as u32,
-            frequency: 27.5 as f32 * (2.0 as f32).powf(octave as f32 + (pitch_class.get_value() as i8 - 9) as f32 / 12 as f32)
+            base_frequency: 440.0
         }
+    }
+
+    pub fn set_base_frequency(&mut self, base_frequency: f32) {
+        self.base_frequency = base_frequency;
+    }
+
+    pub fn get_base_frequency(&self) -> f32 {
+        return self.base_frequency;
     }
 
     pub fn get_octave(&self) -> u8 {
@@ -42,6 +50,6 @@ impl Note {
     }
 
     pub fn get_frequency(&self) -> f32 {
-        return self.frequency;
+        return self.base_frequency as f32 * (2.0 as f32).powf(self.octave as f32 + (self.pitch_class.get_value() as i8 - 9) as f32 / 12 as f32 - 4.0)
     }
 }

@@ -33,6 +33,8 @@ A set of tools related to music theory.
   - You can get a diatonic chord given a roman numeral
 - The rhythm module allows you to make rhythms
   - Supports fractional beats
+- Notes return their frequencies based on a given base frequency
+  - This allows you to set A4 equal to any frequency (such as 432 Hz)
 
 ## Things that will be implemented in the future:
 

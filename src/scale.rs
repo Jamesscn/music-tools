@@ -103,9 +103,9 @@ pub fn is_scale_type_diatonic(scale_type: ScaleType) -> bool {
     }
 }
 
-pub fn get_scale(tonic: &'static PitchClass, scale_type: ScaleType, pentatonic: Pentatonic) -> Scale {
+pub fn get_scale(tonic: &'static PitchClass, scale: ScaleType, pentatonic: Pentatonic) -> Scale {
     let mut pitch_classes: Vec<&'static PitchClass> = Vec::new();
-    let scale_steps: Vec<i8> = match scale_type {
+    let scale_steps: Vec<i8> = match scale {
         ScaleType::Major | ScaleType::Ionian => Vec::from([2, 2, 1, 2, 2, 2, 1]),
         ScaleType::Minor | ScaleType::Aeolian | ScaleType::NaturalMinor | ScaleType::DescendingMelodicMinor => Vec::from([2, 1, 2, 2, 1, 2, 2]),
         ScaleType::Dorian => Vec::from([2, 1, 2, 2, 2, 1, 2]),
@@ -126,7 +126,7 @@ pub fn get_scale(tonic: &'static PitchClass, scale_type: ScaleType, pentatonic: 
         pitch_classes.push(next_pitch_class);
         current_pitch_class = next_pitch_class;
     }
-    let diatonic_scale_type = is_scale_type_diatonic(scale_type);
+    let diatonic_scale_type = is_scale_type_diatonic(scale);
     if pentatonic != Pentatonic::None && !diatonic_scale_type {
         panic!("Cannot create a pentatonic scale out of a scale which is not diatonic.");    
     }
@@ -138,8 +138,8 @@ pub fn get_scale(tonic: &'static PitchClass, scale_type: ScaleType, pentatonic: 
         pitch_classes.remove(1);
     }
     return Scale {
-        pitch_classes: pitch_classes,
-        scale: scale_type,
-        pentatonic: pentatonic
+        pitch_classes,
+        scale,
+        pentatonic
     };
 }

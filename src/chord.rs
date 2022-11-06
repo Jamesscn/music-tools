@@ -94,10 +94,10 @@ pub fn get_chord_with_quality(tonic: &'static PitchClass, triad_quality: TriadQu
     }
     let num_pitch_classes = pitch_classes.len() as u8;
     return Chord {
-        pitch_classes: pitch_classes,
+        pitch_classes,
         inversion: inversion % num_pitch_classes,
-        triad_quality: triad_quality,
-        seventh: seventh
+        triad_quality,
+        seventh
     }
 }
 

@@ -11,7 +11,7 @@ pub use musictools::note::Note;
 pub use musictools::scale::{get_scale, ScaleType};
 
 fn play_note(note: &Note, stream_handle_ref: &OutputStreamHandle, sinks: &mut Vec<Sink>) {
-    let oscillator = WavetableOscillator::new(128, note.frequency, 44100);
+    let oscillator = WavetableOscillator::new(128, note.get_frequency(), 44100);
     let sink = Sink::try_new(stream_handle_ref).unwrap();
     sink.append(oscillator);
     sinks.push(sink);

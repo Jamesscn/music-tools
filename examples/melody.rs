@@ -16,7 +16,7 @@ fn main() {
     for index in 0..16 {
         let (_beat, seconds) = rhythm.get_next_beat();
         let note = Note::from_name(note_names[index % note_names.len()]);
-        let oscillator = WavetableOscillator::new(128, note.frequency, 44100);
+        let oscillator = WavetableOscillator::new(128, note.get_frequency(), 44100);
         let (_stream, stream_handle) = OutputStream::try_default().unwrap();
         let sink = Sink::try_new(&stream_handle).unwrap();
         sink.append(oscillator);

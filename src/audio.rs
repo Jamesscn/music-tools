@@ -14,11 +14,11 @@ impl WavetableOscillator {
         let wave_table = generate_wave_table(table_size);
         let table_delta = frequency * table_size as f32 / sample_rate as f32;
         return WavetableOscillator {
-            wave_table: wave_table,
-            table_size: table_size,
-            table_delta: table_delta,
+            wave_table,
+            table_size,
+            table_delta,
             table_index: 0.0,
-            sample_rate: sample_rate
+            sample_rate
         };
     }
 
