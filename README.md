@@ -37,4 +37,5 @@ A set of tools related to music theory.
 ## Things that will be implemented in the future:
 
 - Getting intervals between notes
+- Getting a list of the closest chords to a set of notes
 - Playing multiple notes at the same time

@@ -1,13 +1,13 @@
 pub use regex::Regex;
-pub use crate::common::{ScaleType, ChordQuality, Pentatonic, Seventh};
+pub use crate::common::{ScaleType, TriadQuality, Pentatonic, Seventh};
 pub use crate::pitchclass::PitchClass;
-use crate::scale::get_pitch_class_at_increment;
+pub use crate::scale::get_pitch_class_at_increment;
 pub use crate::scale::{Scale, get_scale};
 
 pub struct Chord {
     pitch_classes: Vec<&'static PitchClass>,
     inversion: u8,
-    quality: ChordQuality,
+    triad_quality: TriadQuality,
     seventh: Seventh
 }
 
@@ -27,8 +27,8 @@ impl Chord {
         return self.inversion;
     }
 
-    pub fn get_quality(&self) -> &ChordQuality {
-        return &self.quality;
+    pub fn get_triad_quality(&self) -> &TriadQuality {
+        return &self.triad_quality;
     }
 
     pub fn get_seventh(&self) -> &Seventh {
@@ -46,16 +46,16 @@ impl Chord {
             short_name.push_str("/");
         }
         short_name.push_str(self.get_tonic().get_name());
-        let quality_name: &'static str = match self.quality {
-            ChordQuality::Minor => "m",
-            ChordQuality::Augmented => "+",
-            ChordQuality::Diminished => "°",
+        let quality_name: &'static str = match self.triad_quality {
+            TriadQuality::Minor => "m",
+            TriadQuality::Augmented => "+",
+            TriadQuality::Diminished => "°",
             _ => ""
         };
         short_name.push_str(quality_name);
         let seventh_name: &'static str;
         if self.seventh == Seventh::Major {
-            if self.quality == ChordQuality::Minor {
+            if self.triad_quality == TriadQuality::Minor {
                 seventh_name = "(maj7)";
             } else {
                 seventh_name = "maj7";
@@ -70,7 +70,7 @@ impl Chord {
     }
 }
 
-pub fn get_chord_with_quality(tonic: &'static PitchClass, quality: ChordQuality, seventh: Seventh, inversion: u8) -> Chord {
+pub fn get_chord_with_quality(tonic: &'static PitchClass, triad_quality: TriadQuality, seventh: Seventh, inversion: u8) -> Chord {
     let major_scale_obj = get_scale(tonic, ScaleType::Major, Pentatonic::None);
     let minor_scale_obj = get_scale(tonic, ScaleType::Minor, Pentatonic::None);
     let whole_scale_obj = get_scale(tonic, ScaleType::Whole, Pentatonic::None);
@@ -79,13 +79,13 @@ pub fn get_chord_with_quality(tonic: &'static PitchClass, quality: ChordQuality,
     let minor_scale = minor_scale_obj.get_pitch_classes();
     let whole_scale = whole_scale_obj.get_pitch_classes();
     let locrian_scale = locrian_scale_obj.get_pitch_classes();
-    let mut pitch_classes: Vec<&'static PitchClass> = match quality {
-        ChordQuality::Major =>  Vec::from([major_scale[0], major_scale[2], major_scale[4]]),
-        ChordQuality::Minor =>  Vec::from([minor_scale[0], minor_scale[2], minor_scale[4]]),
-        ChordQuality::Sus2 =>  Vec::from([major_scale[0], major_scale[1], major_scale[4]]),
-        ChordQuality::Sus4 =>  Vec::from([major_scale[0], major_scale[3], major_scale[4]]),
-        ChordQuality::Augmented =>  Vec::from([whole_scale[0], whole_scale[2], whole_scale[4]]),
-        ChordQuality::Diminished =>  Vec::from([locrian_scale[0], locrian_scale[2], locrian_scale[4]])
+    let mut pitch_classes: Vec<&'static PitchClass> = match triad_quality {
+        TriadQuality::Major =>  Vec::from([major_scale[0], major_scale[2], major_scale[4]]),
+        TriadQuality::Minor =>  Vec::from([minor_scale[0], minor_scale[2], minor_scale[4]]),
+        TriadQuality::Sus2 =>  Vec::from([major_scale[0], major_scale[1], major_scale[4]]),
+        TriadQuality::Sus4 =>  Vec::from([major_scale[0], major_scale[3], major_scale[4]]),
+        TriadQuality::Augmented =>  Vec::from([whole_scale[0], whole_scale[2], whole_scale[4]]),
+        TriadQuality::Diminished =>  Vec::from([locrian_scale[0], locrian_scale[2], locrian_scale[4]])
     };
     if seventh == Seventh::Major {
         pitch_classes.push(major_scale[6]);
@@ -96,7 +96,7 @@ pub fn get_chord_with_quality(tonic: &'static PitchClass, quality: ChordQuality,
     return Chord {
         pitch_classes: pitch_classes,
         inversion: inversion % num_pitch_classes,
-        quality: quality,
+        triad_quality: triad_quality,
         seventh: seventh
     }
 }
@@ -114,23 +114,23 @@ pub fn get_chord_from_numeral(scale: &Scale, input_numeral: &'static str) -> Cho
     let quality = regex_capture_groups.get(3).map_or("", |m| m.as_str());
     let seventh = regex_capture_groups.get(4).map_or("", |m| m.as_str());
     let numeral_value = numeral_array.iter().position(|&x| x == numeral.to_ascii_uppercase()).unwrap();
-    let chord_quality: ChordQuality;
+    let triad_quality: TriadQuality;
     let chord_seventh: Seventh;
     if numeral.chars().all(char::is_uppercase) {
         if quality == "+" {
-            chord_quality = ChordQuality::Augmented;
+            triad_quality = TriadQuality::Augmented;
         } else if quality == "°" {
             panic!("The chord {}° does not exist. Did you mean {}° ?", numeral, numeral.to_ascii_lowercase());
         } else {
-            chord_quality = ChordQuality::Major;
+            triad_quality = TriadQuality::Major;
         }
     } else {
         if quality == "°" {
-            chord_quality = ChordQuality::Diminished;
+            triad_quality = TriadQuality::Diminished;
         } else if quality == "+" {
             panic!("The chord {}+ does not exist. Did you mean {}+ ?", numeral, numeral.to_ascii_uppercase());
         } else {
-            chord_quality = ChordQuality::Minor;
+            triad_quality = TriadQuality::Minor;
         }
     }
     if seventh == "maj7" {
@@ -149,5 +149,5 @@ pub fn get_chord_from_numeral(scale: &Scale, input_numeral: &'static str) -> Cho
     } else {
         chord_tonic = tonic_without_accidental;
     }
-    return get_chord_with_quality(chord_tonic, chord_quality, chord_seventh, 0);
+    return get_chord_with_quality(chord_tonic, triad_quality, chord_seventh, 0);
 }

@@ -46,7 +46,7 @@ pub enum ScaleType {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
-pub enum ChordQuality {
+pub enum TriadQuality {
     Major,
     Minor,
     Sus2,
