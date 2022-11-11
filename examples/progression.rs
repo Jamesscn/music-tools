@@ -35,11 +35,11 @@ fn get_notes_with_octave(pitch_classes: Vec<&'static PitchClass>, starting_octav
 
 fn main() {
     let tonic = PitchClasses::C;
-    let scale = get_scale(tonic, ScaleType::Major, Pentatonic::None);
+    let scale = get_scale(tonic, ScaleType::Major, Pentatonic::None).unwrap();
     let progression = ["IV", "V", "iii", "vi", "I", "bVI", "bVII", "I"];
     let octaves = [4, 4, 4, 4, 4, 4, 4, 5];
     for (index, numeral) in progression.iter().enumerate() {
-        let chord = get_chord_from_numeral(&scale, numeral);
+        let chord = get_chord_from_numeral(&scale, numeral).unwrap();
         let octave = octaves[index];
         println!("Playing {}{}", chord.get_short_name(), octave);
         let mut notes_played = 0;

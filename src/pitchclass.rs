@@ -96,31 +96,26 @@ impl PitchClasses {
 
 const LETTERS: [char; 7] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
-pub fn get_letter_at_increment(letter: char, increment: i8) -> char {
-    for letter_index in 0..7 as i8 {
-        let current_letter = LETTERS[letter_index as usize];
-        if current_letter == letter {
-            let new_index = (letter_index + increment) % 7;
-            return LETTERS[new_index as usize];
-        }
+pub fn get_letter_at_increment(letter: char, increment: i8) -> Option<char> {
+    let letter_option = LETTERS.iter().position(|&x| x == letter);
+    return match letter_option {
+        Some(letter_index) => Some(LETTERS[((letter_index as i8 + increment) % 7) as usize]),
+        None => None
     }
-    panic!("The letter {0} is not valid.", letter);
 }
 
-pub fn get_pitch_class_from_name(pitch_class_name: String) -> &'static PitchClass {
+pub fn get_pitch_class_from_name(pitch_class_name: String) -> Option<&'static PitchClass> {
     for pitch_class_index in 0..12 {
-        let current_pitch_class = &PITCH_CLASSES[pitch_class_index];
-        for current_name in current_pitch_class.names {
+        let pitch_class = &PITCH_CLASSES[pitch_class_index];
+        for current_name in pitch_class.names {
             if current_name == pitch_class_name {
-                return &PITCH_CLASSES[pitch_class_index];
+                return Some(&PITCH_CLASSES[pitch_class_index]);
             } 
         }
     }
-    panic!("Pitch class {0} does not exist.", pitch_class_name);
+    return None;
 }
 
-pub fn get_pitch_class_at_increment(current_pitch_class: &'static PitchClass, increment: i8) -> &'static PitchClass {
-    let current_pitch_value = current_pitch_class.value as i8;
-    let next_pitch_value = (current_pitch_value + increment) % 12;
-    return &PITCH_CLASSES[next_pitch_value as usize];
+pub fn get_pitch_class_at_increment(pitch_class: &'static PitchClass, increment: i8) -> &'static PitchClass {
+    return &PITCH_CLASSES[((pitch_class.value as i8 + increment) % 12) as usize];
 }

@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone)]
 pub struct Fraction {
     numerator: u8,
     denominator: u8
@@ -23,7 +23,25 @@ impl Fraction {
     pub fn get_as_float(&self) -> f32 {
         return self.numerator as f32 / self.denominator as f32;
     }
+
+    pub fn get_simplified(&self) -> Fraction {
+        let common_factor = gcd(self.numerator, self.denominator);
+        return Fraction {
+            numerator: self.numerator / common_factor,
+            denominator: self.denominator / common_factor
+        }
+    }
 }
+
+impl PartialEq for Fraction {
+    fn eq(&self, other: &Self) -> bool {
+        let left_simplified = self.get_simplified();
+        let right_simplified = other.get_simplified();
+        return left_simplified.numerator == right_simplified.numerator && left_simplified.denominator == right_simplified.denominator;
+    }
+}
+
+impl Eq for Fraction {}
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum ScaleType {
@@ -67,4 +85,8 @@ pub enum Seventh {
     None,
     Major,
     Minor
+}
+
+fn gcd(a: u8, b: u8) -> u8 {
+    return if b == 0 { a } else { gcd(b, a % b) };
 }

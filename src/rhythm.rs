@@ -66,7 +66,7 @@ impl Rhythm {
             time_signature,
             beats: Vec::new(),
             current_beat: 0
-        }
+        };
     }
 
     pub fn from(beats_per_minute: f32, time_signature: Fraction, beats: Vec<Beat>) -> Rhythm {
@@ -75,7 +75,7 @@ impl Rhythm {
             time_signature,
             beats,
             current_beat: 0
-        }
+        };
     }
 
     pub fn push(&mut self, beat: Beat) {
@@ -84,6 +84,14 @@ impl Rhythm {
 
     pub fn pop(&mut self) -> Option<Beat> {
         return self.beats.pop();
+    }
+
+    pub fn insert(&mut self, index: usize, beat: Beat) {
+        self.beats.insert(index, beat);
+    }
+
+    pub fn remove(&mut self, index: usize) {
+        self.beats.remove(index);
     }
 
     pub fn get_bpm(&self) -> f32 {
