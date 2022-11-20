@@ -10,11 +10,15 @@ pub use musictools::common::Pentatonic;
 pub use musictools::note::Note;
 pub use musictools::scale::{get_scale, ScaleType};
 
-fn play_note(note: &Note, stream_handle_ref: &OutputStreamHandle, sinks: &mut Vec<Sink>) {
-    let oscillator = WavetableOscillator::new(128, note.get_frequency(), 44100);
-    let sink = Sink::try_new(stream_handle_ref).unwrap();
+fn play_notes(notes: Vec<Note>, seconds: f32) {
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let mut oscillator = WavetableOscillator::new(128, 44100);
+    for note in notes {
+        oscillator.add_frequency(note.get_frequency());
+    }
+    let sink = Sink::try_new(&stream_handle).unwrap();
     sink.append(oscillator);
-    sinks.push(sink);
+    std::thread::sleep(Duration::from_millis((seconds * 1000.0) as u64));
 }
 
 fn get_notes_with_octave(pitch_classes: Vec<&'static PitchClass>, starting_octave: u8) -> Vec<Note> {
@@ -42,19 +46,7 @@ fn main() {
         let chord = get_chord_from_numeral(&scale, numeral).unwrap();
         let octave = octaves[index];
         println!("Playing {}{}", chord.get_short_name(), octave);
-        let mut notes_played = 0;
-        'measure: loop {
-            let notes = get_notes_with_octave(chord.get_pitch_classes(), octave);
-            for note in notes {
-                let mut sinks: Vec<Sink> = Vec::new();
-                let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-                play_note(&note, &stream_handle, &mut sinks);
-                std::thread::sleep(Duration::from_millis(150));
-                notes_played += 1;
-                if notes_played == 8 {
-                    break 'measure;
-                }
-            }
-        }
+        let notes = get_notes_with_octave(chord.get_pitch_classes(), octave);
+        play_notes(notes, 1.0);
     }
 }

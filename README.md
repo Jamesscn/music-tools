@@ -15,6 +15,7 @@ A set of tools related to music theory.
   - This struct also calculates the frequency of the note.
 - The audio module contains a wavetable oscillator which allows one to play certain frequencies or notes as sine waves.
   - Currently only sine waves are supported.
+  - Multiple notes can be played at the same time.
 - The scale module can make the following scales:
   - Chromatic scales
   - Diatonic scales
@@ -40,4 +41,3 @@ A set of tools related to music theory.
 
 - Getting intervals between notes
 - Getting a list of the closest chords to a set of notes
-- Playing multiple notes at the same time

@@ -4,38 +4,48 @@ pub use rodio::Source;
 pub struct WavetableOscillator {
     wave_table: Vec<f32>,
     table_size: usize,
-    table_delta: f32,
-    table_index: f32,
-    sample_rate: u32
+    sample_rate: u32,
+    table_deltas: Vec<f32>,
+    table_indexes: Vec<f32>
 }
 
 impl WavetableOscillator {
-    pub fn new(table_size: usize, frequency: f32, sample_rate: u32) -> WavetableOscillator {
+    pub fn new(table_size: usize, sample_rate: u32) -> WavetableOscillator {
         let wave_table = generate_wave_table(table_size);
-        let table_delta = frequency * table_size as f32 / sample_rate as f32;
         return WavetableOscillator {
             wave_table,
             table_size,
-            table_delta,
-            table_index: 0.0,
-            sample_rate
+            sample_rate,
+            table_deltas: Vec::new(),
+            table_indexes: Vec::new()
         };
     }
 
-    pub fn get_next_sample(&mut self) -> f32 {
-        let current_index = self.table_index as usize;
-        let next_index = (current_index + 1) % self.table_size;
-        let lerp_frac = self.table_index - current_index as f32;
-        let current_value = self.wave_table[current_index];
-        let next_value = self.wave_table[next_index];
-        let lerp_value = current_value + lerp_frac * (next_value - current_value);
-        self.table_index += self.table_delta;
-        self.table_index %= self.table_size as f32;
-        return lerp_value;
+    pub fn add_frequency(&mut self, frequency: f32) {
+        let table_delta = frequency * self.table_size as f32 / self.sample_rate as f32;
+        self.table_deltas.push(table_delta);
+        self.table_indexes.push(0.0);
     }
 
-    pub fn set_frequency(&mut self, frequency: f32) {
-        self.table_delta = frequency * self.table_size as f32 / self.sample_rate as f32;
+    pub fn clear_frequencies(&mut self) {
+        self.table_deltas.clear();
+        self.table_indexes.clear();
+    }
+
+    pub fn get_next_sample(&mut self) -> f32 {
+        let mut sample = 0.0;
+        for index in 0..self.table_deltas.len() {
+            let current_index = self.table_indexes[index] as usize;
+            let next_index = (current_index + 1) % self.table_size;
+            let lerp_frac = self.table_indexes[index] - current_index as f32;
+            let current_value = self.wave_table[current_index];
+            let next_value = self.wave_table[next_index];
+            let lerp_value = current_value + lerp_frac * (next_value - current_value);
+            sample += lerp_value / self.table_deltas.len() as f32;
+            self.table_indexes[index] += self.table_deltas[index];
+            self.table_indexes[index] %= self.table_size as f32;
+        }
+        return sample;
     }
 }
 
