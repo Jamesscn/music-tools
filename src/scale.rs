@@ -63,23 +63,23 @@ impl Scale {
         let aeolian_numerals: [&str; 7];
         let locrian_numerals: [&str; 7];
         if with_seventh {
-            minor_numerals = ["i7", "ii°7", "IIImaj7", "iv7", "Vmaj7", "VImaj7", "VII7"];
+            minor_numerals = ["i7", "ii°7", "bIIImaj7", "iv7", "Vmaj7", "bVImaj7", "bVII7"];
             ionian_numerals = ["Imaj7", "ii7", "iii7", "IVmaj7", "V7", "vi7", "vii°7"];
-            dorian_numerals = ["i7", "ii7", "IIImaj7", "IV7", "v7", "vi°7", "VIImaj7"];
-            phrygian_numerals = ["i7", "IImaj7", "III7", "iv7", "v°7", "VImaj7", "vii7"];
-            lydian_numerals = ["Imaj7", "II7", "iii7", "iv°7", "Vmaj7", "vi7", "vii7"];
-            mixolydian_numerals = ["I7", "ii7", "iii°7", "IVmaj7", "v7", "vi7", "VIImaj7"];
-            aeolian_numerals = ["i7", "ii°7", "IIImaj7", "iv7", "v7", "VImaj7", "VII7"];
-            locrian_numerals = ["i°7", "IImaj7", "iii7", "iv7", "Vmaj7", "VI7", "vii7"];
+            dorian_numerals = ["i7", "ii7", "bIIImaj7", "IV7", "v7", "vi°7", "bVIImaj7"];
+            phrygian_numerals = ["i7", "bIImaj7", "bIII7", "iv7", "v°7", "bVImaj7", "bvii7"];
+            lydian_numerals = ["Imaj7", "II7", "iii7", "#iv°7", "Vmaj7", "vi7", "vii7"];
+            mixolydian_numerals = ["I7", "ii7", "iii°7", "IVmaj7", "v7", "vi7", "bVIImaj7"];
+            aeolian_numerals = ["i7", "ii°7", "bIIImaj7", "iv7", "v7", "bVImaj7", "bVII7"];
+            locrian_numerals = ["i°7", "bIImaj7", "biii7", "iv7", "bVmaj7", "bVI7", "bvii7"];
         } else {
-            minor_numerals = ["i", "ii°", "III", "iv", "V", "VI", "VII"];
+            minor_numerals = ["i", "ii°", "bIII", "iv", "V", "bVI", "bVII"];
             ionian_numerals = ["I", "ii", "iii", "IV", "V", "vi", "vii°"];
-            dorian_numerals = ["i", "ii", "III", "IV", "v", "vi°", "VII"];
-            phrygian_numerals = ["i", "II", "III", "iv", "v°", "VI", "vii"];
-            lydian_numerals = ["I", "II", "iii", "iv°", "V", "vi", "vii"];
-            mixolydian_numerals = ["I", "ii", "iii°", "IV", "v", "vi", "VII"];
-            aeolian_numerals = ["i", "ii°", "III", "iv", "v", "VI", "VII"];
-            locrian_numerals = ["i°", "II", "iii", "iv", "V", "VI", "vii"];
+            dorian_numerals = ["i", "ii", "bIII", "IV", "v", "vi°", "bVII"];
+            phrygian_numerals = ["i", "bII", "bIII", "iv", "v°", "bVI", "bvii"];
+            lydian_numerals = ["I", "II", "iii", "#iv°", "V", "vi", "vii"];
+            mixolydian_numerals = ["I", "ii", "iii°", "IV", "v", "vi", "bVII"];
+            aeolian_numerals = ["i", "ii°", "bIII", "iv", "v", "bVI", "bVII"];
+            locrian_numerals = ["i°", "bII", "biii", "iv", "bV", "bVI", "bvii"];
         }
         let chords: Vec<Chord> = match self.scale {
             ScaleType::Minor => minor_numerals,
