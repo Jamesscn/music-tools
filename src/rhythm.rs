@@ -133,4 +133,8 @@ impl Rhythm {
         self.current_beat = (self.current_beat + 1) % self.beats.len();
         return (beat, self.get_beat_length(beat));
     }
+
+    pub fn get_num_beats(&self) -> usize {
+        return self.beats.len();
+    }
 }
