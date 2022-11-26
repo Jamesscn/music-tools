@@ -49,6 +49,10 @@ impl Scale {
         return false;
     }
 
+    pub fn get_tonic(&self) -> &'static PitchClass {
+        return self.pitch_classes[0];
+    }
+
     pub fn get_diatonic_chords(&self, with_seventh: bool) -> Option<Vec<Chord>> {
         let minor_numerals: [&str; 7];
         let ionian_numerals: [&str; 7];
@@ -87,7 +91,7 @@ impl Scale {
             ScaleType::Aeolian | ScaleType::NaturalMinor => aeolian_numerals,
             ScaleType::Locrian => locrian_numerals,
             _ => return None
-        }.iter().map(|x| get_chord_from_numeral(&self, x).unwrap()).collect();
+        }.iter().map(|x| get_chord_from_numeral(self.get_tonic(), x).unwrap()).collect();
         return Some(chords);
     }
 }

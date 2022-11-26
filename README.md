@@ -41,3 +41,4 @@ A set of tools related to music theory.
 
 - Getting intervals between notes
 - Getting a list of the closest chords to a set of notes
+- Support for ninths and other modified chords

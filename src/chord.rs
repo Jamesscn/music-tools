@@ -101,10 +101,7 @@ pub fn get_chord_with_quality(tonic: &'static PitchClass, triad_quality: TriadQu
     }
 }
 
-pub fn get_chord_from_numeral(scale: &Scale, input_numeral: &str) -> Option<Chord> {
-    if !scale.is_diatonic() {
-        return None;
-    }
+pub fn get_chord_from_numeral(tonic: &'static PitchClass, input_numeral: &str) -> Option<Chord> {
     let numeral_array = ["I", "II", "III", "IV", "V", "VI", "VII"];
     let numeral_regex = Regex::new(r"^(b|\#)?(I|II|III|IV|V|VI|VII|i|ii|iii|iv|v|vi|vii)(°|\+)?(maj7|7)?$").unwrap();
     if !numeral_regex.is_match(&input_numeral) {
@@ -142,14 +139,35 @@ pub fn get_chord_from_numeral(scale: &Scale, input_numeral: &str) -> Option<Chor
     } else {
         chord_seventh = Seventh::None;
     }
-    let tonic_without_accidental: &PitchClass = scale.get_pitch_classes()[numeral_value];
-    let chord_tonic: &PitchClass;
+    let mut increment = match numeral_value {
+        0 => 0,
+        1 => 2,
+        2 => 4,
+        3 => 5,
+        4 => 7,
+        5 => 9,
+        6 => 11,
+        _ => return None
+    };
     if accidental == "b" {
-        chord_tonic = get_pitch_class_at_increment(tonic_without_accidental, -1);
+        increment = match numeral_value {
+            1 => 1,
+            2 => 3,
+            4 => 6,
+            5 => 8,
+            6 => 10,
+            _ => return None
+        };
     } else if accidental == "#" {
-        chord_tonic = get_pitch_class_at_increment(tonic_without_accidental, 1);
-    } else {
-        chord_tonic = tonic_without_accidental;
+        increment = match numeral_value {
+            0 => 1,
+            1 => 3,
+            3 => 6,
+            4 => 8,
+            5 => 10,
+            _ => return None
+        };
     }
+    let chord_tonic = get_pitch_class_at_increment(tonic, increment);
     return Some(get_chord_with_quality(chord_tonic, triad_quality, chord_seventh, 0));
 }
