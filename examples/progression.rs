@@ -4,9 +4,9 @@ pub use std::time::Duration;
 pub use rodio::{OutputStream, OutputStreamHandle, Sink};
 
 pub use musictools::audio::{WavetableOscillator, Source};
-pub use musictools::chord::{get_chord_from_numeral};
+pub use musictools::chord::Chord;
 pub use musictools::pitchclass::{PitchClass, PitchClasses};
-pub use musictools::common::Pentatonic;
+pub use musictools::common::PitchQuality;
 pub use musictools::note::Note;
 pub use musictools::scale::{get_scale, ScaleType};
 
@@ -42,9 +42,9 @@ fn main() {
     let progression = ["IV", "V", "iii", "vi", "I", "bVI", "bVII", "I"];
     let octaves = [4, 4, 4, 4, 4, 4, 4, 5];
     for (index, numeral) in progression.iter().enumerate() {
-        let chord = get_chord_from_numeral(&tonic, numeral).unwrap();
+        let chord = Chord::from_numeral(&tonic, numeral).unwrap();
         let octave = octaves[index];
-        println!("Playing {}{}", chord.get_short_name(), octave);
+        //println!("Playing {}{}", chord.get_short_name(), octave);
         let notes = get_notes_with_octave(chord.get_pitch_classes(), octave);
         play_notes(notes, 1.0);
     }

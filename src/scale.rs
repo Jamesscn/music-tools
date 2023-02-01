@@ -1,11 +1,11 @@
 pub use crate::pitchclass::{PitchClass, PitchClasses, get_pitch_class_at_increment, get_letter_at_increment};
-pub use crate::chord::{Chord, get_chord_from_numeral};
-pub use crate::common::{ScaleType, Pentatonic};
+pub use crate::chord::Chord;
+pub use crate::common::{ScaleType, PitchQuality};
 
 pub struct Scale {
     pitch_classes: Vec<&'static PitchClass>,
     scale: ScaleType,
-    pentatonic: Pentatonic
+    pentatonic: PitchQuality
 }
 
 impl Scale {
@@ -38,7 +38,7 @@ impl Scale {
         return self.scale;
     }
 
-    pub fn get_pentatonic(&self) -> Pentatonic {
+    pub fn get_pentatonic(&self) -> PitchQuality {
         return self.pentatonic;
     }
 
@@ -91,7 +91,7 @@ impl Scale {
             ScaleType::Aeolian | ScaleType::NaturalMinor => aeolian_numerals,
             ScaleType::Locrian => locrian_numerals,
             _ => return None
-        }.iter().map(|x| get_chord_from_numeral(self.get_tonic(), x).unwrap()).collect();
+        }.iter().map(|x| Chord::from_numeral(self.get_tonic(), x).unwrap()).collect();
         return Some(chords);
     }
 }
@@ -107,7 +107,7 @@ pub fn is_scale_type_diatonic(scale_type: ScaleType) -> bool {
     }
 }
 
-pub fn get_scale(tonic: &'static PitchClass, scale: ScaleType, pentatonic: Pentatonic) -> Option<Scale> {
+pub fn get_scale(tonic: &'static PitchClass, scale: ScaleType, pentatonic: PitchQuality) -> Option<Scale> {
     let scale_steps: Vec<i8> = match scale {
         ScaleType::Major | ScaleType::Ionian => vec![2, 2, 1, 2, 2, 2, 1],
         ScaleType::Minor | ScaleType::Aeolian | ScaleType::NaturalMinor | ScaleType::DescendingMelodicMinor => vec![2, 1, 2, 2, 1, 2, 2],
@@ -131,13 +131,13 @@ pub fn get_scale(tonic: &'static PitchClass, scale: ScaleType, pentatonic: Penta
         current_pitch_class = next_pitch_class;
     }
     let diatonic_scale_type = is_scale_type_diatonic(scale);
-    if pentatonic != Pentatonic::None && !diatonic_scale_type {
+    if pentatonic != PitchQuality::None && !diatonic_scale_type {
         return None;
     }
-    if pentatonic == Pentatonic::Major {
+    if pentatonic == PitchQuality::Major {
         pitch_classes.remove(6);
         pitch_classes.remove(3);
-    } else if pentatonic == Pentatonic::Minor {
+    } else if pentatonic == PitchQuality::Minor {
         pitch_classes.remove(5);
         pitch_classes.remove(1);
     }

@@ -74,14 +74,7 @@ pub enum TriadQuality {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
-pub enum Pentatonic {
-    None,
-    Major,
-    Minor
-}
-
-#[derive(Copy, Clone, PartialEq, Eq)]
-pub enum Seventh {
+pub enum PitchQuality {
     None,
     Major,
     Minor
