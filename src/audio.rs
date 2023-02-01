@@ -15,22 +15,20 @@ pub use rodio::Source;
 /// This implementation of a wavetable oscillator also allows you to play
 /// multiple frequencies of the wave at the same time.
 /// 
-/// # Example
+/// # Examples
 /// 
 /// ```rust
-/// pub use std::time::Duration;
-/// pub use rodio::{OutputStream, OutputStreamHandle, Sink};
-/// pub use musictools::audio::{WavetableOscillator, Source};
+/// use std::time::Duration;
+/// use rodio::{OutputStream, OutputStreamHandle, Sink};
+/// use musictools::audio::{WavetableOscillator, Source};
 /// 
-/// fn main() {
-///     let mut oscillator = WavetableOscillator::new(128, 44100);
-///     oscillator.add_frequency(440.0);
-///     oscillator.add_frequency(659.3);
-///     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-///     let sink = Sink::try_new(&stream_handle).unwrap();
-///     sink.append(oscillator);
-///     std::thread::sleep(Duration::from_millis(1000));
-/// }
+/// let mut oscillator = WavetableOscillator::new(128, 44100);
+/// oscillator.add_frequency(440.0);
+/// oscillator.add_frequency(659.3);
+/// let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+/// let sink = Sink::try_new(&stream_handle).unwrap();
+/// sink.append(oscillator);
+/// std::thread::sleep(Duration::from_millis(1000));
 /// ```
 pub struct WavetableOscillator {
     wave_table: Vec<f32>,
