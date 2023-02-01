@@ -1,6 +1,37 @@
 pub use std::time::Duration;
 pub use rodio::Source;
 
+/// A structure which holds a wavetable oscillator.
+/// 
+/// A wavetable oscillator is used to store the shape of a wave in a table or
+/// an array which can later be played at a specific frequency. There are
+/// several advantages to storing a wave this way, most notably:
+/// 
+/// - Efficiency: It is more efficient to use a lookup table to store certain
+/// shapes of waves such as sine waves than to call the sin() function.
+/// - Timbre: It is easy to change the shape of the wave to something more
+/// complex such as a square, sawtooth or triangle wave.
+/// 
+/// This implementation of a wavetable oscillator also allows you to play
+/// multiple frequencies of the wave at the same time.
+/// 
+/// # Example
+/// 
+/// ```rust
+/// pub use std::time::Duration;
+/// pub use rodio::{OutputStream, OutputStreamHandle, Sink};
+/// pub use musictools::audio::{WavetableOscillator, Source};
+/// 
+/// fn main() {
+///     let mut oscillator = WavetableOscillator::new(128, 44100);
+///     oscillator.add_frequency(440.0);
+///     oscillator.add_frequency(659.3);
+///     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+///     let sink = Sink::try_new(&stream_handle).unwrap();
+///     sink.append(oscillator);
+///     std::thread::sleep(Duration::from_millis(1000));
+/// }
+/// ```
 pub struct WavetableOscillator {
     wave_table: Vec<f32>,
     table_size: usize,
@@ -10,6 +41,16 @@ pub struct WavetableOscillator {
 }
 
 impl WavetableOscillator {
+    /// Creates and returns a new wavetable oscillator which can be used as a
+    /// [`rodio::Source`].
+    /// 
+    /// # Parameters
+    /// 
+    /// - `table_size`: Determines the size of the array that holds the wave,
+    /// and ultimately the resolution of the waveform.
+    /// - `sample_rate`: The sample rate in hertz that will be used while
+    /// reproducing the waveform through the user's speakers. This is
+    /// typically 44100 Hz.
     pub fn new(table_size: usize, sample_rate: u32) -> WavetableOscillator {
         let wave_table = generate_wave_table(table_size);
         return WavetableOscillator {
@@ -21,18 +62,25 @@ impl WavetableOscillator {
         };
     }
 
+    /// Adds a new frequency to the list of frequencies that will be used to
+    /// play the waveform.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `frequency`: The frequency in hertz that will be added to the list.
     pub fn add_frequency(&mut self, frequency: f32) {
         let table_delta = frequency * self.table_size as f32 / self.sample_rate as f32;
         self.table_deltas.push(table_delta);
         self.table_indexes.push(0.0);
     }
 
+    /// Clears the list of frequencies that will be used to play the waveform.
     pub fn clear_frequencies(&mut self) {
         self.table_deltas.clear();
         self.table_indexes.clear();
     }
 
-    pub fn get_next_sample(&mut self) -> f32 {
+    fn get_next_sample(&mut self) -> f32 {
         let mut sample = 0.0;
         for index in 0..self.table_deltas.len() {
             let current_index = self.table_indexes[index] as usize;
@@ -49,7 +97,7 @@ impl WavetableOscillator {
     }
 }
 
-pub fn generate_wave_table(table_size: usize) -> Vec<f32> {
+fn generate_wave_table(table_size: usize) -> Vec<f32> {
     let mut wave_table: Vec<f32> = Vec::with_capacity(table_size);
     for i in 0..table_size {
         let time_value = 2.0 * std::f32::consts::PI * i as f32 / table_size as f32;

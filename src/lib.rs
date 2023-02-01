@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 pub mod note;
 pub mod audio;
 pub mod chord;
