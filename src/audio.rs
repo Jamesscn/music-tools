@@ -1,5 +1,5 @@
-pub use std::time::Duration;
-pub use rodio::Source;
+use std::time::Duration;
+use rodio::Source;
 
 /// A structure which holds a wavetable oscillator.
 /// 

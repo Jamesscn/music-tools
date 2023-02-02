@@ -1,6 +1,6 @@
-pub use crate::pitchclass::{PitchClass, PitchClasses};
-pub use crate::chord::Chord;
-pub use crate::common::{ScaleType, Quality};
+use crate::pitchclass::PitchClass;
+use crate::chord::Chord;
+use crate::common::{ScaleType, Quality};
 
 pub struct Scale {
     pitch_classes: Vec<&'static PitchClass>,

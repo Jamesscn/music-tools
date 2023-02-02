@@ -1,7 +1,7 @@
-pub use regex::Regex;
-pub use crate::common::{ScaleType, TriadQuality, Quality};
-pub use crate::pitchclass::PitchClass;
-pub use crate::scale::{Scale, get_scale};
+use regex::Regex;
+use crate::common::{ScaleType, TriadQuality, Quality};
+use crate::pitchclass::PitchClass;
+use crate::scale::get_scale;
 
 /// A structure which holds a chord, which can be any group of pitch classes.
 /// This class does not keep track of the octaves of the pitch classes it

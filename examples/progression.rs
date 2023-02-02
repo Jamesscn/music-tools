@@ -3,11 +3,11 @@ extern crate musictools;
 pub use std::time::Duration;
 pub use rodio::{OutputStream, OutputStreamHandle, Sink};
 
-pub use musictools::audio::{WavetableOscillator, Source};
+pub use musictools::audio::WavetableOscillator;
 pub use musictools::chord::Chord;
 pub use musictools::pitchclass::{PitchClass, PitchClasses};
 pub use musictools::note::Note;
-pub use musictools::scale::{get_scale, ScaleType};
+pub use musictools::scale::get_scale;
 
 fn play_notes(notes: Vec<Note>, seconds: f32) {
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
