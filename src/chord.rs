@@ -1,5 +1,5 @@
 pub use regex::Regex;
-pub use crate::common::{ScaleType, TriadQuality, PitchQuality};
+pub use crate::common::{ScaleType, TriadQuality, Quality};
 pub use crate::pitchclass::PitchClass;
 pub use crate::scale::get_pitch_class_at_increment;
 pub use crate::scale::{Scale, get_scale};
@@ -52,10 +52,10 @@ impl Chord {
     /// let chord = Chord::from_triad(PitchClasses::B_FLAT, TriadQuality::Sus2);
     /// ```
     pub fn from_triad(tonic: &'static PitchClass, triad_quality: TriadQuality) -> Chord {
-        let major_scale_obj = get_scale(tonic, ScaleType::Major, PitchQuality::None).unwrap();
-        let minor_scale_obj = get_scale(tonic, ScaleType::Minor, PitchQuality::None).unwrap();
-        let whole_scale_obj = get_scale(tonic, ScaleType::Whole, PitchQuality::None).unwrap();
-        let locrian_scale_obj = get_scale(tonic, ScaleType::Locrian, PitchQuality::None).unwrap();
+        let major_scale_obj = get_scale(tonic, ScaleType::Major, Quality::None).unwrap();
+        let minor_scale_obj = get_scale(tonic, ScaleType::Minor, Quality::None).unwrap();
+        let whole_scale_obj = get_scale(tonic, ScaleType::Whole, Quality::None).unwrap();
+        let locrian_scale_obj = get_scale(tonic, ScaleType::Locrian, Quality::None).unwrap();
         let major_scale = major_scale_obj.get_pitch_classes();
         let minor_scale = minor_scale_obj.get_pitch_classes();
         let whole_scale = whole_scale_obj.get_pitch_classes();
@@ -143,7 +143,7 @@ impl Chord {
         let seventh = regex_capture_groups.get(4).map_or("", |m| m.as_str());
         let numeral_value = numeral_array.iter().position(|&x| x == numeral.to_ascii_uppercase()).unwrap();
         let triad_quality: TriadQuality;
-        let chord_seventh: PitchQuality;
+        let chord_seventh: Quality;
         if numeral.chars().all(char::is_uppercase) {
             if quality == "+" {
                 triad_quality = TriadQuality::Augmented;
@@ -162,11 +162,11 @@ impl Chord {
             }
         }
         if seventh == "maj7" {
-            chord_seventh = PitchQuality::Major;
+            chord_seventh = Quality::Major;
         } else if seventh == "7" {
-            chord_seventh = PitchQuality::Minor;
+            chord_seventh = Quality::Minor;
         } else {
-            chord_seventh = PitchQuality::None;
+            chord_seventh = Quality::None;
         }
         let mut increment = match numeral_value {
             0 => 0,
@@ -207,10 +207,9 @@ impl Chord {
     /// 
     /// # Parameters
     /// 
-    /// - `seventh`: A [`PitchQuality`] representing the quality of the
-    /// seventh to add. If it is major, then a major seventh is added. If it
-    /// is minor, a minor seventh is added. If it is none, then nothing is
-    /// added.
+    /// - `seventh`: A [`Quality`] representing the quality of the seventh to
+    /// add. If it is major, then a major seventh is added. If it is minor, a
+    /// minor seventh is added. If it is none, then nothing is added.
     /// 
     /// # Examples
     /// 
@@ -219,17 +218,17 @@ impl Chord {
     /// 
     /// ```rust
     /// use musictools::scale::Chord;
-    /// use musictools::common::{TriadQuality, PitchQuality};
+    /// use musictools::common::{TriadQuality, Quality};
     /// use musictools::pitchclass::PitchClasses;
     /// 
     /// let mut chord = Chord::from_triad(PitchClasses::C, TriadQuality::Major);
-    /// chord.add_seventh(PitchQuality::Minor);
+    /// chord.add_seventh(Quality::Minor);
     /// ```
-    pub fn add_seventh(&mut self, seventh: PitchQuality) {
-        if seventh == PitchQuality::Major {
+    pub fn add_seventh(&mut self, seventh: Quality) {
+        if seventh == Quality::Major {
             let major_seventh = get_pitch_class_at_increment(self.get_tonic(), 11);
             self.pitch_classes.push(major_seventh);
-        } else if seventh == PitchQuality::Minor {
+        } else if seventh == Quality::Minor {
             let minor_seventh = get_pitch_class_at_increment(self.get_tonic(), 10);
             self.pitch_classes.push(minor_seventh);
         }
@@ -239,9 +238,9 @@ impl Chord {
     /// 
     /// # Parameters
     /// 
-    /// - `ninth`: A [`PitchQuality`] representing the quality of the ninth to
-    /// add. If it is major, then a major ninth is added. If it is minor, a
-    /// minor ninth is added. If it is none, then nothing is added.
+    /// - `ninth`: A [`Quality`] representing the quality of the ninth to add.
+    /// If it is major, then a major ninth is added. If it is minor, a minor
+    /// ninth is added. If it is none, then nothing is added.
     /// 
     /// # Examples
     /// 
@@ -250,17 +249,17 @@ impl Chord {
     /// 
     /// ```rust
     /// use musictools::scale::Chord;
-    /// use musictools::common::{TriadQuality, PitchQuality};
+    /// use musictools::common::{TriadQuality, Quality};
     /// use musictools::pitchclass::PitchClasses;
     /// 
     /// let mut chord = Chord::from_triad(PitchClasses::B, TriadQuality::Minor);
-    /// chord.add_ninth(PitchQuality::Major);
+    /// chord.add_ninth(Quality::Major);
     /// ```
-    pub fn add_ninth(&mut self, ninth: PitchQuality) {
-        if ninth == PitchQuality::Major {
+    pub fn add_ninth(&mut self, ninth: Quality) {
+        if ninth == Quality::Major {
             let major_ninth = get_pitch_class_at_increment(self.get_tonic(), 14);
             self.pitch_classes.push(major_ninth);
-        } else if ninth == PitchQuality::Minor {
+        } else if ninth == Quality::Minor {
             let minor_ninth = get_pitch_class_at_increment(self.get_tonic(), 13);
             self.pitch_classes.push(minor_ninth);
         }
@@ -270,7 +269,7 @@ impl Chord {
     /// 
     /// # Parameters
     /// 
-    /// - `thirteenth`: A [`PitchQuality`] representing the quality of the
+    /// - `thirteenth`: A [`Quality`] representing the quality of the
     /// thirteenth to add. If it is major, then a major thirteenth is added.
     /// If it is minor, a minor thirteenth is added. If it is none, then
     /// nothing is added.
@@ -282,17 +281,17 @@ impl Chord {
     /// 
     /// ```rust
     /// use musictools::scale::Chord;
-    /// use musictools::common::{TriadQuality, PitchQuality};
+    /// use musictools::common::{TriadQuality, Quality};
     /// use musictools::pitchclass::PitchClasses;
     /// 
     /// let mut chord = Chord::from_triad(PitchClasses::A, TriadQuality::Minor);
-    /// chord.add_thirteenth(PitchQuality::Minor);
+    /// chord.add_thirteenth(Quality::Minor);
     /// ```
-    pub fn add_thirteenth(&mut self, thirteenth: PitchQuality) {
-        if thirteenth == PitchQuality::Major {
+    pub fn add_thirteenth(&mut self, thirteenth: Quality) {
+        if thirteenth == Quality::Major {
             let major_thirteenth = get_pitch_class_at_increment(self.get_tonic(), 21);
             self.pitch_classes.push(major_thirteenth);
-        } else if thirteenth == PitchQuality::Minor {
+        } else if thirteenth == Quality::Minor {
             let minor_thirteenth = get_pitch_class_at_increment(self.get_tonic(), 20);
             self.pitch_classes.push(minor_thirteenth);
         }

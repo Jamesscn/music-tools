@@ -1,11 +1,11 @@
 pub use crate::pitchclass::{PitchClass, PitchClasses, get_pitch_class_at_increment, get_letter_at_increment};
 pub use crate::chord::Chord;
-pub use crate::common::{ScaleType, PitchQuality};
+pub use crate::common::{ScaleType, Quality};
 
 pub struct Scale {
     pitch_classes: Vec<&'static PitchClass>,
     scale: ScaleType,
-    pentatonic: PitchQuality
+    pentatonic: Quality
 }
 
 impl Scale {
@@ -38,7 +38,7 @@ impl Scale {
         return self.scale;
     }
 
-    pub fn get_pentatonic(&self) -> PitchQuality {
+    pub fn get_pentatonic(&self) -> Quality {
         return self.pentatonic;
     }
 
@@ -107,7 +107,7 @@ pub fn is_scale_type_diatonic(scale_type: ScaleType) -> bool {
     }
 }
 
-pub fn get_scale(tonic: &'static PitchClass, scale: ScaleType, pentatonic: PitchQuality) -> Option<Scale> {
+pub fn get_scale(tonic: &'static PitchClass, scale: ScaleType, pentatonic: Quality) -> Option<Scale> {
     let scale_steps: Vec<i8> = match scale {
         ScaleType::Major | ScaleType::Ionian => vec![2, 2, 1, 2, 2, 2, 1],
         ScaleType::Minor | ScaleType::Aeolian | ScaleType::NaturalMinor | ScaleType::DescendingMelodicMinor => vec![2, 1, 2, 2, 1, 2, 2],
@@ -131,13 +131,13 @@ pub fn get_scale(tonic: &'static PitchClass, scale: ScaleType, pentatonic: Pitch
         current_pitch_class = next_pitch_class;
     }
     let diatonic_scale_type = is_scale_type_diatonic(scale);
-    if pentatonic != PitchQuality::None && !diatonic_scale_type {
+    if pentatonic != Quality::None && !diatonic_scale_type {
         return None;
     }
-    if pentatonic == PitchQuality::Major {
+    if pentatonic == Quality::Major {
         pitch_classes.remove(6);
         pitch_classes.remove(3);
-    } else if pentatonic == PitchQuality::Minor {
+    } else if pentatonic == Quality::Minor {
         pitch_classes.remove(5);
         pitch_classes.remove(1);
     }

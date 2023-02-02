@@ -6,7 +6,6 @@ pub use rodio::{OutputStream, OutputStreamHandle, Sink};
 pub use musictools::audio::{WavetableOscillator, Source};
 pub use musictools::chord::Chord;
 pub use musictools::pitchclass::{PitchClass, PitchClasses};
-pub use musictools::common::PitchQuality;
 pub use musictools::note::Note;
 pub use musictools::scale::{get_scale, ScaleType};
 
