@@ -1,5 +1,5 @@
 pub use regex::Regex;
-pub use crate::pitchclass::{PitchClass, get_pitch_class_from_name};
+pub use crate::pitchclass::PitchClass;
 
 /// A structure which is used to represent a note with a pitch class and an
 /// octave or frequency.
@@ -38,7 +38,7 @@ impl Note {
         let regex_capture_groups = regex.captures(&string).unwrap();
         let octave: u8 = (&regex_capture_groups[2]).parse().unwrap();
         let pitch_class_string = String::from(&regex_capture_groups[1]);
-        let pitch_class = get_pitch_class_from_name(pitch_class_string).unwrap();
+        let pitch_class = PitchClass::from_name(pitch_class_string).unwrap();
         return Some(Note {
             pitch_class,
             octave,

@@ -1,7 +1,6 @@
 pub use regex::Regex;
 pub use crate::common::{ScaleType, TriadQuality, Quality};
 pub use crate::pitchclass::PitchClass;
-pub use crate::scale::get_pitch_class_at_increment;
 pub use crate::scale::{Scale, get_scale};
 
 /// A structure which holds a chord, which can be any group of pitch classes.
@@ -197,7 +196,7 @@ impl Chord {
                 _ => return None
             };
         }
-        let chord_tonic = get_pitch_class_at_increment(tonic, increment);
+        let chord_tonic = tonic.get_offset(increment);
         let mut chord = Chord::from_triad(chord_tonic, triad_quality);
         chord.add_seventh(chord_seventh);
         return Some(chord);
@@ -226,10 +225,10 @@ impl Chord {
     /// ```
     pub fn add_seventh(&mut self, seventh: Quality) {
         if seventh == Quality::Major {
-            let major_seventh = get_pitch_class_at_increment(self.get_tonic(), 11);
+            let major_seventh = self.get_tonic().get_offset(11);
             self.pitch_classes.push(major_seventh);
         } else if seventh == Quality::Minor {
-            let minor_seventh = get_pitch_class_at_increment(self.get_tonic(), 10);
+            let minor_seventh = self.get_tonic().get_offset(10);
             self.pitch_classes.push(minor_seventh);
         }
     }
@@ -257,10 +256,10 @@ impl Chord {
     /// ```
     pub fn add_ninth(&mut self, ninth: Quality) {
         if ninth == Quality::Major {
-            let major_ninth = get_pitch_class_at_increment(self.get_tonic(), 14);
+            let major_ninth = self.get_tonic().get_offset(14);
             self.pitch_classes.push(major_ninth);
         } else if ninth == Quality::Minor {
-            let minor_ninth = get_pitch_class_at_increment(self.get_tonic(), 13);
+            let minor_ninth = self.get_tonic().get_offset(13);
             self.pitch_classes.push(minor_ninth);
         }
     }
@@ -289,10 +288,10 @@ impl Chord {
     /// ```
     pub fn add_thirteenth(&mut self, thirteenth: Quality) {
         if thirteenth == Quality::Major {
-            let major_thirteenth = get_pitch_class_at_increment(self.get_tonic(), 21);
+            let major_thirteenth = self.get_tonic().get_offset(21);
             self.pitch_classes.push(major_thirteenth);
         } else if thirteenth == Quality::Minor {
-            let minor_thirteenth = get_pitch_class_at_increment(self.get_tonic(), 20);
+            let minor_thirteenth = self.get_tonic().get_offset(20);
             self.pitch_classes.push(minor_thirteenth);
         }
     }
@@ -321,14 +320,13 @@ impl Chord {
         self.pitch_classes.push(pitch_class);
     }
 
-    /// Adds a pitch class on top of the current chord at an increment from
-    /// the tonic.
+    /// Adds a pitch class on top of the current chord at an offset from the
+    /// tonic.
     /// 
     /// # Parameters
     /// 
-    /// - `increment`: A positive or negative integer representing the number
-    /// of semitones of offset between the tonic and the new pitch class to
-    /// add.
+    /// - `offset`: A positive or negative integer representing the number of
+    /// semitones of offset between the tonic and the new pitch class to add.
     /// 
     /// # Examples
     /// 
@@ -341,7 +339,7 @@ impl Chord {
     /// use musictools::pitchclass::PitchClasses;
     /// 
     /// let mut chord = Chord::from_triad(PitchClasses::B, TriadQuality::Minor);
-    /// chord.add_pitch_class_at_increment(9);
+    /// chord.add_pitch_class_at_offset(9);
     /// ```
     /// 
     /// The following example constructs a G major triad and adds a pitch
@@ -353,10 +351,10 @@ impl Chord {
     /// use musictools::pitchclass::PitchClasses;
     /// 
     /// let mut chord = Chord::from_triad(PitchClasses::G, TriadQuality::Major);
-    /// chord.add_pitch_class_at_increment(-3);
+    /// chord.add_pitch_class_at_offset(-3);
     /// ```
-    pub fn add_pitch_class_at_increment(&mut self, increment: i8) {
-        let pitch_class = get_pitch_class_at_increment(self.get_tonic(), increment);
+    pub fn add_pitch_class_at_offset(&mut self, offset: i8) {
+        let pitch_class = self.get_tonic().get_offset(offset);
         self.pitch_classes.push(pitch_class);
     }
 

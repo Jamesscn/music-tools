@@ -1,4 +1,4 @@
-pub use crate::pitchclass::{PitchClass, PitchClasses, get_pitch_class_at_increment, get_letter_at_increment};
+pub use crate::pitchclass::{PitchClass, PitchClasses};
 pub use crate::chord::Chord;
 pub use crate::common::{ScaleType, Quality};
 
@@ -16,7 +16,7 @@ impl Scale {
             names.push(current_name);
             for pitch_class in &self.pitch_classes[1..] {
                 for pitch_class_name in pitch_class.get_all_names() {
-                    if pitch_class_name.as_bytes()[0] as char == get_letter_at_increment(current_name.as_bytes()[0] as char, 1).unwrap() {
+                    if pitch_class_name.as_bytes()[0] as char == PitchClass::get_letter_at_offset(current_name.as_bytes()[0] as char, 1).unwrap() {
                         names.push(pitch_class_name);
                         current_name = pitch_class_name;
                         break;
@@ -126,7 +126,7 @@ pub fn get_scale(tonic: &'static PitchClass, scale: ScaleType, pentatonic: Quali
     pitch_classes.push(tonic);
     let mut current_pitch_class = tonic;
     for step in scale_steps {
-        let next_pitch_class = get_pitch_class_at_increment(current_pitch_class, step);
+        let next_pitch_class = current_pitch_class.get_offset(step);
         pitch_classes.push(next_pitch_class);
         current_pitch_class = next_pitch_class;
     }

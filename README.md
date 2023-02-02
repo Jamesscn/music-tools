@@ -28,7 +28,6 @@ A set of tools related to music theory.
   - Major and minor triads
   - sus2 and sus4 triads
   - Augmented and diminished triads
-  - The short name of the triad, e.g. C#/Em(maj7)
 - Functional harmony
   - You can get the diatonic chords of any key and mode
   - You can get a diatonic chord given a roman numeral
@@ -42,3 +41,7 @@ A set of tools related to music theory.
 - Getting intervals between notes
 - Getting a list of the closest chords to a set of notes
 - Test cases and better infrastructure
+
+## Limitations
+
+This library only works for the twelve tone equal temperament system which is commonly used in western music.
