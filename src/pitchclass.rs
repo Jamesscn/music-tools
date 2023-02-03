@@ -73,7 +73,7 @@ impl PitchClass {
     /// # Examples
     /// 
     /// ```rust
-    /// use musictools::pitchclass::PitchClass;
+    /// use musictools::pitchclass::PitchClasses;
     /// 
     /// let c = PitchClasses::A.get_offset(2);
     /// let f = PitchClasses::A.get_offset(-2);

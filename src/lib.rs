@@ -6,4 +6,5 @@ pub mod chord;
 pub mod scale;
 pub mod rhythm;
 pub mod common;
+pub mod interval;
 pub mod pitchclass;

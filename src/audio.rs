@@ -20,7 +20,7 @@ use rodio::Source;
 /// ```rust
 /// use std::time::Duration;
 /// use rodio::{OutputStream, OutputStreamHandle, Sink};
-/// use musictools::audio::{WavetableOscillator, Source};
+/// use musictools::audio::WavetableOscillator;
 /// 
 /// let mut oscillator = WavetableOscillator::new(128, 44100);
 /// oscillator.add_frequency(440.0);

@@ -180,8 +180,8 @@ pub enum TriadQuality {
     /// A suspended fourth triad, which consists of the tonic, a perfect
     /// fourth and a perfect fifth.
     Sus4,
-    /// An augmented triad, which consists of the tonic, a major third and an
-    /// augmented fifth.
+    /// An augmented triad, which consists of the tonic, a major third and a
+    /// minor sixth.
     Augmented,
     /// A diminished triad, which consists of the tonic, a minor third and a
     /// diminished fifth.

@@ -1,21 +1,30 @@
 use regex::Regex;
-use crate::common::{ScaleType, TriadQuality, Quality};
+use crate::common::{TriadQuality};
 use crate::pitchclass::PitchClass;
-use crate::scale::get_scale;
+use crate::interval::{Interval, Intervals};
 
 /// A structure which holds a chord, which can be any group of pitch classes.
 /// This class does not keep track of the octaves of the pitch classes it
 /// holds, however it can store the inversion of the chord.
 pub struct Chord {
-    pitch_classes: Vec<&'static PitchClass>,
-    inversion: u8
+    tonic: &'static PitchClass,
+    intervals: Vec<Interval>,
+    inversion: usize
 }
 
 impl Chord {
-    /// Creates an empty chord with no pitch classes.
-    pub fn new() -> Chord {
+    /// Creates a chord with only the tonic.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `tonic`: A [`PitchClass`] representing the tonic or root pitch class
+    /// of the chord to construct.
+    pub fn new(tonic: &'static PitchClass) -> Chord {
         return Chord {
-            pitch_classes: Vec::new(),
+            tonic,
+            intervals: Vec::from([
+                Intervals::PERFECT_UNISON
+            ]),
             inversion: 0
         }
     }
@@ -34,7 +43,7 @@ impl Chord {
     /// The following example demonstrates the creation of a C major triad:
     /// 
     /// ```rust
-    /// use musictools::scale::Chord;
+    /// use musictools::chord::Chord;
     /// use musictools::common::TriadQuality;
     /// use musictools::pitchclass::PitchClasses;
     /// 
@@ -44,31 +53,24 @@ impl Chord {
     /// The following example demonstrates the creation of a B flat sus2 triad:
     /// 
     /// ```rust
-    /// use musictools::scale::Chord;
+    /// use musictools::chord::Chord;
     /// use musictools::common::TriadQuality;
     /// use musictools::pitchclass::PitchClasses;
     /// 
     /// let chord = Chord::from_triad(PitchClasses::B_FLAT, TriadQuality::Sus2);
     /// ```
     pub fn from_triad(tonic: &'static PitchClass, triad_quality: TriadQuality) -> Chord {
-        let major_scale_obj = get_scale(tonic, ScaleType::Major, Quality::None).unwrap();
-        let minor_scale_obj = get_scale(tonic, ScaleType::Minor, Quality::None).unwrap();
-        let whole_scale_obj = get_scale(tonic, ScaleType::Whole, Quality::None).unwrap();
-        let locrian_scale_obj = get_scale(tonic, ScaleType::Locrian, Quality::None).unwrap();
-        let major_scale = major_scale_obj.get_pitch_classes();
-        let minor_scale = minor_scale_obj.get_pitch_classes();
-        let whole_scale = whole_scale_obj.get_pitch_classes();
-        let locrian_scale = locrian_scale_obj.get_pitch_classes();
-        let pitch_classes: Vec<&'static PitchClass> = match triad_quality {
-            TriadQuality::Major => vec![major_scale[0], major_scale[2], major_scale[4]],
-            TriadQuality::Minor => vec![minor_scale[0], minor_scale[2], minor_scale[4]],
-            TriadQuality::Sus2 => vec![major_scale[0], major_scale[1], major_scale[4]],
-            TriadQuality::Sus4 => vec![major_scale[0], major_scale[3], major_scale[4]],
-            TriadQuality::Augmented => vec![whole_scale[0], whole_scale[2], whole_scale[4]],
-            TriadQuality::Diminished => vec![locrian_scale[0], locrian_scale[2], locrian_scale[4]]
+        let intervals: Vec<Interval> = match triad_quality {
+            TriadQuality::Major => vec![Intervals::PERFECT_UNISON, Intervals::MAJOR_THIRD, Intervals::PERFECT_FIFTH],
+            TriadQuality::Minor => vec![Intervals::PERFECT_UNISON, Intervals::MINOR_THIRD, Intervals::PERFECT_FIFTH],
+            TriadQuality::Sus2 => vec![Intervals::PERFECT_UNISON, Intervals::MAJOR_SECOND, Intervals::PERFECT_FIFTH],
+            TriadQuality::Sus4 => vec![Intervals::PERFECT_UNISON, Intervals::PERFECT_FOURTH, Intervals::PERFECT_FIFTH],
+            TriadQuality::Augmented => vec![Intervals::PERFECT_UNISON, Intervals::MAJOR_THIRD, Intervals::MINOR_SIXTH],
+            TriadQuality::Diminished => vec![Intervals::PERFECT_UNISON, Intervals::MINOR_THIRD, Intervals::DIMINISHED_FIFTH]
         };
         return Chord {
-            pitch_classes,
+            tonic,
+            intervals,
             inversion: 0
         }
     }
@@ -103,7 +105,7 @@ impl Chord {
     /// contain a minor seventh:
     /// 
     /// ```rust
-    /// use musictools::scale::Chord;
+    /// use musictools::chord::Chord;
     /// use musictools::pitchclass::PitchClasses;
     /// 
     /// let chord = Chord::from_numeral(PitchClasses::C, "bVII+7");
@@ -114,7 +116,7 @@ impl Chord {
     /// contain a major seventh:
     /// 
     /// ```rust
-    /// use musictools::scale::Chord;
+    /// use musictools::chord::Chord;
     /// use musictools::pitchclass::PitchClasses;
     /// 
     /// let chord = Chord::from_numeral(PitchClasses::G_SHARP, "#ii°maj7");
@@ -124,7 +126,7 @@ impl Chord {
     /// three scale degrees above A:
     /// 
     /// ```rust
-    /// use musictools::scale::Chord;
+    /// use musictools::chord::Chord;
     /// use musictools::pitchclass::PitchClasses;
     /// 
     /// let chord = Chord::from_numeral(PitchClasses::A, "iii");
@@ -142,7 +144,6 @@ impl Chord {
         let seventh = regex_capture_groups.get(4).map_or("", |m| m.as_str());
         let numeral_value = numeral_array.iter().position(|&x| x == numeral.to_ascii_uppercase()).unwrap();
         let triad_quality: TriadQuality;
-        let chord_seventh: Quality;
         if numeral.chars().all(char::is_uppercase) {
             if quality == "+" {
                 triad_quality = TriadQuality::Augmented;
@@ -159,13 +160,6 @@ impl Chord {
             } else {
                 triad_quality = TriadQuality::Minor;
             }
-        }
-        if seventh == "maj7" {
-            chord_seventh = Quality::Major;
-        } else if seventh == "7" {
-            chord_seventh = Quality::Minor;
-        } else {
-            chord_seventh = Quality::None;
         }
         let mut increment = match numeral_value {
             0 => 0,
@@ -198,17 +192,20 @@ impl Chord {
         }
         let chord_tonic = tonic.get_offset(increment);
         let mut chord = Chord::from_triad(chord_tonic, triad_quality);
-        chord.add_seventh(chord_seventh);
+        if seventh == "maj7" {
+            chord.add_interval(Intervals::MAJOR_SEVENTH);
+        } else if seventh == "7" {
+            chord.add_interval(Intervals::MINOR_SEVENTH);
+        }
         return Some(chord);
     }
 
-    /// Adds a major or minor seventh on top of the current chord.
+    /// Adds an interval on top of the current chord.
     /// 
     /// # Parameters
     /// 
-    /// - `seventh`: A [`Quality`] representing the quality of the seventh to
-    /// add. If it is major, then a major seventh is added. If it is minor, a
-    /// minor seventh is added. If it is none, then nothing is added.
+    /// - `interval`: An [`Interval`] representing the interval to add to the
+    /// chord.
     /// 
     /// # Examples
     /// 
@@ -216,156 +213,46 @@ impl Chord {
     /// triad:
     /// 
     /// ```rust
-    /// use musictools::scale::Chord;
-    /// use musictools::common::{TriadQuality, Quality};
+    /// use musictools::chord::Chord;
+    /// use musictools::common::TriadQuality;
     /// use musictools::pitchclass::PitchClasses;
+    /// use musictools::interval::Intervals;
     /// 
     /// let mut chord = Chord::from_triad(PitchClasses::C, TriadQuality::Major);
-    /// chord.add_seventh(Quality::Minor);
+    /// chord.add_interval(Intervals::MINOR_SEVENTH);
     /// ```
-    pub fn add_seventh(&mut self, seventh: Quality) {
-        if seventh == Quality::Major {
-            let major_seventh = self.get_tonic().get_offset(11);
-            self.pitch_classes.push(major_seventh);
-        } else if seventh == Quality::Minor {
-            let minor_seventh = self.get_tonic().get_offset(10);
-            self.pitch_classes.push(minor_seventh);
+    pub fn add_interval(&mut self, interval: Interval) {
+        let mut insert_index = 0;
+        for (index, value) in self.intervals.iter().enumerate() {
+            if value == &interval {
+                return
+            }
+            if value > &interval {
+                break
+            }
+            insert_index = index;
         }
+        self.intervals.insert(insert_index, interval);
     }
 
-    /// Adds a major or minor ninth on top of the current chord.
-    /// 
-    /// # Parameters
-    /// 
-    /// - `ninth`: A [`Quality`] representing the quality of the ninth to add.
-    /// If it is major, then a major ninth is added. If it is minor, a minor
-    /// ninth is added. If it is none, then nothing is added.
-    /// 
-    /// # Examples
-    /// 
-    /// The following example demonstrates adding a major ninth to a B minor
-    /// triad:
-    /// 
-    /// ```rust
-    /// use musictools::scale::Chord;
-    /// use musictools::common::{TriadQuality, Quality};
-    /// use musictools::pitchclass::PitchClasses;
-    /// 
-    /// let mut chord = Chord::from_triad(PitchClasses::B, TriadQuality::Minor);
-    /// chord.add_ninth(Quality::Major);
-    /// ```
-    pub fn add_ninth(&mut self, ninth: Quality) {
-        if ninth == Quality::Major {
-            let major_ninth = self.get_tonic().get_offset(14);
-            self.pitch_classes.push(major_ninth);
-        } else if ninth == Quality::Minor {
-            let minor_ninth = self.get_tonic().get_offset(13);
-            self.pitch_classes.push(minor_ninth);
-        }
-    }
-
-    /// Adds a major or minor thirteenth on top of the current chord.
-    /// 
-    /// # Parameters
-    /// 
-    /// - `thirteenth`: A [`Quality`] representing the quality of the
-    /// thirteenth to add. If it is major, then a major thirteenth is added.
-    /// If it is minor, a minor thirteenth is added. If it is none, then
-    /// nothing is added.
-    /// 
-    /// # Examples
-    /// 
-    /// The following example demonstrates adding a minor thirteenth to an A
-    /// minor triad:
-    /// 
-    /// ```rust
-    /// use musictools::scale::Chord;
-    /// use musictools::common::{TriadQuality, Quality};
-    /// use musictools::pitchclass::PitchClasses;
-    /// 
-    /// let mut chord = Chord::from_triad(PitchClasses::A, TriadQuality::Minor);
-    /// chord.add_thirteenth(Quality::Minor);
-    /// ```
-    pub fn add_thirteenth(&mut self, thirteenth: Quality) {
-        if thirteenth == Quality::Major {
-            let major_thirteenth = self.get_tonic().get_offset(21);
-            self.pitch_classes.push(major_thirteenth);
-        } else if thirteenth == Quality::Minor {
-            let minor_thirteenth = self.get_tonic().get_offset(20);
-            self.pitch_classes.push(minor_thirteenth);
-        }
-    }
-
-    /// Adds a pitch class on top of the current chord.
-    /// 
-    /// # Parameters
-    /// 
-    /// - `pitch_class`: A [`PitchClass`] representing the pitch class to add
-    /// to the chord.
-    /// 
-    /// # Examples
-    /// 
-    /// The following example demonstrates adding an A pitch class on top of a
-    /// C major triad:
-    /// 
-    /// ```rust
-    /// use musictools::scale::Chord;
-    /// use musictools::common::TriadQuality;
-    /// use musictools::pitchclass::PitchClasses;
-    /// 
-    /// let mut chord = Chord::from_triad(PitchClasses::C, TriadQuality::Major);
-    /// chord.add_pitch_class(PitchClasses::A);
-    /// ```
-    pub fn add_pitch_class(&mut self, pitch_class: &'static PitchClass) {
-        self.pitch_classes.push(pitch_class);
-    }
-
-    /// Adds a pitch class on top of the current chord at an offset from the
-    /// tonic.
-    /// 
-    /// # Parameters
-    /// 
-    /// - `offset`: A positive or negative integer representing the number of
-    /// semitones of offset between the tonic and the new pitch class to add.
-    /// 
-    /// # Examples
-    /// 
-    /// The following example constructs a B minor triad and adds a pitch
-    /// class which is 9 semitones above the tonic:
-    /// 
-    /// ```rust
-    /// use musictools::scale::Chord;
-    /// use musictools::common::TriadQuality;
-    /// use musictools::pitchclass::PitchClasses;
-    /// 
-    /// let mut chord = Chord::from_triad(PitchClasses::B, TriadQuality::Minor);
-    /// chord.add_pitch_class_at_offset(9);
-    /// ```
-    /// 
-    /// The following example constructs a G major triad and adds a pitch
-    /// class which is 3 semitones below the tonic:
-    /// 
-    /// ```rust
-    /// use musictools::scale::Chord;
-    /// use musictools::common::TriadQuality;
-    /// use musictools::pitchclass::PitchClasses;
-    /// 
-    /// let mut chord = Chord::from_triad(PitchClasses::G, TriadQuality::Major);
-    /// chord.add_pitch_class_at_offset(-3);
-    /// ```
-    pub fn add_pitch_class_at_offset(&mut self, offset: i8) {
-        let pitch_class = self.get_tonic().get_offset(offset);
-        self.pitch_classes.push(pitch_class);
-    }
-
-    /// Returns a vector of [`PitchClass`] objects representing the pitch
+    /// Returns a vector of [`Interval`] objects representing the pitch
     /// classes contained by the current chord, taking into account the
     /// inversion of the chord.
-    pub fn get_pitch_classes(&self) -> Vec<&'static PitchClass> {
-        let mut pitch_classes = Vec::from(&self.pitch_classes[self.inversion as usize..]);
-        let mut second_half = Vec::from(&self.pitch_classes[..self.inversion as usize]);
-        pitch_classes.append(&mut second_half);
-        return pitch_classes;
+    pub fn get_intervals(&self) -> Vec<Interval> {
+        let mut values: Vec<i8> = Vec::new();
+        let first_half_octave_offset = self.intervals[self.inversion as usize].get_value() / 12;
+        for index in self.inversion..self.intervals.len() {
+            values.push(self.intervals[index].get_value() - 12 * first_half_octave_offset);
+        }
+        let second_half_octave_offset = values[values.len() - 1] / 12 + 1;
+        for index in 0..self.inversion {
+            values.push(self.intervals[index].get_value() + 12 * second_half_octave_offset)
+        }
+        let mut intervals: Vec<Interval> = Vec::new();
+        for value in values {
+            intervals.push(Interval::from(value));
+        }
+        return intervals;
     }
 
     /// Sets the inversion of the current chord, which changes the order of
@@ -384,7 +271,7 @@ impl Chord {
     /// classes of the chord will be [E, G, C] instead of [C, E, G]:
     /// 
     /// ```rust
-    /// use musictools::scale::Chord;
+    /// use musictools::chord::Chord;
     /// use musictools::common::TriadQuality;
     /// use musictools::pitchclass::PitchClasses;
     /// 
@@ -397,7 +284,7 @@ impl Chord {
     /// classes of the chord will be [G, C, E] instead of [C, E, G]:
     /// 
     /// ```rust
-    /// use musictools::scale::Chord;
+    /// use musictools::chord::Chord;
     /// use musictools::common::TriadQuality;
     /// use musictools::pitchclass::PitchClasses;
     /// 
@@ -405,18 +292,18 @@ impl Chord {
     /// chord.set_inversion(2);
     /// ```
     pub fn set_inversion(&mut self, inversion: u8) {
-        self.inversion = inversion % self.pitch_classes.len() as u8;
+        self.inversion = inversion as usize % self.intervals.len();
     }
 
     /// Returns a positive integer representing the inversion of the current
     /// chord.
     pub fn get_inversion(&self) -> u8 {
-        return self.inversion;
+        return self.inversion as u8;
     }
 
     /// Returns a [`PitchClass`] representing the pitch class corresponding to
     /// the tonic or root pitch class of the current chord.
     pub fn get_tonic(&self) -> &'static PitchClass {
-        return self.pitch_classes[self.inversion as usize];
+        return self.tonic;
     }
 }

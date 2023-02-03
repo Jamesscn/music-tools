@@ -36,12 +36,6 @@ A set of tools related to music theory.
 - Notes return their frequencies based on a given base frequency
   - This allows you to set A4 equal to any frequency (such as 432 Hz)
 
-## Things that will be implemented in the future:
-
-- Getting intervals between notes
-- Getting a list of the closest chords to a set of notes
-- Test cases and better infrastructure
-
 ## Limitations
 
 This library only works for the twelve tone equal temperament system which is commonly used in western music.
