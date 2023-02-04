@@ -1,4 +1,4 @@
-name: CI/CD Jobs
+name: Continuous Integration
 
 on:
   push:
