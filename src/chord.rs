@@ -352,7 +352,7 @@ impl Chord {
         let mut notes: Vec<Note> = Vec::new();
         let intervals = self.get_intervals();
         for interval in intervals {
-            let current_octave = starting_octave + interval.get_value() / 12;
+            let current_octave = starting_octave + (self.tonic.get_value() + interval.get_value()) / 12;
             let current_semitone = interval.get_value() % 12;
             let current_pitch_class = self.tonic.get_offset(current_semitone as i8, true);
             let current_note = Note::from(current_pitch_class, current_octave);

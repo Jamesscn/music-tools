@@ -1,4 +1,4 @@
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 /// A structure used to define one of the pitch classes of the twelve tone
 /// equal temperament system.
 pub struct PitchClass {

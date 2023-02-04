@@ -1,12 +1,9 @@
-extern crate musictools;
-
-pub use std::time::Duration;
-pub use rodio::{OutputStream, OutputStreamHandle, Sink};
-
-pub use musictools::audio::WavetableOscillator;
-pub use musictools::common::Fraction;
-pub use musictools::note::Note;
-pub use musictools::rhythm::{Rhythm, Beat};
+use std::time::Duration;
+use rodio::{OutputStream, Sink};
+use musictools::audio::WavetableOscillator;
+use musictools::common::Fraction;
+use musictools::note::Note;
+use musictools::rhythm::{Rhythm, Beat};
 
 fn main() {
     let mut rhythm = Rhythm::from(160.0, Fraction::new(5, 4), Vec::from(

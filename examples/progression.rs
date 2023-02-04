@@ -1,13 +1,9 @@
-extern crate musictools;
-
-pub use std::time::Duration;
-pub use rodio::{OutputStream, OutputStreamHandle, Sink};
-
-pub use musictools::audio::WavetableOscillator;
-pub use musictools::chord::Chord;
-pub use musictools::pitchclass::{PitchClass, PitchClasses};
-pub use musictools::note::Note;
-pub use musictools::scale::Scale;
+use std::time::Duration;
+use rodio::{OutputStream, Sink};
+use musictools::audio::WavetableOscillator;
+use musictools::chord::Chord;
+use musictools::pitchclass::PitchClasses;
+use musictools::note::Note;
 
 fn play_notes(notes: Vec<Note>, seconds: f32) {
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
@@ -23,7 +19,7 @@ fn play_notes(notes: Vec<Note>, seconds: f32) {
 fn main() {
     let tonic = PitchClasses::C;
     let progression = ["IV", "V", "iii", "vi", "I", "bVI", "bVII", "I"];
-    let octaves = [4, 4, 4, 4, 4, 4, 4, 4];
+    let octaves = [4, 4, 4, 4, 4, 4, 4, 5];
     for (index, numeral) in progression.iter().enumerate() {
         let chord = Chord::from_numeral(tonic, numeral).unwrap();
         play_notes(chord.to_notes(octaves[index]), 1.0);
