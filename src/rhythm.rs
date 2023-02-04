@@ -6,64 +6,29 @@ pub type Beat = Fraction;
 
 impl Beat {
     /// The duration corresponding to a whole note.
-    pub fn whole() -> Beat {
-        return Beat::new(1, 1);
-    }
-
+    pub const WHOLE: Beat = Beat::new(1, 1);
     /// The duration corresponding to a half note.
-    pub fn half() -> Beat {
-        return Beat::new(1, 2);
-    }
-
+    pub const HALF: Beat = Beat::new(1, 2);
     /// The duration corresponding to a quarter note.
-    pub fn quarter() -> Beat {
-        return Beat::new(1, 4);
-    }
-
+    pub const QUARTER: Beat = Beat::new(1, 4);
     /// The duration corresponding to an eighth note.
-    pub fn eighth() -> Beat {
-        return Beat::new(1, 8);
-    }
-
+    pub const EIGHTH: Beat = Beat::new(1, 8);
     /// The duration corresponding to a sixteenth note.
-    pub fn sixteenth() -> Beat {
-        return Beat::new(1, 16);
-    }
-
+    pub const SIXTEENTH: Beat = Beat::new(1, 16);
     /// The duration corresponding to a thirty-second note.
-    pub fn thirtysecond() -> Beat {
-        return Beat::new(1, 32);
-    }
-
+    pub const THIRTYSECOND: Beat = Beat::new(1, 32);
     /// The duration corresponding to a dotted whole note.
-    pub fn whole_dotted() -> Beat {
-        return Beat::new(3, 2);
-    }
-
+    pub const WHOLE_DOTTED: Beat = Beat::new(3, 2);
     /// The duration corresponding to a dotted half note.
-    pub fn half_dotted() -> Beat {
-        return Beat::new(3, 4);
-    }
-
+    pub const HALF_DOTTED: Beat = Beat::new(3, 4);
     /// The duration corresponding to a dotted quarter note.
-    pub fn quarter_dotted() -> Beat {
-        return Beat::new(3, 8);
-    }
-
+    pub const QUARTER_DOTTED: Beat = Beat::new(3, 8);
     /// The duration corresponding to a dotted eighth note.
-    pub fn eighth_dotted() -> Beat {
-        return Beat::new(3, 16);
-    }
-
+    pub const EIGHTH_DOTTED: Beat = Beat::new(3, 16);
     /// The duration corresponding to a dotted sixteenth note.
-    pub fn sixteenth_dotted() -> Beat {
-        return Beat::new(3, 32);
-    }
-
+    pub const SIXTEENTH_DOTTED: Beat = Beat::new(3, 32);
     /// The duration corresponding to a dotted thirty-second note.
-    pub fn thirtysecond_dotted() -> Beat {
-        return Beat::new(3, 64);
-    }
+    pub const THIRTYSECOND_DOTTED: Beat = Beat::new(3, 64);
 }
 
 /// This structure is used to store a rhythmic pattern or sequence of notes,
@@ -123,7 +88,7 @@ impl Rhythm {
     /// use musictools::common::Fraction;
     /// 
     /// let time_signature = Fraction::new(5, 4);
-    /// let beats = Vec::from([Beat::quarter_dotted(), Beat::quarter_dotted(), Beat::quarter(), Beat::quarter()]);
+    /// let beats = Vec::from([Beat::QUARTER_DOTTED, Beat::QUARTER_DOTTED, Beat::QUARTER, Beat::QUARTER]);
     /// let rhythm = Rhythm::from(160.0, time_signature, beats);
     /// ```
     pub fn from(beats_per_minute: f32, time_signature: Fraction, beats: Vec<Beat>) -> Rhythm {
@@ -150,10 +115,10 @@ impl Rhythm {
     /// 
     /// let time_signature = Fraction::new(3, 4);
     /// let mut rhythm = Rhythm::new(140.0, time_signature);
-    /// rhythm.push(Beat::quarter());
-    /// rhythm.push(Beat::eighth());
-    /// rhythm.push(Beat::quarter());
-    /// rhythm.push(Beat::eighth());
+    /// rhythm.push(Beat::QUARTER);
+    /// rhythm.push(Beat::EIGHTH);
+    /// rhythm.push(Beat::QUARTER);
+    /// rhythm.push(Beat::EIGHTH);
     /// ```
     pub fn push(&mut self, beat: Beat) {
         self.beats.push(beat);
@@ -243,10 +208,10 @@ impl Rhythm {
     /// 
     /// let time_signature = Fraction::new(3, 4);
     /// let mut rhythm = Rhythm::new(140.0, time_signature);
-    /// rhythm.push(Beat::quarter());
-    /// rhythm.push(Beat::eighth());
-    /// rhythm.push(Beat::quarter());
-    /// rhythm.push(Beat::eighth());
+    /// rhythm.push(Beat::QUARTER);
+    /// rhythm.push(Beat::EIGHTH);
+    /// rhythm.push(Beat::QUARTER);
+    /// rhythm.push(Beat::EIGHTH);
     /// println!("{}", rhythm.get_duration_at_index(0));
     /// println!("{}", rhythm.get_duration_at_index(1));
     /// ```
@@ -285,7 +250,7 @@ impl Rhythm {
     /// 
     /// let time_signature = Fraction::new(3, 4);
     /// let mut rhythm = Rhythm::from(140.0, time_signature, Vec::from(
-    ///     [Beat::quarter(), Beat::eighth(), Beat::quarter(), Beat::eighth()]
+    ///     [Beat::QUARTER, Beat::EIGHTH, Beat::QUARTER, Beat::EIGHTH]
     /// ));
     /// for _index in 0..4 {
     ///     let milliseconds = rhythm.get_duration_of_current_beat() * 1000.0;

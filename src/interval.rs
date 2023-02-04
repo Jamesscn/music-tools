@@ -2,15 +2,16 @@ use std::cmp::Ordering;
 
 #[derive(Copy, Clone)]
 pub struct Interval {
-    value: i8,
+    value: u8,
     full_name: Option<&'static str>,
     short_name: Option<&'static str>
 }
 
 impl Interval {
-    pub fn from(value: i8) -> Interval {
-        if value >= 0 && value < INTERVALS.len() as i8 {
-            return INTERVALS[value as usize];
+    pub fn from(value: u8) -> Interval {
+        let index = value as usize;
+        if index < INTERVALS.len() {
+            return INTERVALS[index];
         }
         return Interval {
             value,
@@ -19,7 +20,7 @@ impl Interval {
         }
     }
 
-    pub fn get_value(&self) -> i8 {
+    pub fn get_value(&self) -> u8 {
         return self.value;
     }
 

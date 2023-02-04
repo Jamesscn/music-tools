@@ -3,7 +3,7 @@ use crate::chord::Chord;
 use crate::common::{ScaleType, Quality};
 
 pub struct Scale {
-    pitch_classes: Vec<&'static PitchClass>,
+    pitch_classes: Vec<PitchClass>,
     scale: ScaleType,
     pentatonic: Quality
 }
@@ -30,8 +30,8 @@ impl Scale {
         return None;
     }
 
-    pub fn get_pitch_classes(&self) -> &Vec<&'static PitchClass> {
-        return &self.pitch_classes;
+    pub fn get_pitch_classes(&self) -> Vec<PitchClass> {
+        return self.pitch_classes;
     }
 
     pub fn get_scale(&self) -> ScaleType {
@@ -49,7 +49,7 @@ impl Scale {
         return false;
     }
 
-    pub fn get_tonic(&self) -> &'static PitchClass {
+    pub fn get_tonic(&self) -> PitchClass {
         return self.pitch_classes[0];
     }
 
@@ -107,7 +107,7 @@ pub fn is_scale_type_diatonic(scale_type: ScaleType) -> bool {
     }
 }
 
-pub fn get_scale(tonic: &'static PitchClass, scale: ScaleType, pentatonic: Quality) -> Option<Scale> {
+pub fn get_scale(tonic: PitchClass, scale: ScaleType, pentatonic: Quality) -> Option<Scale> {
     let scale_steps: Vec<i8> = match scale {
         ScaleType::Major | ScaleType::Ionian => vec![2, 2, 1, 2, 2, 2, 1],
         ScaleType::Minor | ScaleType::Aeolian | ScaleType::NaturalMinor | ScaleType::DescendingMelodicMinor => vec![2, 1, 2, 2, 1, 2, 2],
@@ -122,7 +122,7 @@ pub fn get_scale(tonic: &'static PitchClass, scale: ScaleType, pentatonic: Quali
         ScaleType::Whole => vec![2, 2, 2, 2, 2, 2],
         ScaleType::Chromatic => vec![1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     };
-    let mut pitch_classes: Vec<&'static PitchClass> = Vec::new();
+    let mut pitch_classes: Vec<PitchClass> = Vec::new();
     pitch_classes.push(tonic);
     let mut current_pitch_class = tonic;
     for step in scale_steps {

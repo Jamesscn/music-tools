@@ -1,5 +1,6 @@
 use regex::Regex;
-use crate::common::{TriadQuality};
+use crate::note::Note;
+use crate::common::TriadQuality;
 use crate::pitchclass::PitchClass;
 use crate::interval::{Interval, Intervals};
 
@@ -7,7 +8,7 @@ use crate::interval::{Interval, Intervals};
 /// This class does not keep track of the octaves of the pitch classes it
 /// holds, however it can store the inversion of the chord.
 pub struct Chord {
-    tonic: &'static PitchClass,
+    tonic: PitchClass,
     intervals: Vec<Interval>,
     inversion: usize
 }
@@ -19,7 +20,7 @@ impl Chord {
     /// 
     /// - `tonic`: A [`PitchClass`] representing the tonic or root pitch class
     /// of the chord to construct.
-    pub fn new(tonic: &'static PitchClass) -> Chord {
+    pub fn new(tonic: PitchClass) -> Chord {
         return Chord {
             tonic,
             intervals: Vec::from([
@@ -59,7 +60,7 @@ impl Chord {
     /// 
     /// let chord = Chord::from_triad(PitchClasses::B_FLAT, TriadQuality::Sus2);
     /// ```
-    pub fn from_triad(tonic: &'static PitchClass, triad_quality: TriadQuality) -> Chord {
+    pub fn from_triad(tonic: PitchClass, triad_quality: TriadQuality) -> Chord {
         let intervals: Vec<Interval> = match triad_quality {
             TriadQuality::Major => vec![Intervals::PERFECT_UNISON, Intervals::MAJOR_THIRD, Intervals::PERFECT_FIFTH],
             TriadQuality::Minor => vec![Intervals::PERFECT_UNISON, Intervals::MINOR_THIRD, Intervals::PERFECT_FIFTH],
@@ -131,7 +132,7 @@ impl Chord {
     /// 
     /// let chord = Chord::from_numeral(PitchClasses::A, "iii");
     /// ```
-    pub fn from_numeral(tonic: &'static PitchClass, input_numeral: &str) -> Option<Chord> {
+    pub fn from_numeral(tonic: PitchClass, input_numeral: &str) -> Option<Chord> {
         let numeral_array = ["I", "II", "III", "IV", "V", "VI", "VII"];
         let numeral_regex = Regex::new(r"^(b|\#)?(I|II|III|IV|V|VI|VII|i|ii|iii|iv|v|vi|vii)(°|\+)?(maj7|7)?$").unwrap();
         if !numeral_regex.is_match(&input_numeral) {
@@ -190,7 +191,7 @@ impl Chord {
                 _ => return None
             };
         }
-        let chord_tonic = tonic.get_offset(increment);
+        let chord_tonic = tonic.get_offset(increment, true);
         let mut chord = Chord::from_triad(chord_tonic, triad_quality);
         if seventh == "maj7" {
             chord.add_interval(Intervals::MAJOR_SEVENTH);
@@ -240,17 +241,17 @@ impl Chord {
     /// inversion of the chord.
     pub fn get_intervals(&self) -> Vec<Interval> {
         let mut values: Vec<i8> = Vec::new();
-        let first_half_octave_offset = self.intervals[self.inversion as usize].get_value() / 12;
+        let first_half_octave_offset = self.intervals[self.inversion as usize].get_value() as i8 / 12;
         for index in self.inversion..self.intervals.len() {
-            values.push(self.intervals[index].get_value() - 12 * first_half_octave_offset);
+            values.push(self.intervals[index].get_value() as i8 - 12 * first_half_octave_offset);
         }
         let second_half_octave_offset = values[values.len() - 1] / 12 + 1;
         for index in 0..self.inversion {
-            values.push(self.intervals[index].get_value() + 12 * second_half_octave_offset)
+            values.push(self.intervals[index].get_value() as i8 + 12 * second_half_octave_offset)
         }
         let mut intervals: Vec<Interval> = Vec::new();
         for value in values {
-            intervals.push(Interval::from(value));
+            intervals.push(Interval::from(value as u8));
         }
         return intervals;
     }
@@ -303,7 +304,60 @@ impl Chord {
 
     /// Returns a [`PitchClass`] representing the pitch class corresponding to
     /// the tonic or root pitch class of the current chord.
-    pub fn get_tonic(&self) -> &'static PitchClass {
+    pub fn get_tonic(&self) -> PitchClass {
         return self.tonic;
+    }
+
+    /// Returns a vector of [`PitchClass`] corresponding to the pitch classes
+    /// in the current chord. Note that this representation of a chord is not
+    /// optimal because it makes it impossible to distinguish the difference
+    /// between an interval less than an octave and any interval larger than
+    /// an octave.
+    pub fn get_pitch_classes(&self) -> Vec<PitchClass> {
+        let mut pitch_classes: Vec<PitchClass> = Vec::new();
+        let intervals = self.get_intervals();
+        for interval in intervals {
+            let current_semitone = interval.get_value() % 12;
+            let current_pitch_class = self.tonic.get_offset(current_semitone as i8, true);
+            pitch_classes.push(current_pitch_class);
+        }
+        return pitch_classes;
+    }
+
+    /// Returns a vector of consecutive [`Note`] objects which contain the
+    /// pitch classes and octaves of each note in the chord, given a starting
+    /// octave.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `starting_octave`: A positive integer representing the octave where
+    /// the tonic will be placed. All subsequent notes will be placed either
+    /// on this octave or on a higher one depending on the values of their
+    /// intervals.
+    /// 
+    /// # Examples
+    /// 
+    /// The following example will create a G major chord on the fourth octave
+    /// whose notes will be G4, B4 and D5.
+    /// 
+    /// ```rust
+    /// use musictools::chord::Chord;
+    /// use musictools::common::TriadQuality;
+    /// use musictools::pitchclass::PitchClasses;
+    /// 
+    /// let mut chord = Chord::from_triad(PitchClasses::G, TriadQuality::Major);
+    /// let notes = chord.to_notes(4);
+    /// ```
+    pub fn to_notes(&self, starting_octave: u8) -> Vec<Note> {
+        let mut notes: Vec<Note> = Vec::new();
+        let intervals = self.get_intervals();
+        for interval in intervals {
+            let current_octave = starting_octave + interval.get_value() / 12;
+            let current_semitone = interval.get_value() % 12;
+            let current_pitch_class = self.tonic.get_offset(current_semitone as i8, true);
+            let current_note = Note::from(current_pitch_class, current_octave);
+            notes.push(current_note);
+        }
+        return notes;
     }
 }

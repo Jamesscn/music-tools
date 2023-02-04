@@ -4,7 +4,7 @@ use crate::pitchclass::PitchClass;
 /// A structure which is used to represent a note with a pitch class and an
 /// octave or frequency.
 pub struct Note {
-    pitch_class: &'static PitchClass,
+    pitch_class: PitchClass,
     octave: u8,
     keyboard_index: u32,
     base_frequency: f32
@@ -66,7 +66,7 @@ impl Note {
     /// let b = Note::from(PitchClasses::B_FLAT, 4);
     /// let c = Note::from(PitchClasses::C, 3);
     /// ```
-    pub fn from(pitch_class: &'static PitchClass, octave: u8) -> Note {
+    pub fn from(pitch_class: PitchClass, octave: u8) -> Note {
         return Note {
             pitch_class,
             octave,
@@ -119,11 +119,6 @@ impl Note {
         return self.base_frequency;
     }
 
-    /// Returns the octave of the current note.
-    pub fn get_octave(&self) -> u8 {
-        return self.octave;
-    }
-
     /// Returns an index representing the position of the note on a keyboard.
     /// The lowest note allowed C0 would return the index 0, while the next
     /// note C#0 would return the index 1 and so on.
@@ -150,8 +145,13 @@ impl Note {
         return self.base_frequency as f32 * (2.0 as f32).powf(self.octave as f32 + (self.pitch_class.get_value() as i8 - 9) as f32 / 12 as f32 - 4.0);
     }
 
+    /// Returns the octave of the current note.
+    pub fn get_octave(&self) -> u8 {
+        return self.octave;
+    }
+
     /// Returns a [`PitchClass`] representing the pitch class of the note.
-    pub fn get_pitch_class(&self) -> &'static PitchClass {
+    pub fn get_pitch_class(&self) -> PitchClass {
         return self.pitch_class;
     }
 }
