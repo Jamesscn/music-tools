@@ -1,59 +1,82 @@
-use crate::pitchclass::PitchClass;
+use crate::note::Note;
 use crate::chord::Chord;
-use crate::common::{ScaleType, Quality};
+use crate::interval::Interval;
+use crate::pitchclass::PitchClass;
+use crate::common::{ScaleType, PentatonicType};
 
 pub struct Scale {
-    pitch_classes: Vec<PitchClass>,
+    intervals: Vec<Interval>,
     scale: ScaleType,
-    pentatonic: Quality
+    pentatonic: PentatonicType
 }
 
 impl Scale {
-    pub fn get_consecutive_pitch_class_names(&self) -> Option<Vec<&'static str>> {
-        for tonic_name in self.pitch_classes[0].get_all_names() {
-            let mut names: Vec<&'static str> = Vec::new();
-            let mut current_name = tonic_name;
-            names.push(current_name);
-            for pitch_class in &self.pitch_classes[1..] {
-                for pitch_class_name in pitch_class.get_all_names() {
-                    if pitch_class_name.as_bytes()[0] as char == PitchClass::get_letter_at_offset(current_name.as_bytes()[0] as char, 1).unwrap() {
-                        names.push(pitch_class_name);
-                        current_name = pitch_class_name;
-                        break;
-                    }
-                }
-            }
-            if names.len() == self.pitch_classes.len() {
-                return Some(names);
-            }
+    pub fn from(scale: ScaleType, pentatonic: PentatonicType) -> Option<Scale> {
+        let scale_steps: Vec<u8> = match scale {
+            ScaleType::Major | ScaleType::Ionian => vec![2, 2, 1, 2, 2, 2, 1],
+            ScaleType::Minor | ScaleType::Aeolian | ScaleType::NaturalMinor | ScaleType::DescendingMelodicMinor => vec![2, 1, 2, 2, 1, 2, 2],
+            ScaleType::Dorian => vec![2, 1, 2, 2, 2, 1, 2],
+            ScaleType::Phrygian => vec![1, 2, 2, 2, 1, 2, 2],
+            ScaleType::Lydian => vec![2, 2, 2, 1, 2, 2, 1],
+            ScaleType::Mixolydian => vec![2, 2, 1, 2, 2, 1, 2],
+            ScaleType::Locrian => vec![1, 2, 2, 1, 2, 2, 2],
+            ScaleType::HarmonicMinor => vec![2, 1, 2, 2, 1, 3, 1],
+            ScaleType::AscendingMelodicMinor => vec![2, 1, 2, 2, 2, 2, 1],
+            ScaleType::PhrygianDominant => vec![1, 3, 1, 2, 1, 2, 2],
+            ScaleType::Whole => vec![2, 2, 2, 2, 2, 2],
+            ScaleType::Chromatic => vec![1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        };
+        let mut intervals: Vec<Interval> = Vec::new();
+        let mut interval_value = 0;
+        for step in scale_steps {
+            intervals.push(Interval::from(interval_value));
+            interval_value += step;
         }
-        return None;
+        intervals.push(Interval::from(interval_value));
+        if pentatonic != PentatonicType::None && intervals.len() != 8 {
+            return None;
+        }
+        if pentatonic == PentatonicType::Major {
+            intervals.remove(6);
+            intervals.remove(3);
+        } else if pentatonic == PentatonicType::Minor {
+            intervals.remove(5);
+            intervals.remove(1);
+        }
+        return Some(Scale {
+            intervals,
+            scale,
+            pentatonic
+        });
     }
 
-    pub fn get_pitch_classes(&self) -> Vec<PitchClass> {
-        return self.pitch_classes;
+    pub fn get_intervals(&self) -> Vec<Interval> {
+        return self.intervals.clone();
     }
 
-    pub fn get_scale(&self) -> ScaleType {
+    pub fn get_scale_type(&self) -> ScaleType {
         return self.scale;
     }
 
-    pub fn get_pentatonic(&self) -> Quality {
+    pub fn get_pentatonic_type(&self) -> PentatonicType {
         return self.pentatonic;
     }
 
     pub fn is_diatonic(&self) -> bool {
-        if self.pitch_classes.len() == 8 {
+        if self.intervals.len() == 8 {
             return true;
         }
         return false;
     }
 
-    pub fn get_tonic(&self) -> PitchClass {
-        return self.pitch_classes[0];
+    pub fn is_pentatonic(&self) -> bool {
+        if self.intervals.len() == 6 {
+            return true;
+        }
+        return false;
     }
 
-    pub fn get_diatonic_chords(&self, with_seventh: bool) -> Option<Vec<Chord>> {
+    pub fn get_diatonic_chords(&self, tonic: PitchClass, with_seventh: bool) -> Option<Vec<Chord>> {
         let minor_numerals: [&str; 7];
         let ionian_numerals: [&str; 7];
         let dorian_numerals: [&str; 7];
@@ -91,59 +114,23 @@ impl Scale {
             ScaleType::Aeolian | ScaleType::NaturalMinor => aeolian_numerals,
             ScaleType::Locrian => locrian_numerals,
             _ => return None
-        }.iter().map(|x| Chord::from_numeral(self.get_tonic(), x).unwrap()).collect();
+        }.iter().map(|x| Chord::from_numeral(tonic, x).unwrap()).collect();
         return Some(chords);
     }
-}
 
-pub fn is_scale_type_diatonic(scale_type: ScaleType) -> bool {
-    return match scale_type {
-        ScaleType::Major | ScaleType::Ionian | ScaleType::Minor | ScaleType::Aeolian |
-        ScaleType::NaturalMinor | ScaleType::DescendingMelodicMinor | ScaleType::Dorian |
-        ScaleType::Phrygian | ScaleType::Lydian | ScaleType::Mixolydian | ScaleType::Locrian |
-        ScaleType::HarmonicMinor | ScaleType::AscendingMelodicMinor |
-        ScaleType::PhrygianDominant => true,
-        _ => false
+    pub fn to_chord(&self, tonic: PitchClass) -> Chord {
+        let mut chord = Chord::new(tonic);
+        for index in 1..self.intervals.len() {
+            chord.add_interval(self.intervals[index]);
+        }
+        return chord;
     }
-}
 
-pub fn get_scale(tonic: PitchClass, scale: ScaleType, pentatonic: Quality) -> Option<Scale> {
-    let scale_steps: Vec<i8> = match scale {
-        ScaleType::Major | ScaleType::Ionian => vec![2, 2, 1, 2, 2, 2, 1],
-        ScaleType::Minor | ScaleType::Aeolian | ScaleType::NaturalMinor | ScaleType::DescendingMelodicMinor => vec![2, 1, 2, 2, 1, 2, 2],
-        ScaleType::Dorian => vec![2, 1, 2, 2, 2, 1, 2],
-        ScaleType::Phrygian => vec![1, 2, 2, 2, 1, 2, 2],
-        ScaleType::Lydian => vec![2, 2, 2, 1, 2, 2, 1],
-        ScaleType::Mixolydian => vec![2, 2, 1, 2, 2, 1, 2],
-        ScaleType::Locrian => vec![1, 2, 2, 1, 2, 2, 2],
-        ScaleType::HarmonicMinor => vec![2, 1, 2, 2, 1, 3, 1],
-        ScaleType::AscendingMelodicMinor => vec![2, 1, 2, 2, 2, 2, 1],
-        ScaleType::PhrygianDominant => vec![1, 3, 1, 2, 1, 2, 2],
-        ScaleType::Whole => vec![2, 2, 2, 2, 2, 2],
-        ScaleType::Chromatic => vec![1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    };
-    let mut pitch_classes: Vec<PitchClass> = Vec::new();
-    pitch_classes.push(tonic);
-    let mut current_pitch_class = tonic;
-    for step in scale_steps {
-        let next_pitch_class = current_pitch_class.get_offset(step);
-        pitch_classes.push(next_pitch_class);
-        current_pitch_class = next_pitch_class;
+    pub fn to_notes(&self, tonic: PitchClass, starting_octave: u8) -> Vec<Note> {
+        return self.to_chord(tonic).to_notes(starting_octave);
     }
-    let diatonic_scale_type = is_scale_type_diatonic(scale);
-    if pentatonic != Quality::None && !diatonic_scale_type {
-        return None;
+
+    pub fn to_pitch_classes(&self, tonic: PitchClass) -> Vec<PitchClass> {
+        return self.to_chord(tonic).get_pitch_classes();
     }
-    if pentatonic == Quality::Major {
-        pitch_classes.remove(6);
-        pitch_classes.remove(3);
-    } else if pentatonic == Quality::Minor {
-        pitch_classes.remove(5);
-        pitch_classes.remove(1);
-    }
-    return Some(Scale {
-        pitch_classes,
-        scale,
-        pentatonic
-    });
 }

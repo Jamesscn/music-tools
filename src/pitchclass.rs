@@ -87,8 +87,8 @@ impl PitchClass {
     /// ```rust
     /// use musictools::pitchclass::PitchClasses;
     /// 
-    /// let c = PitchClasses::A.get_offset(2);
-    /// let f = PitchClasses::A.get_offset(-2);
+    /// let c = PitchClasses::A.get_offset(2, false);
+    /// let f = PitchClasses::A.get_offset(-2, false);
     /// ```
     pub fn get_offset(&self, offset: i8, prefer_flats: bool) -> PitchClass {
         if prefer_flats {

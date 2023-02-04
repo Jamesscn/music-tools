@@ -186,14 +186,14 @@ pub enum TriadQuality {
     Diminished
 }
 
-/// This enum is used to represent the quality of a tone or a pentatonic.
+/// This enum is used to represent the type of a pentatonic.
 #[derive(Copy, Clone, PartialEq, Eq)]
-pub enum Quality {
-    /// Corresponds to no quality.
+pub enum PentatonicType {
+    /// Corresponds to no pentatonic.
     None,
-    /// Corresponds to a major quality.
+    /// Corresponds to a major pentatonic.
     Major,
-    /// Corresponds to a minor quality.
+    /// Corresponds to a minor pentatonic.
     Minor
 }
 

@@ -10,7 +10,7 @@ pub use musictools::rhythm::{Rhythm, Beat};
 
 fn main() {
     let mut rhythm = Rhythm::from(160.0, Fraction::new(5, 4), Vec::from(
-        [Beat::quarter_dotted(), Beat::quarter_dotted(), Beat::quarter(), Beat::quarter()]
+        [Beat::QUARTER_DOTTED, Beat::QUARTER_DOTTED, Beat::QUARTER, Beat::QUARTER]
     ));
     let note_names = ["G4", "G4", "A#4", "C5", "G4", "G4", "F4", "F#4"];
     for index in 0..16 {
