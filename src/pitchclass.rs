@@ -12,7 +12,7 @@ impl PitchClass {
     /// 
     /// # Parameters
     /// 
-    /// - `pitch_class_name`: A [`String`] representing the name of the pitch
+    /// - `pitch_class_name`: A string representing the name of the pitch
     /// class to return. This string can contain flats, sharps, double flats
     /// or double sharps.
     /// 
