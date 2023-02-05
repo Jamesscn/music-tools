@@ -18,9 +18,9 @@ impl Note {
     /// # Parameters
     /// 
     /// - `string`: A string with the uppercase letter of the pitch class,
-    /// which can be followed by a # to indicate it is a sharp pitch class or
-    /// a lowercase b to indicate that it is a flat note, and which is then
-    /// followed by a number representing the octave of the note.
+    /// which can be followed by a `#` or `♯` to indicate it is a sharp pitch
+    /// class or a `b` or `♭` to indicate that it is a flat note, and which is
+    /// then followed by a number representing the octave of the note.
     /// 
     /// # Examples
     /// 
@@ -32,7 +32,7 @@ impl Note {
     /// let c = Note::from_string("C3");
     /// ```
     pub fn from_string(string: &str) -> Option<Note> {
-        let regex = Regex::new(r"^(A|A\#|Bb|B|C|C\#|Db|D|D\#|Eb|E|F|F\#|Gb|G|G\#|Ab)(\d)$").unwrap();
+        let regex = Regex::new(r"^(A|B|C|D|E|F|G)(b|♭|\#|♯)?(\d)$").unwrap();
         if !regex.is_match(&string) {
             return None;
         }
@@ -122,7 +122,7 @@ impl Note {
 
     /// Returns an index representing the position of the note on a keyboard.
     /// The lowest note allowed C0 would return the index 0, while the next
-    /// note C#0 would return the index 1 and so on.
+    /// note C sharp 0 would return the index 1 and so on.
     /// 
     /// # Examples
     /// 

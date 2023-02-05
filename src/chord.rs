@@ -88,8 +88,9 @@ impl Chord {
     /// which will be offset by the numeral.
     /// - `input_numeral`: A string that can contain the following items in
     /// the following order:
-    ///     - An optional accidental `b` which will treat the chord as a flat
-    ///     chord, or `#` which will treat the chord as a sharp chord.
+    ///     - An optional accidental `b` or `♭` which will treat the chord as
+    ///     a flat chord, or `#` or `♯` which will treat the chord as a sharp
+    ///     chord.
     ///     - A numeral I - VII or i - vii which will represent the scale
     ///     degree to offset the chord from the tonic. If the numeral is in
     ///     uppercase then the chord will be a major chord, and if it is in
@@ -101,26 +102,28 @@ impl Chord {
     /// 
     /// # Examples
     /// 
-    /// The following example demonstrates the creation of a major tetrad
-    /// seven scale degrees above C, which will be flat, augmented and also
-    /// contain a minor seventh:
+    /// The following example demonstrates the creation of two copies of a
+    /// major tetrad seven scale degrees above C, which will be flat,
+    /// augmented and will also contain a minor seventh.
     /// 
     /// ```rust
     /// use musictools::chord::Chord;
     /// use musictools::pitchclass::PitchClasses;
     /// 
-    /// let chord = Chord::from_numeral(PitchClasses::C, "bVII+7");
+    /// let chord1 = Chord::from_numeral(PitchClasses::C, "bVII+7");
+    /// let chord2 = Chord::from_numeral(PitchClasses::C, "♭VII+7");
     /// ```
     /// 
-    /// The following example demonstrates the creation of a minor tetrad two
-    /// scale degrees above G sharp, which will be sharp, diminished and also
-    /// contain a major seventh:
+    /// The following example demonstrates the creation of two copies of a
+    /// minor tetrad two scale degrees above G sharp, which will be sharp,
+    /// diminished and will also contain a major seventh:
     /// 
     /// ```rust
     /// use musictools::chord::Chord;
     /// use musictools::pitchclass::PitchClasses;
     /// 
     /// let chord = Chord::from_numeral(PitchClasses::G_SHARP, "#ii°maj7");
+    /// let chord = Chord::from_numeral(PitchClasses::G_SHARP, "♯ii°maj7");
     /// ```
     /// 
     /// The following example demonstrates the creation of a minor triad
@@ -134,7 +137,7 @@ impl Chord {
     /// ```
     pub fn from_numeral(tonic: PitchClass, input_numeral: &str) -> Option<Chord> {
         let numeral_array = ["I", "II", "III", "IV", "V", "VI", "VII"];
-        let numeral_regex = Regex::new(r"^(b|\#)?(I|II|III|IV|V|VI|VII|i|ii|iii|iv|v|vi|vii)(°|\+)?(maj7|7)?$").unwrap();
+        let numeral_regex = Regex::new(r"^(b|♭|\#|♯)?(I|II|III|IV|V|VI|VII|i|ii|iii|iv|v|vi|vii)(°|\+)?(maj7|7)?$").unwrap();
         if !numeral_regex.is_match(&input_numeral) {
             return None;
         }
@@ -172,7 +175,7 @@ impl Chord {
             6 => 11,
             _ => return None
         };
-        if accidental == "b" {
+        if accidental == "b" || accidental == "♭" {
             increment = match numeral_value {
                 1 => 1,
                 2 => 3,
@@ -181,7 +184,7 @@ impl Chord {
                 6 => 10,
                 _ => return None
             };
-        } else if accidental == "#" {
+        } else if accidental == "#" || accidental == "♯" {
             increment = match numeral_value {
                 0 => 1,
                 1 => 3,
