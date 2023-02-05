@@ -12,27 +12,27 @@ pub struct Scale {
 
 impl Scale {
     pub fn from(scale: ScaleType, pentatonic: PentatonicType) -> Option<Scale> {
-        let scale_steps: Vec<u8> = match scale {
-            ScaleType::Major | ScaleType::Ionian => vec![2, 2, 1, 2, 2, 2, 1],
-            ScaleType::Minor | ScaleType::Aeolian | ScaleType::NaturalMinor | ScaleType::DescendingMelodicMinor => vec![2, 1, 2, 2, 1, 2, 2],
-            ScaleType::Dorian => vec![2, 1, 2, 2, 2, 1, 2],
-            ScaleType::Phrygian => vec![1, 2, 2, 2, 1, 2, 2],
-            ScaleType::Lydian => vec![2, 2, 2, 1, 2, 2, 1],
-            ScaleType::Mixolydian => vec![2, 2, 1, 2, 2, 1, 2],
-            ScaleType::Locrian => vec![1, 2, 2, 1, 2, 2, 2],
-            ScaleType::HarmonicMinor => vec![2, 1, 2, 2, 1, 3, 1],
-            ScaleType::AscendingMelodicMinor => vec![2, 1, 2, 2, 2, 2, 1],
-            ScaleType::PhrygianDominant => vec![1, 3, 1, 2, 1, 2, 2],
-            ScaleType::Whole => vec![2, 2, 2, 2, 2, 2],
-            ScaleType::Chromatic => vec![1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        let scale_intervals: Vec<u8> = match scale {
+            ScaleType::Major | ScaleType::Ionian => vec![0, 2, 4, 5, 7, 9, 11, 12],
+            ScaleType::Minor | ScaleType::Aeolian | ScaleType::NaturalMinor | ScaleType::DescendingMelodicMinor => vec![0, 2, 3, 5, 7, 8, 10, 12],
+            ScaleType::Dorian => vec![0, 2, 3, 5, 7, 9, 10, 12],
+            ScaleType::Phrygian => vec![0, 1, 3, 5, 7, 8, 10, 12],
+            ScaleType::Lydian => vec![0, 2, 4, 6, 7, 9, 11, 12],
+            ScaleType::Mixolydian => vec![0, 2, 4, 5, 7, 9, 10, 12],
+            ScaleType::Locrian => vec![0, 1, 3, 5, 6, 8, 10, 12],
+            ScaleType::HarmonicMinor => vec![0, 2, 3, 5, 7, 8, 11, 12],
+            ScaleType::AscendingMelodicMinor => vec![0, 2, 3, 5, 7, 9, 11, 12],
+            ScaleType::PhrygianDominant => vec![0, 1, 4, 5, 7, 8, 10, 12],
+            ScaleType::NonatonicBlues => vec![0, 2, 3, 4, 5, 7, 9, 10, 11, 12],
+            ScaleType::MajorBlues => vec![0, 2, 3, 4, 7, 9, 12],
+            ScaleType::MinorBlues => vec![0, 3, 5, 6, 7, 10, 12],
+            ScaleType::Whole => vec![0, 2, 4, 6, 8, 10, 12],
+            ScaleType::Chromatic => vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         };
         let mut intervals: Vec<Interval> = Vec::new();
-        let mut interval_value = 0;
-        for step in scale_steps {
+        for interval_value in scale_intervals {
             intervals.push(Interval::from(interval_value));
-            interval_value += step;
         }
-        intervals.push(Interval::from(interval_value));
         if pentatonic != PentatonicType::None && intervals.len() != 8 {
             return None;
         }

@@ -21,17 +21,17 @@ impl PitchClass {
     /// ```rust
     /// use musictools::pitchclass::PitchClass;
     /// 
-    /// let a = PitchClass::from_name(String::from("A"));
-    /// let b_flat = PitchClass::from_name(String::from("Bb"));
+    /// let a = PitchClass::from_name("A");
+    /// let b_flat = PitchClass::from_name("Bb");
     /// ```
-    pub fn from_name(pitch_class_name: String) -> Option<PitchClass> {
+    pub fn from_name(pitch_class_name: &str) -> Option<PitchClass> {
         for pitch_class_index in 0..12 {
             let flat_pitch_class = PITCH_CLASSES_FLATS[pitch_class_index];
             let sharp_pitch_class = PITCH_CLASSES_SHARPS[pitch_class_index];
-            if flat_pitch_class.get_name() == pitch_class_name {
+            if flat_pitch_class.get_name() == pitch_class_name || flat_pitch_class.get_simple_name() == pitch_class_name {
                 return Some(flat_pitch_class);
             }
-            if sharp_pitch_class.get_name() == pitch_class_name {
+            if sharp_pitch_class.get_name() == pitch_class_name || sharp_pitch_class.get_simple_name() == pitch_class_name {
                 return Some(sharp_pitch_class);
             }
         }

@@ -37,9 +37,10 @@ impl Note {
             return None;
         }
         let regex_capture_groups = regex.captures(&string).unwrap();
-        let octave: u8 = (&regex_capture_groups[2]).parse().unwrap();
-        let pitch_class_string = String::from(&regex_capture_groups[1]);
-        let pitch_class = PitchClass::from_name(pitch_class_string).unwrap();
+        let pitch_class_letter = regex_capture_groups.get(1).map_or("", |x| x.as_str());
+        let accidental = regex_capture_groups.get(2).map_or("", |x| x.as_str());
+        let octave: u8 = regex_capture_groups.get(3).map_or(0, |x| x.as_str().parse::<u8>().unwrap());
+        let pitch_class = PitchClass::from_name(format!("{pitch_class_letter}{accidental}").as_str()).unwrap();
         return Some(Note {
             pitch_class,
             octave,

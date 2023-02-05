@@ -154,12 +154,21 @@ pub enum ScaleType {
     /// The Phrygian Dominant scale, which is the equal to the Phrygian scale
     /// with a major third instead of a minor third.
     PhrygianDominant,
+    /// A nonatonic blues scale, which is derived from the major scale with an
+    /// added flat third and an added flat seventh of the key.
+    NonatonicBlues,
+    /// The major blues scale, which is a hexatonic scale derived from the
+    /// major pentatonic scale with an added flat third of the key.
+    MajorBlues,
+    /// The minor blues scale, which is a hexatonic scale derived from the
+    /// minor pentatonic scale with an added flat fifth of the key.
+    MinorBlues,
     /// The whole tone scale, which is a hexatonic scale where each tone or
     /// pitch class is separated by a whole note or two semitones.
     Whole,
     /// The chromatic scale, which consists of all twelve pitch classes
     /// separated by a semitone.
-    Chromatic 
+    Chromatic
 }
 
 /// This enum contains representations for the different types of triads that

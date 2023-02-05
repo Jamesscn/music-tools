@@ -23,9 +23,7 @@ impl Chord {
     pub fn new(tonic: PitchClass) -> Chord {
         return Chord {
             tonic,
-            intervals: Vec::from([
-                Intervals::PERFECT_UNISON
-            ]),
+            intervals: Vec::from([Intervals::PERFECT_UNISON]),
             inversion: 0
         }
     }
@@ -234,7 +232,7 @@ impl Chord {
             if value > &interval {
                 break
             }
-            insert_index = index;
+            insert_index = index + 1;
         }
         self.intervals.insert(insert_index, interval);
     }
