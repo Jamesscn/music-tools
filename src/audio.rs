@@ -77,22 +77,6 @@ impl WavetableOscillator {
         self.table_deltas.clear();
         self.table_indexes.clear();
     }
-
-    fn get_next_sample(&mut self) -> f32 {
-        let mut sample = 0.0;
-        for index in 0..self.table_deltas.len() {
-            let current_index = self.table_indexes[index] as usize;
-            let next_index = (current_index + 1) % self.table_size;
-            let lerp_frac = self.table_indexes[index] - current_index as f32;
-            let current_value = self.wave_table[current_index];
-            let next_value = self.wave_table[next_index];
-            let lerp_value = current_value + lerp_frac * (next_value - current_value);
-            sample += lerp_value / self.table_deltas.len() as f32;
-            self.table_indexes[index] += self.table_deltas[index];
-            self.table_indexes[index] %= self.table_size as f32;
-        }
-        return sample;
-    }
 }
 
 fn generate_wave_table(table_size: usize) -> Vec<f32> {
@@ -109,7 +93,19 @@ impl Iterator for WavetableOscillator {
     type Item = f32;
 
     fn next(&mut self) -> Option<f32> {
-        return Some(self.get_next_sample());
+        let mut sample = 0.0;
+        for index in 0..self.table_deltas.len() {
+            let current_index = self.table_indexes[index] as usize;
+            let next_index = (current_index + 1) % self.table_size;
+            let lerp_frac = self.table_indexes[index] - current_index as f32;
+            let current_value = self.wave_table[current_index];
+            let next_value = self.wave_table[next_index];
+            let lerp_value = current_value + lerp_frac * (next_value - current_value);
+            sample += lerp_value / self.table_deltas.len() as f32;
+            self.table_indexes[index] += self.table_deltas[index];
+            self.table_indexes[index] %= self.table_size as f32;
+        }
+        return Some(sample);
     }
 }
 
