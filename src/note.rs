@@ -156,3 +156,9 @@ impl Note {
         return self.pitch_class;
     }
 }
+
+impl PartialEq for Note {
+    fn eq(&self, other: &Self) -> bool {
+        return self.keyboard_index == other.keyboard_index && self.base_frequency == other.base_frequency;
+    }
+}

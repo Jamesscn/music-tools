@@ -134,3 +134,9 @@ impl Scale {
         return self.to_chord(tonic).get_pitch_classes();
     }
 }
+
+impl PartialEq for Scale {
+    fn eq(&self, other: &Self) -> bool {
+        return self.scale == other.scale && self.pentatonic == other.pentatonic;
+    }
+}
