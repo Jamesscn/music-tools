@@ -3,8 +3,7 @@
 /// equal temperament system.
 pub struct PitchClass {
     value: u8,
-    name: &'static str,
-    simple_name: &'static str
+    names: &'static [&'static str]
 }
 
 impl PitchClass {
@@ -26,13 +25,11 @@ impl PitchClass {
     /// ```
     pub fn from_name(pitch_class_name: &str) -> Option<PitchClass> {
         for pitch_class_index in 0..12 {
-            let flat_pitch_class = PITCH_CLASSES_FLATS[pitch_class_index];
-            let sharp_pitch_class = PITCH_CLASSES_SHARPS[pitch_class_index];
-            if flat_pitch_class.get_name() == pitch_class_name || flat_pitch_class.get_simple_name() == pitch_class_name {
-                return Some(flat_pitch_class);
-            }
-            if sharp_pitch_class.get_name() == pitch_class_name || sharp_pitch_class.get_simple_name() == pitch_class_name {
-                return Some(sharp_pitch_class);
+            let pitch_class = PITCH_CLASSES[pitch_class_index];
+            for current_name in pitch_class.names {
+                if current_name == &pitch_class_name {
+                    return Some(pitch_class);
+                }
             }
         }
         return None;
@@ -56,17 +53,12 @@ impl PitchClass {
     /// ```rust
     /// use musictools::pitchclass::PitchClass;
     /// 
-    /// let g_flat = PitchClass::from_value(6, true);
-    /// let f_sharp = PitchClass::from_value(6, false);
+    /// let g_flat = PitchClass::from_value(6);
     /// ```
-    pub fn from_value(value: u8, prefer_flats: bool) -> Option<PitchClass> {
+    pub fn from_value(value: u8) -> Option<PitchClass> {
         let index = value as usize;
         if index < 12 {
-            if prefer_flats {
-                return Some(PITCH_CLASSES_FLATS[index]);
-            } else {
-                return Some(PITCH_CLASSES_SHARPS[index]);
-            }
+            return Some(PITCH_CLASSES[index]);
         }
         return None
     }
@@ -88,15 +80,11 @@ impl PitchClass {
     /// ```rust
     /// use musictools::pitchclass::PitchClasses;
     /// 
-    /// let c = PitchClasses::A.get_offset(2, false);
-    /// let f = PitchClasses::A.get_offset(-2, false);
+    /// let c = PitchClasses::A.get_offset(2);
+    /// let f = PitchClasses::A.get_offset(-2);
     /// ```
-    pub fn get_offset(&self, offset: i8, prefer_flats: bool) -> PitchClass {
-        if prefer_flats {
-            return PITCH_CLASSES_FLATS[((self.value as i8 + offset) % 12) as usize];
-        } else {
-            return PITCH_CLASSES_SHARPS[((self.value as i8 + offset) % 12) as usize];
-        }
+    pub fn get_offset(&self, offset: i8) -> PitchClass {
+        return PITCH_CLASSES[((self.value as i8 + offset) % 12) as usize];
     }
 
     /// Obtains a numeric value from 0 to 11 representing the pitch class,
@@ -105,16 +93,9 @@ impl PitchClass {
         return self.value;
     }
 
-    /// Returns the name of this pitch class, which may contain the unicode
-    /// characters `♭` and `♯` representing sharp and flat notes.
-    pub fn get_name(&self) -> &'static str {
-        return self.name;
-    }
-
-    /// Returns the name of this pitch class with the characters `b` and `#`
-    /// instead of the unicode characters `♭` and `♯` for compatibility.
-    pub fn get_simple_name(&self) -> &'static str {
-        return self.simple_name;
+    /// Returns a vector of equivalent names for this pitch class.
+    pub fn get_names(&self) -> &'static [&'static str] {
+        return self.names;
     }
 }
 
@@ -129,136 +110,102 @@ impl PartialEq for PitchClass {
 pub struct PitchClasses;
 
 impl PitchClasses {
+    // Real pitch classes
+
     /// The pitch class for C.
-    pub const C: PitchClass = PitchClass {
-        value: 0,
-        name: "C",
-        simple_name: "C"
-    };
-    /// The pitch class for C sharp, which is equal to D flat in this library.
-    pub const C_SHARP: PitchClass = PitchClass {
-        value: 1,
-        name: "C♯",
-        simple_name: "C#"
-    };
-    /// The pitch class for D flat, which is equal to C sharp in this library.
-    pub const D_FLAT: PitchClass = PitchClass {
-        value: 1,
-        name: "D♭",
-        simple_name: "Db"
-    };
+    pub const C: PitchClass = PITCH_CLASSES[0];
+    /// The pitch class for C sharp, which is equal to D flat.
+    pub const C_SHARP: PitchClass = PITCH_CLASSES[1];
+    /// The pitch class for D flat, which is equal to C sharp.
+    pub const D_FLAT: PitchClass = PITCH_CLASSES[1];
     /// The pitch class for D.
-    pub const D: PitchClass = PitchClass {
-        value: 2,
-        name: "D",
-        simple_name: "D"
-    };
-    /// The pitch class for D sharp, which is equal to E flat in this library.
-    pub const D_SHARP: PitchClass = PitchClass {
-        value: 3,
-        name: "D♯",
-        simple_name: "D#"
-    };
-    /// The pitch class for E flat, which is equal to D sharp in this library.
-    pub const E_FLAT: PitchClass = PitchClass {
-        value: 3,
-        name: "E♭",
-        simple_name: "Eb"
-    };
+    pub const D: PitchClass = PITCH_CLASSES[2];
+    /// The pitch class for D sharp, which is equal to E flat.
+    pub const D_SHARP: PitchClass = PITCH_CLASSES[3];
+    /// The pitch class for E flat, which is equal to D sharp.
+    pub const E_FLAT: PitchClass = PITCH_CLASSES[3];
     /// The pitch class for E.
-    pub const E: PitchClass = PitchClass {
-        value: 4,
-        name: "E",
-        simple_name: "E"
-    };
+    pub const E: PitchClass = PITCH_CLASSES[4];
     /// The pitch class for F.
-    pub const F: PitchClass = PitchClass {
-        value: 5,
-        name: "F",
-        simple_name: "F"
-    };
-    /// The pitch class for F sharp, which is equal to G flat in this library.
-    pub const F_SHARP: PitchClass = PitchClass {
-        value: 6,
-        name: "F♯",
-        simple_name: "F#"
-    };
-    /// The pitch class for G flat, which is equal to F sharp in this library.
-    pub const G_FLAT: PitchClass = PitchClass {
-        value: 6,
-        name: "G♭",
-        simple_name: "Gb"
-    };
+    pub const F: PitchClass = PITCH_CLASSES[5];
+    /// The pitch class for F sharp, which is equal to G flat.
+    pub const F_SHARP: PitchClass = PITCH_CLASSES[6];
+    /// The pitch class for G flat, which is equal to F sharp.
+    pub const G_FLAT: PitchClass = PITCH_CLASSES[6];
     /// The pitch class for G.
-    pub const G: PitchClass = PitchClass {
-        value: 7,
-        name: "G",
-        simple_name: "G"
-    };
-    /// The pitch class for G sharp, which is equal to A flat in this library.
-    pub const G_SHARP: PitchClass = PitchClass {
-        value: 8,
-        name: "G♯",
-        simple_name: "G#"
-    };
-    /// The pitch class for A flat, which is equal to G sharp in this library.
-    pub const A_FLAT: PitchClass = PitchClass {
-        value: 8,
-        name: "A♭",
-        simple_name: "Ab"
-    };
+    pub const G: PitchClass = PITCH_CLASSES[7];
+    /// The pitch class for G sharp, which is equal to A flat.
+    pub const G_SHARP: PitchClass = PITCH_CLASSES[8];
+    /// The pitch class for A flat, which is equal to G sharp.
+    pub const A_FLAT: PitchClass = PITCH_CLASSES[8];
     /// The pitch class for A.
-    pub const A: PitchClass = PitchClass {
-        value: 9,
-        name: "A",
-        simple_name: "A"
-    };
-    /// The pitch class for A sharp, which is equal to B flat in this library.
-    pub const A_SHARP: PitchClass = PitchClass {
-        value: 10,
-        name: "A♯",
-        simple_name: "A#"
-    };
-    /// The pitch class for B flat, which is equal to A sharp in this library.
-    pub const B_FLAT: PitchClass = PitchClass {
-        value: 10,
-        name: "B♭",
-        simple_name: "Bb"
-    };
+    pub const A: PitchClass = PITCH_CLASSES[9];
+    /// The pitch class for A sharp, which is equal to B flat.
+    pub const A_SHARP: PitchClass = PITCH_CLASSES[10];
+    /// The pitch class for B flat, which is equal to A sharp.
+    pub const B_FLAT: PitchClass = PITCH_CLASSES[10];
     /// The pitch class for B.
-    pub const B: PitchClass = PitchClass {
-        value: 11,
-        name: "B",
-        simple_name: "B"
-    };
+    pub const B: PitchClass = PITCH_CLASSES[11];
+
+    // Theoretical pitch classes
+
+    /// The theoretical pitch class for B sharp, which is equal to C.
+    pub const B_SHARP: PitchClass = PITCH_CLASSES[0];
+    /// The theoretical pitch class for F flat, which is equal to E.
+    pub const F_FLAT: PitchClass = PITCH_CLASSES[4];
+    /// The theoretical pitch class for E sharp, which is equal to F.
+    pub const E_SHARP: PitchClass = PITCH_CLASSES[5];
+    /// The theoretical pitch class for C flat, which is equal to B.
+    pub const C_FLAT: PitchClass = PITCH_CLASSES[11];
 }
 
-const PITCH_CLASSES_FLATS: [PitchClass; 12] = [
-    PitchClasses::C,
-    PitchClasses::D_FLAT,
-    PitchClasses::D,
-    PitchClasses::E_FLAT,
-    PitchClasses::E,
-    PitchClasses::F,
-    PitchClasses::G_FLAT,
-    PitchClasses::G,
-    PitchClasses::A_FLAT,
-    PitchClasses::A,
-    PitchClasses::B_FLAT,
-    PitchClasses::B
-];
-
-const PITCH_CLASSES_SHARPS: [PitchClass; 12] = [
-    PitchClasses::C,
-    PitchClasses::C_SHARP,
-    PitchClasses::D,
-    PitchClasses::D_SHARP,
-    PitchClasses::E,
-    PitchClasses::F,
-    PitchClasses::F_SHARP,
-    PitchClasses::G,
-    PitchClasses::G_SHARP,
-    PitchClasses::A,
-    PitchClasses::A_SHARP,
-    PitchClasses::B
+const PITCH_CLASSES: [PitchClass; 12] = [
+    PitchClass {
+        value: 0,
+        names: &["C", "C♮", "B♯", "B#", "D♭♭", "Dbb"]
+    },
+    PitchClass {
+        value: 1,
+        names: &["C♯", "C#", "D♭", "Db"]
+    },
+    PitchClass {
+        value: 2,
+        names: &["D", "D♮", "C♯♯", "C##", "Cx", "E♭♭", "Ebb"]
+    },
+    PitchClass {
+        value: 3,
+        names: &["D♯", "D#", "E♭", "Eb"]
+    },
+    PitchClass {
+        value: 4,
+        names: &["E", "E♮", "F♭", "Fb", "D♯♯", "D##", "Dx"]
+    },
+    PitchClass {
+        value: 5,
+        names: &["F", "F♮", "E♯", "E#"]
+    },
+    PitchClass {
+        value: 6,
+        names: &["F♯", "F#", "G♭", "Gb"]
+    },
+    PitchClass {
+        value: 7,
+        names: &["G", "G♮", "F♯♯", "F##", "Fx", "A♭♭", "Abb"]
+    },
+    PitchClass {
+        value: 8,
+        names: &["G♯", "G#", "A♭", "Ab"]
+    },
+    PitchClass {
+        value: 9,
+        names: &["A", "A♮", "G♯♯", "G##", "Gx", "B♭♭", "Bbb"]
+    },
+    PitchClass {
+        value: 10,
+        names: &["A♯", "A#", "B♭", "Bb"]
+    },
+    PitchClass {
+        value: 11,
+        names: &["B", "B♮", "C♭", "Cb", "A♯♯", "A##", "Ax"]
+    }
 ];

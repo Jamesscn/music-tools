@@ -192,7 +192,7 @@ impl Chord {
                 _ => return None
             };
         }
-        let chord_tonic = tonic.get_offset(increment, true);
+        let chord_tonic = tonic.get_offset(increment);
         let mut chord = Chord::from_triad(chord_tonic, triad_quality);
         if seventh == "maj7" {
             chord.add_interval(Intervals::MAJOR_SEVENTH);
@@ -319,7 +319,7 @@ impl Chord {
         let intervals = self.get_intervals();
         for interval in intervals {
             let current_semitone = interval.get_value() % 12;
-            let current_pitch_class = self.tonic.get_offset(current_semitone as i8, true);
+            let current_pitch_class = self.tonic.get_offset(current_semitone as i8);
             pitch_classes.push(current_pitch_class);
         }
         return pitch_classes;
@@ -355,7 +355,7 @@ impl Chord {
         for interval in intervals {
             let current_octave = starting_octave + (self.tonic.get_value() + interval.get_value()) / 12;
             let current_semitone = interval.get_value() % 12;
-            let current_pitch_class = self.tonic.get_offset(current_semitone as i8, true);
+            let current_pitch_class = self.tonic.get_offset(current_semitone as i8);
             let current_note = Note::from(current_pitch_class, current_octave);
             notes.push(current_note);
         }

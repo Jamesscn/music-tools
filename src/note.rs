@@ -32,7 +32,7 @@ impl Note {
     /// let c = Note::from_string("C3");
     /// ```
     pub fn from_string(string: &str) -> Option<Note> {
-        let regex = Regex::new(r"^(A|B|C|D|E|F|G)(b|♭|\#|♯)?(\d)$").unwrap();
+        let regex = Regex::new(r"^([A-G])(♮|x|b{1,2}|♭{1,2}|\#{1,2}|♯{1,2})?(\d+)$").unwrap();
         if !regex.is_match(&string) {
             return None;
         }

@@ -40,16 +40,16 @@ fn test_triads() {
         (f_major, ["F7", "A7", "C8"]),
         (f_sharp_major, ["F#8", "A#8", "C#9"]),
         (a_minor, ["A4", "C5", "E5"]),
-        (a_flat_minor, ["Ab1", "B1", "Eb2"]),
-        (a_sharp_minor, ["A#1", "C#2", "F2"]),
+        (a_flat_minor, ["Ab1", "Cb1", "Eb2"]),
+        (a_sharp_minor, ["A#1", "C#2", "E#2"]),
         (c_minor, ["C0", "Eb0", "G0"]),
-        (b_augmented, ["B5", "D#6", "G6"]),
-        (e_augmented, ["E7", "G#7", "C8"]),
+        (b_augmented, ["B5", "D#6", "F##6"]),
+        (e_augmented, ["E7", "G#7", "B#8"]),
         (d_diminished, ["D3", "F3", "Ab3"]),
         (g_sharp_diminished, ["G#3", "B3", "D4"]),
         (g_sus2, ["G0", "A0", "D1"]),
         (g_flat_sus2, ["Gb1", "Ab1", "Db2"]),
-        (a_sharp_sus4, ["A#7", "D#8", "F8"]),
+        (a_sharp_sus4, ["A#7", "D#8", "E#8"]),
         (f_sus4, ["F8", "Bb8", "C9"])
     ];
     
