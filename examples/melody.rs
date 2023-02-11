@@ -1,6 +1,6 @@
 use std::time::Duration;
 use rodio::{OutputStream, Sink};
-use musictools::audio::WavetableOscillator;
+use musictools::audio::{WavetableOscillator, Waveforms};
 use musictools::common::Fraction;
 use musictools::note::Note;
 use musictools::rhythm::{Rhythm, Beat};
@@ -13,6 +13,7 @@ fn main() {
     for index in 0..16 {
         let note = Note::from_string(note_names[index % note_names.len()]).unwrap();
         let mut oscillator = WavetableOscillator::new(128, 44100);
+        oscillator.set_wave_function(Waveforms::SQUARE_WAVE, 1.0);
         oscillator.add_frequency(note.get_frequency());
         let (_stream, stream_handle) = OutputStream::try_default().unwrap();
         let sink = Sink::try_new(&stream_handle).unwrap();

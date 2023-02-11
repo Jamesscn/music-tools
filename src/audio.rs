@@ -50,7 +50,7 @@ impl WavetableOscillator {
     /// reproducing the waveform through the user's speakers. This is
     /// typically 44100 Hz.
     pub fn new(table_size: usize, sample_rate: u32) -> WavetableOscillator {
-        let wave_table = generate_wave_table(table_size);
+        let wave_table = generate_wave_table(table_size, f32::sin, 2.0 * std::f32::consts::PI);
         return WavetableOscillator {
             wave_table,
             table_size,
@@ -77,13 +77,55 @@ impl WavetableOscillator {
         self.table_deltas.clear();
         self.table_indexes.clear();
     }
+
+    /// Uses the function provided to generate the wave table.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `function`: The function used to generate the shape of the wave that
+    /// will be played by the oscillator. It must recieve a parameter of type
+    /// [`f32`] representing the time value of the wave between 0 and
+    /// `time_scale`, and it must return an [`f32`] representing the height of
+    /// the wave at that time between -1 and 1.
+    /// - `time_scale`: This parameter scales the time variable that is passed
+    /// to `function`.
+    /// 
+    /// # Examples
+    /// 
+    /// How to create an oscillator for a sine wave:
+    /// 
+    /// ```rust
+    /// use musictools::audio::WavetableOscillator;
+    /// 
+    /// let mut oscillator = WavetableOscillator::new(128, 44100);
+    /// oscillator.set_wave_function(f32::sin, 2.0 * std::f32::consts::PI);
+    /// ```
+    /// 
+    /// How to create an oscillator for a square wave:
+    /// 
+    /// ```rust
+    /// use musictools::audio::WavetableOscillator;
+    /// 
+    /// fn square_wave(time: f32) -> f32 {
+    ///     if time < 0.5 {
+    ///         return 0.0;
+    ///     }
+    ///     return 1.0;
+    /// }
+    /// 
+    /// let mut oscillator = WavetableOscillator::new(128, 44100);
+    /// oscillator.set_wave_function(square_wave, 1.0);
+    /// ```
+    pub fn set_wave_function(&mut self, function: impl Fn(f32) -> f32, time_scale: f32) {
+        self.wave_table = generate_wave_table(self.table_size, function, time_scale);
+    }
 }
 
-fn generate_wave_table(table_size: usize) -> Vec<f32> {
+fn generate_wave_table(table_size: usize, function: impl Fn(f32) -> f32, time_scale: f32) -> Vec<f32> {
     let mut wave_table: Vec<f32> = Vec::with_capacity(table_size);
     for i in 0..table_size {
-        let time_value = 2.0 * std::f32::consts::PI * i as f32 / table_size as f32;
-        let wave_value = time_value.sin();
+        let time_value = i as f32 / table_size as f32;
+        let wave_value = function(time_scale * time_value);
         wave_table.push(wave_value);
     }
     return wave_table;
@@ -125,4 +167,40 @@ impl Source for WavetableOscillator {
     fn total_duration(&self) -> Option<Duration> {
         return None;
     }
+}
+
+fn sine_wave(time: f32) -> f32 {
+    return f32::sin(2.0 * std::f32::consts::PI * time);
+}
+
+fn square_wave(time: f32) -> f32 {
+    if time < 0.5 {
+        return -1.0;
+    }
+    return 1.0;
+}
+
+fn triangle_wave(time: f32) -> f32 {
+    if time < 0.5 {
+        return -4.0 * time + 1.0;
+    }
+    return 4.0 * time - 3.0;
+}
+
+fn sawtooth_wave(time: f32) -> f32 {
+    return 2.0 * time - 1.0;
+}
+
+/// A structure containing common waveforms.
+pub struct Waveforms;
+
+impl Waveforms {
+    /// The sine wave function with a period of 1 unit of time.
+    pub const SINE_WAVE: &dyn Fn(f32) -> f32 = &sine_wave;
+    /// The square wave function with a period of 1 unit of time.
+    pub const SQUARE_WAVE: &dyn Fn(f32) -> f32 = &square_wave;
+    /// The triangle wave function with a period of 1 unit of time.
+    pub const TRIANGLE_WAVE: &dyn Fn(f32) -> f32 = &triangle_wave;
+    /// The sawtooth wave function with a period of 1 unit of time.
+    pub const SAWTOOTH_WAVE: &dyn Fn(f32) -> f32 = &sawtooth_wave;
 }
