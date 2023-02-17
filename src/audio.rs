@@ -92,6 +92,15 @@ impl WavetableOscillator {
     /// 
     /// # Examples
     /// 
+    /// How to use a function from [`Waveforms`] to play triangle waves:
+    /// 
+    /// ```rust
+    /// use musictools::audio::{WavetableOscillator, Waveforms};
+    /// 
+    /// let mut oscillator = WavetableOscillator::new(128, 44100);
+    /// oscillator.set_wave_function(Waveforms::TRIANGLE_WAVE, 1.0);
+    /// ```
+    /// 
     /// How to create an oscillator for a sine wave:
     /// 
     /// ```rust
