@@ -109,14 +109,16 @@ impl Scale {
         return false;
     }
 
-    /// Returns an [`Option`] with a vector of [`Chord`] containing the
-    /// diatonic chords for this scale with respect to a given pitch class,
-    /// or [`None`] if the current scale is not diatonic.
+    /// Returns an [`Option`] with a vector that has seven elements. Each of
+    /// these elements are themselves a vector of [`Note`] containing the
+    /// diatonic chords for this scale with respect to a given pitch class.
+    /// This function can also return [`None`] if the current scale is not
+    /// diatonic.
     /// 
     /// # Parameters
     /// 
-    /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic
-    /// to use as the tonic of the scale.
+    /// - `tonic_note`: A [`Note`] representing the tonic or root note which
+    /// will be offset by the numeral.
     /// - `with_seventh`: A boolean which if set to true ensures that the
     /// chords that are returned contain the corresponding seventh intervals
     /// for the mode or scale, or if set to false ensures that the chords that
@@ -124,15 +126,25 @@ impl Scale {
     /// 
     /// # Examples
     /// 
+    /// The following example shows how one can obtain the 
+    /// 
     /// ```rust
+    /// use musictools::note::Note;
     /// use musictools::scale::Scale;
-    /// use musictools::pitchclass::PitchClasses;
     /// use musictools::common::{ScaleType, PentatonicType};
     /// 
     /// let dorian = Scale::from(ScaleType::Locrian, PentatonicType::None).unwrap();
-    /// let g_dorian_chords = dorian.get_diatonic_chords(PitchClasses::G, true);
+    /// let tonic = Note::from_string("G5").unwrap();
+    /// let g_dorian_chords = dorian.get_diatonic_chords(tonic, true).unwrap();
+    /// for index in 0..g_dorian_chords.len() {
+    ///     let chord_notes = g_dorian_chords[index].clone();
+    ///     println!("Diatonic chord #{} of the G5 dorian scale contains the following notes:", index + 1);
+    ///     for note in chord_notes {
+    ///         println!("{}{}", note.get_pitch_class().get_names()[0], note.get_octave());
+    ///     }
+    /// }
     /// ```
-    pub fn get_diatonic_chords(&self, tonic: PitchClass, with_seventh: bool) -> Option<Vec<Chord>> {
+    pub fn get_diatonic_chords(&self, tonic_note: Note, with_seventh: bool) -> Option<Vec<Vec<Note>>> {
         let chord_numerals: [&str; 7];
         if with_seventh {
             chord_numerals = match self.scale {
@@ -158,19 +170,13 @@ impl Scale {
                 _ => return None
             }
         }
-        let chords = chord_numerals.iter().map(|x| Chord::from_numeral(tonic, x).unwrap()).collect();
-        return Some(chords);
+        let notes = chord_numerals.iter().map(|x| Chord::to_notes_from_numeral(x, tonic_note).unwrap()).collect();
+        return Some(notes);
     }
 
-    /// Converts the scale into a [`Chord`] with a given pitch class as the
-    /// tonic.
-    /// 
-    /// # Parameters
-    /// 
-    /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic
-    /// of the chord to create.
-    pub fn to_chord(&self, tonic: PitchClass) -> Chord {
-        let mut chord = Chord::new(tonic);
+    /// Converts the scale into a [`Chord`].
+    pub fn to_chord(&self) -> Chord {
+        let mut chord = Chord::new();
         for index in 1..self.intervals.len() {
             chord.add_interval(self.intervals[index]);
         }
@@ -187,7 +193,7 @@ impl Scale {
     /// - `starting_octave`: A positive integer representing the octave to
     /// place the tonic on.
     pub fn to_notes(&self, tonic: PitchClass, starting_octave: u8) -> Vec<Note> {
-        return self.to_chord(tonic).to_notes(starting_octave);
+        return self.to_chord().to_notes(tonic, starting_octave);
     }
 
     /// Converts the scale to a vector of [`PitchClass`], given a pitch class
@@ -198,7 +204,7 @@ impl Scale {
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic
     /// of the other pitch classes.
     pub fn to_pitch_classes(&self, tonic: PitchClass) -> Vec<PitchClass> {
-        return self.to_chord(tonic).get_pitch_classes();
+        return self.to_chord().to_pitch_classes(tonic);
     }
 }
 

@@ -7,32 +7,32 @@ use musictools::common::TriadQuality;
 #[test]
 fn test_triads() {
     //Major Triads
-    let c_major = Chord::from_triad(PitchClasses::C, TriadQuality::Major).to_notes(0);
-    let e_major = Chord::from_triad(PitchClasses::E, TriadQuality::Major).to_notes(1);
-    let f_major = Chord::from_triad(PitchClasses::F, TriadQuality::Major).to_notes(7);
-    let f_sharp_major = Chord::from_triad(PitchClasses::F_SHARP, TriadQuality::Major).to_notes(8);
+    let c_major = Chord::from_triad(TriadQuality::Major).to_notes(PitchClasses::C, 0);
+    let e_major = Chord::from_triad(TriadQuality::Major).to_notes(PitchClasses::E, 1);
+    let f_major = Chord::from_triad(TriadQuality::Major).to_notes(PitchClasses::F, 7);
+    let f_sharp_major = Chord::from_triad(TriadQuality::Major).to_notes(PitchClasses::F_SHARP, 8);
 
     // Minor Triads
-    let a_minor = Chord::from_triad(PitchClasses::A, TriadQuality::Minor).to_notes(4);
-    let a_flat_minor = Chord::from_triad(PitchClasses::A_FLAT, TriadQuality::Minor).to_notes(1);
-    let a_sharp_minor = Chord::from_triad(PitchClasses::A_SHARP, TriadQuality::Minor).to_notes(1);
-    let c_minor = Chord::from_triad(PitchClasses::C, TriadQuality::Minor).to_notes(0);
+    let a_minor = Chord::from_triad(TriadQuality::Minor).to_notes(PitchClasses::A, 4);
+    let a_flat_minor = Chord::from_triad(TriadQuality::Minor).to_notes(PitchClasses::A_FLAT, 1);
+    let a_sharp_minor = Chord::from_triad(TriadQuality::Minor).to_notes(PitchClasses::A_SHARP, 1);
+    let c_minor = Chord::from_triad(TriadQuality::Minor).to_notes(PitchClasses::C, 0);
     
     //Augmented Triads
-    let b_augmented = Chord::from_triad(PitchClasses::B, TriadQuality::Augmented).to_notes(5);
-    let e_augmented = Chord::from_triad(PitchClasses::E, TriadQuality::Augmented).to_notes(7);
+    let b_augmented = Chord::from_triad(TriadQuality::Augmented).to_notes(PitchClasses::B, 5);
+    let e_augmented = Chord::from_triad(TriadQuality::Augmented).to_notes(PitchClasses::E, 7);
     
     //Diminished Triads
-    let d_diminished = Chord::from_triad(PitchClasses::D, TriadQuality::Diminished).to_notes(3);
-    let g_sharp_diminished = Chord::from_triad(PitchClasses::G_SHARP, TriadQuality::Diminished).to_notes(3);
+    let d_diminished = Chord::from_triad(TriadQuality::Diminished).to_notes(PitchClasses::D, 3);
+    let g_sharp_diminished = Chord::from_triad(TriadQuality::Diminished).to_notes(PitchClasses::G_SHARP, 3);
 
     //Sus2 Triads
-    let g_sus2 = Chord::from_triad(PitchClasses::G, TriadQuality::Sus2).to_notes(0);
-    let g_flat_sus2 = Chord::from_triad(PitchClasses::G_FLAT, TriadQuality::Sus2).to_notes(1);
+    let g_sus2 = Chord::from_triad(TriadQuality::Sus2).to_notes(PitchClasses::G, 0);
+    let g_flat_sus2 = Chord::from_triad(TriadQuality::Sus2).to_notes(PitchClasses::G_FLAT, 1);
     
     //Sus4 Triads
-    let a_sharp_sus4 = Chord::from_triad(PitchClasses::A_SHARP, TriadQuality::Sus4).to_notes(7);
-    let f_sus4 = Chord::from_triad(PitchClasses::F, TriadQuality::Sus4).to_notes(8);
+    let a_sharp_sus4 = Chord::from_triad(TriadQuality::Sus4).to_notes(PitchClasses::A_SHARP, 7);
+    let f_sus4 = Chord::from_triad(TriadQuality::Sus4).to_notes(PitchClasses::F, 8);
     
     let test_cases = [
         (c_major, ["C0", "E0", "G0"]),
