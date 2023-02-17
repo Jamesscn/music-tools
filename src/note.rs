@@ -7,7 +7,6 @@ use crate::pitchclass::PitchClass;
 pub struct Note {
     pitch_class: PitchClass,
     octave: u8,
-    keyboard_index: u32,
     base_frequency: f32
 }
 
@@ -45,7 +44,6 @@ impl Note {
             Some(pitch_class) => Some(Note {
                 pitch_class,
                 octave,
-                keyboard_index: octave as u32 * 12 + pitch_class.get_value() as u32,
                 base_frequency: 440.0
             }),
             None => None
@@ -75,7 +73,6 @@ impl Note {
         return Note {
             pitch_class,
             octave,
-            keyboard_index: octave as u32 * 12 + pitch_class.get_value() as u32,
             base_frequency: 440.0
         }
     }
@@ -140,7 +137,7 @@ impl Note {
     /// println!("{}", next.get_keyboard_index());
     /// ```
     pub fn get_keyboard_index(&self) -> u32 {
-        return self.keyboard_index;
+        return self.octave as u32 * 12 + self.pitch_class.get_value() as u32;
     }
 
     /// Retuns the frequency in hertz of the current note. This frequency
@@ -163,6 +160,6 @@ impl Note {
 
 impl PartialEq for Note {
     fn eq(&self, other: &Self) -> bool {
-        return self.keyboard_index == other.keyboard_index && self.base_frequency == other.base_frequency;
+        return self.get_keyboard_index() == other.get_keyboard_index() && self.base_frequency == other.base_frequency;
     }
 }
