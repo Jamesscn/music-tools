@@ -133,44 +133,32 @@ impl Scale {
     /// let g_dorian_chords = dorian.get_diatonic_chords(PitchClasses::G, true);
     /// ```
     pub fn get_diatonic_chords(&self, tonic: PitchClass, with_seventh: bool) -> Option<Vec<Chord>> {
-        let minor_numerals: [&str; 7];
-        let ionian_numerals: [&str; 7];
-        let dorian_numerals: [&str; 7];
-        let phrygian_numerals: [&str; 7];
-        let lydian_numerals: [&str; 7];
-        let mixolydian_numerals: [&str; 7];
-        let aeolian_numerals: [&str; 7];
-        let locrian_numerals: [&str; 7];
+        let chord_numerals: [&str; 7];
         if with_seventh {
-            minor_numerals = ["i7", "ii°7", "bIIImaj7", "iv7", "Vmaj7", "bVImaj7", "bVII7"];
-            ionian_numerals = ["Imaj7", "ii7", "iii7", "IVmaj7", "V7", "vi7", "vii°7"];
-            dorian_numerals = ["i7", "ii7", "bIIImaj7", "IV7", "v7", "vi°7", "bVIImaj7"];
-            phrygian_numerals = ["i7", "bIImaj7", "bIII7", "iv7", "v°7", "bVImaj7", "bvii7"];
-            lydian_numerals = ["Imaj7", "II7", "iii7", "#iv°7", "Vmaj7", "vi7", "vii7"];
-            mixolydian_numerals = ["I7", "ii7", "iii°7", "IVmaj7", "v7", "vi7", "bVIImaj7"];
-            aeolian_numerals = ["i7", "ii°7", "bIIImaj7", "iv7", "v7", "bVImaj7", "bVII7"];
-            locrian_numerals = ["i°7", "bIImaj7", "biii7", "iv7", "bVmaj7", "bVI7", "bvii7"];
+            chord_numerals = match self.scale {
+                ScaleType::Minor => ["i7", "ii°7", "bIIImaj7", "iv7", "Vmaj7", "bVImaj7", "bVII7"],
+                ScaleType::Major | ScaleType::Ionian => ["Imaj7", "ii7", "iii7", "IVmaj7", "V7", "vi7", "vii°7"],
+                ScaleType::Dorian => ["i7", "ii7", "bIIImaj7", "IV7", "v7", "vi°7", "bVIImaj7"],
+                ScaleType::Phrygian => ["i7", "bIImaj7", "bIII7", "iv7", "v°7", "bVImaj7", "bvii7"],
+                ScaleType::Lydian => ["Imaj7", "II7", "iii7", "#iv°7", "Vmaj7", "vi7", "vii7"],
+                ScaleType::Mixolydian => ["I7", "ii7", "iii°7", "IVmaj7", "v7", "vi7", "bVIImaj7"],
+                ScaleType::Aeolian | ScaleType::NaturalMinor => ["i7", "ii°7", "bIIImaj7", "iv7", "v7", "bVImaj7", "bVII7"],
+                ScaleType::Locrian => ["i°7", "bIImaj7", "biii7", "iv7", "bVmaj7", "bVI7", "bvii7"],
+                _ => return None
+            }
         } else {
-            minor_numerals = ["i", "ii°", "bIII", "iv", "V", "bVI", "bVII"];
-            ionian_numerals = ["I", "ii", "iii", "IV", "V", "vi", "vii°"];
-            dorian_numerals = ["i", "ii", "bIII", "IV", "v", "vi°", "bVII"];
-            phrygian_numerals = ["i", "bII", "bIII", "iv", "v°", "bVI", "bvii"];
-            lydian_numerals = ["I", "II", "iii", "#iv°", "V", "vi", "vii"];
-            mixolydian_numerals = ["I", "ii", "iii°", "IV", "v", "vi", "bVII"];
-            aeolian_numerals = ["i", "ii°", "bIII", "iv", "v", "bVI", "bVII"];
-            locrian_numerals = ["i°", "bII", "biii", "iv", "bV", "bVI", "bvii"];
+            chord_numerals = match self.scale {
+                ScaleType::Minor | ScaleType::Aeolian | ScaleType::NaturalMinor => ["i", "ii°", "bIII", "iv", "V", "bVI", "bVII"],
+                ScaleType::Major | ScaleType::Ionian => ["I", "ii", "iii", "IV", "V", "vi", "vii°"],
+                ScaleType::Dorian => ["i", "ii", "bIII", "IV", "v", "vi°", "bVII"],
+                ScaleType::Phrygian => ["i", "bII", "bIII", "iv", "v°", "bVI", "bvii"],
+                ScaleType::Lydian => ["I", "II", "iii", "#iv°", "V", "vi", "vii"],
+                ScaleType::Mixolydian => ["I", "ii", "iii°", "IV", "v", "vi", "bVII"],
+                ScaleType::Locrian => ["i°", "bII", "biii", "iv", "bV", "bVI", "bvii"],
+                _ => return None
+            }
         }
-        let chords: Vec<Chord> = match self.scale {
-            ScaleType::Minor => minor_numerals,
-            ScaleType::Major | ScaleType::Ionian => ionian_numerals,
-            ScaleType::Dorian => dorian_numerals,
-            ScaleType::Phrygian => phrygian_numerals,
-            ScaleType::Lydian => lydian_numerals,
-            ScaleType::Mixolydian => mixolydian_numerals,
-            ScaleType::Aeolian | ScaleType::NaturalMinor => aeolian_numerals,
-            ScaleType::Locrian => locrian_numerals,
-            _ => return None
-        }.iter().map(|x| Chord::from_numeral(tonic, x).unwrap()).collect();
+        let chords = chord_numerals.iter().map(|x| Chord::from_numeral(tonic, x).unwrap()).collect();
         return Some(chords);
     }
 
