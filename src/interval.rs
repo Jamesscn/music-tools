@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 /// A structure which is used to represent the interval between two notes.
 pub struct Interval {
     value: u8,

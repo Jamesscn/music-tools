@@ -4,6 +4,7 @@ use crate::common::TriadQuality;
 use crate::pitchclass::PitchClass;
 use crate::interval::{Interval, Intervals};
 
+#[derive(Clone, Debug)]
 /// A structure which holds a chord, which is a group of consecutive intervals
 /// with a given inversion. A chord can optionally have a tonic which will
 /// define the pitch classes of each of the notes in the chord, and also an
@@ -202,7 +203,7 @@ impl Chord {
                 triad_quality = TriadQuality::Minor;
             }
         }
-        let mut increment = match numeral_value {
+        let mut increment: u8 = match numeral_value {
             0 => 0,
             1 => 2,
             2 => 4,
@@ -231,8 +232,12 @@ impl Chord {
                 _ => return None
             };
         }
-        let chord_tonic = tonic.get_offset(increment);
-        let mut chord = Chord::from_triad(triad_quality, Some(chord_tonic), octave);
+        let chord_tonic = tonic.get_offset(increment as i8);
+        let chord_octave = match octave {
+            Some(octave_value) => Some(octave_value + (tonic.get_value() + increment) / 12),
+            None => None
+        };
+        let mut chord = Chord::from_triad(triad_quality, Some(chord_tonic), chord_octave);
         if seventh == "maj7" {
             chord.add_interval(Intervals::MAJOR_SEVENTH);
         } else if seventh == "7" {

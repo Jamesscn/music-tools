@@ -4,6 +4,7 @@ use crate::interval::Interval;
 use crate::pitchclass::PitchClass;
 use crate::common::{ScaleType, PentatonicType};
 
+#[derive(Clone, Debug)]
 /// A structure used to represent a scale of notes, or a major or minor
 /// pentatonic variation of a scale.
 pub struct Scale {
@@ -141,7 +142,7 @@ impl Scale {
     /// let mut index = 1;
     /// for chord in g_locrian_chords {
     ///     let chord_notes = chord.to_notes().unwrap();
-    ///     println!("Diatonic chord #{} of the G locrian scale contains the following notes:", index + 1);
+    ///     println!("Diatonic chord #{} of the G locrian scale contains the following notes:", index);
     ///     for note in chord_notes {
     ///         println!("{}{}", note.get_pitch_class().get_names()[0], note.get_octave());
     ///     }

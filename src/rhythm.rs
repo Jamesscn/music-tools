@@ -31,6 +31,7 @@ impl Beat {
     pub const THIRTYSECOND_DOTTED: Beat = Beat::new(3, 64);
 }
 
+#[derive(Clone, Debug)]
 /// This structure is used to store a rhythmic pattern or sequence of notes,
 /// along with the time signature and beats per minute of the rhythm. It can
 /// also keep track of a position in the rhythm to allow playback.

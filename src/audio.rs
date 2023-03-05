@@ -1,6 +1,7 @@
 use std::time::Duration;
 use rodio::Source;
 
+#[derive(Clone, Debug)]
 /// A structure which holds a wavetable oscillator.
 /// 
 /// A wavetable oscillator is used to store the shape of a wave in a table or
