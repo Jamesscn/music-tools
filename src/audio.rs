@@ -26,10 +26,15 @@ use rodio::Source;
 /// let mut oscillator = WavetableOscillator::new(128, 44100);
 /// oscillator.add_frequency(440.0);
 /// oscillator.add_frequency(659.3);
-/// let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-/// let sink = Sink::try_new(&stream_handle).unwrap();
-/// sink.append(oscillator);
-/// std::thread::sleep(Duration::from_millis(1000));
+/// let stream_result = OutputStream::try_default();
+/// if stream_result.is_ok() {
+///     let (_stream, stream_handle) = stream_result.unwrap();
+///     let sink = Sink::try_new(&stream_handle).unwrap();
+///     sink.append(oscillator);
+///     std::thread::sleep(Duration::from_millis(1000));
+/// } else {
+///     println!("No sound card detected!");
+/// }
 /// ```
 pub struct WavetableOscillator {
     wave_table: Vec<f32>,

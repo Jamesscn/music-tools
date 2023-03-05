@@ -6,7 +6,12 @@ use musictools::pitchclass::PitchClasses;
 use musictools::note::Note;
 
 fn play_notes(notes: Vec<Note>, seconds: f32) {
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let stream_result = OutputStream::try_default();
+    if stream_result.is_err() {
+        println!("No sound card detected!");
+        return;
+    }
+    let (_stream, stream_handle) = stream_result.unwrap();
     let mut oscillator = WavetableOscillator::new(128, 44100);
     for note in notes {
         oscillator.add_frequency(note.get_frequency());
