@@ -21,7 +21,7 @@ fn main() {
     let progression = ["IV", "V", "iii", "vi", "I", "bVI", "bVII", "I"];
     let octaves = [4, 4, 4, 4, 4, 4, 4, 5];
     for (index, numeral) in progression.iter().enumerate() {
-        let notes = Chord::to_notes_from_numeral(numeral, Note::from(tonic, octaves[index])).unwrap();
+        let notes = Chord::from_numeral(numeral, tonic, Some(octaves[index])).unwrap().to_notes().unwrap();
         play_notes(notes, 1.0);
     }
 }
