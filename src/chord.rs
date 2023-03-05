@@ -283,18 +283,18 @@ impl Chord {
     /// Returns a vector of [`Interval`] objects representing the intervals
     /// of the current chord with the inversion of the chord applied.
     pub fn get_intervals(&self) -> Vec<Interval> {
-        let mut values: Vec<i8> = Vec::new();
+        let mut values: Vec<u8> = Vec::new();
         let first_half_octave_offset = self.intervals[self.inversion as usize].get_value() as i8 / 12;
         for index in self.inversion..self.intervals.len() {
-            values.push(self.intervals[index].get_value() as i8 - 12 * first_half_octave_offset);
+            values.push((self.intervals[index].get_value() as i8 - 12 * first_half_octave_offset) as u8);
         }
-        let second_half_octave_offset = values[values.len() - 1] / 12 + 1;
+        let second_half_octave_offset = values[values.len() - 1] as i8 / 12 + 1;
         for index in 0..self.inversion {
-            values.push(self.intervals[index].get_value() as i8 + 12 * second_half_octave_offset)
+            values.push((self.intervals[index].get_value() as i8 + 12 * second_half_octave_offset) as u8);
         }
         let mut intervals: Vec<Interval> = Vec::new();
         for value in values {
-            intervals.push(Interval::from(value as u8));
+            intervals.push(Interval::from(value));
         }
         return intervals;
     }
@@ -406,7 +406,7 @@ impl Chord {
         let mut notes: Vec<Note> = Vec::new();
         let intervals = self.get_intervals();
         for interval in intervals {
-            let current_octave = self.octave.unwrap() + (self.tonic.unwrap().get_value() + interval.get_value()) / 12;
+            let current_octave = self.octave.unwrap() + (self.tonic.unwrap().get_value() + interval.get_value() as u8) / 12;
             let current_semitone = interval.get_value() % 12;
             let current_pitch_class = self.tonic.unwrap().get_offset(current_semitone as i8);
             let current_note = Note::from(current_pitch_class, current_octave);

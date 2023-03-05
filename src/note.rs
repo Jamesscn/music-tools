@@ -136,8 +136,8 @@ impl Note {
     /// println!("{}", lowest.get_keyboard_index());
     /// println!("{}", next.get_keyboard_index());
     /// ```
-    pub fn get_keyboard_index(&self) -> u32 {
-        return self.octave as u32 * 12 + self.pitch_class.get_value() as u32;
+    pub fn get_keyboard_index(&self) -> u8 {
+        return self.octave as u8 * 12 + self.pitch_class.get_value() as u8;
     }
 
     /// Retuns the frequency in hertz of the current note. This frequency

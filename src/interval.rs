@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use crate::note::Note;
 
 #[derive(Copy, Clone, Debug)]
 /// A structure which is used to represent the interval between two notes.
@@ -38,6 +39,24 @@ impl Interval {
     /// or m6.
     pub fn get_short_name(&self) -> Option<&'static str> {
         return self.short_name;
+    }
+
+    /// Returns the interval between two notes.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `first`: A [`Note`] representing the first note.
+    /// - `second`: A [`Note`] representing the second note.
+    pub fn get_interval(first: Note, second: Note) -> Interval {
+        let difference: u8;
+        let first_value = first.get_keyboard_index();
+        let second_value = second.get_keyboard_index();
+        if first_value <= second_value {
+            difference = second_value - first_value;
+        } else {
+            difference = first_value - second_value;
+        }
+        return Interval::from(difference);
     }
 }
 
