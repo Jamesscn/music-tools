@@ -1,7 +1,7 @@
-use musictools::audio::{WavetableOscillator, Waveforms, play};
-use musictools::common::{Fraction, Beat};
 use musictools::note::Note;
 use musictools::track::Track;
+use musictools::common::{Fraction, Beat};
+use musictools::audio::{WavetableOscillator, Waveforms};
 
 fn main() {
     let mut track = Track::new(160.0, Fraction::new(5, 4), 360);
@@ -14,5 +14,5 @@ fn main() {
     }
     let mut oscillator = WavetableOscillator::new(128, 44100);
     oscillator.set_wave_function(Waveforms::SQUARE_WAVE, 1.0);
-    play(oscillator, track);
+    oscillator.play(track);
 }
