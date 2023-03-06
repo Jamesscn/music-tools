@@ -221,7 +221,7 @@ impl Iterator for WavetableOscillator {
             let current_value = self.wave_table[current_index];
             let next_value = self.wave_table[next_index];
             let lerp_value = current_value + lerp_frac * (next_value - current_value);
-            sample += lerp_value / num_channels as f32;
+            sample += lerp_value * 0.2;
             self.channels[channel_index].update_table_index(table_size);
         }
         return Some(sample);
