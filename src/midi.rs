@@ -21,7 +21,6 @@ impl MIDI {
         let mut tracks: Vec<Track> = Vec::new();
         for midi_track_info in midi_tracks {
             let mut track = Track::new(120.0, Fraction::new(4, 4), ticks_per_quarter_note);
-            let mut active_notes: HashMap<u8, usize> = HashMap::new();
             for (tick, event_id) in midi_track_info {
                 let event = match midi_object.get_event(event_id) {
                     Some(event_object) => event_object,
@@ -48,9 +47,6 @@ impl MIDI {
                     },
                     _ => {}
                 }
-            }
-            for note_index in active_notes.into_keys() {
-                track.add_event(Note::from_midi_index(note_index).unwrap(), true, 0);
             }
             if track.get_length() > 0 {
                 tracks.push(track);

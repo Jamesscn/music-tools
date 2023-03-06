@@ -33,6 +33,7 @@ impl Track {
             active,
             delta_ticks
         });
+        self.length += delta_ticks;
     }
 
     pub fn add_note(&mut self, note: Note, duration: Beat) {
@@ -90,7 +91,7 @@ impl Track {
     }
 
     pub fn get_tick_duration(&mut self) -> f32 {
-        return 60000.0 / (self.tempo as f32 * self.ticks_per_quarter_note as f32);
+        return 60000.0 / (self.tempo as f32 * self.ticks_per_quarter_note as f32) * self.time_signature.get_as_float();
     }
 
     fn beat_to_ticks(&self, beat: Beat) -> u64 {
