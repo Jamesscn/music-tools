@@ -119,9 +119,9 @@ impl Scale {
     /// 
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic
     /// which will be offset by the numeral.
-    /// - `octave`: An [`Option<u8>`] which can be a positive integer
-    /// representing the octave of the first diatonic chord, or [`None`] if the
-    /// chords should not have any octave.
+    /// - `octave`: An [`Option<i8>`] which can be an integer representing the
+    /// octave of the first diatonic chord, or [`None`] if the chords should
+    /// not have any octave.
     /// - `with_seventh`: A boolean which if set to true ensures that the
     /// chords that are returned contain the corresponding seventh intervals
     /// for the mode or scale, or if set to false ensures that the chords that
@@ -149,7 +149,7 @@ impl Scale {
     ///     index += 1;
     /// }
     /// ```
-    pub fn get_diatonic_chords(&self, tonic: PitchClass, octave: Option<u8>, with_seventh: bool) -> Option<Vec<Chord>> {
+    pub fn get_diatonic_chords(&self, tonic: PitchClass, octave: Option<i8>, with_seventh: bool) -> Option<Vec<Chord>> {
         let chord_numerals: [&str; 7];
         if with_seventh {
             chord_numerals = match self.scale {
@@ -186,10 +186,10 @@ impl Scale {
     /// - `tonic`: An [`Option<PitchClass>`] which will serve as the pitch
     /// class of the tonic note if defined. If [`None`] is provided then the
     /// chord will not assign the intervals it holds to any pitch classes.
-    /// - `octave`: An [`Option<u8>`] which will represent the octave the
+    /// - `octave`: An [`Option<i8>`] which will represent the octave the
     /// chord is based on if defined. If [`None`] is provided then the chord
     /// will not assign the intervals it holds to any octaves.
-    pub fn to_chord(&self, tonic: Option<PitchClass>, octave: Option<u8>) -> Chord {
+    pub fn to_chord(&self, tonic: Option<PitchClass>, octave: Option<i8>) -> Chord {
         let mut chord = Chord::new(tonic, octave);
         for index in 1..self.intervals.len() {
             chord.add_interval(self.intervals[index]);
@@ -204,9 +204,9 @@ impl Scale {
     /// 
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic
     /// of the set of notes.
-    /// - `starting_octave`: A positive integer representing the octave to
-    /// place the tonic on.
-    pub fn to_notes(&self, tonic: PitchClass, starting_octave: u8) -> Vec<Note> {
+    /// - `starting_octave`: An integer representing the octave to place the
+    /// tonic on.
+    pub fn to_notes(&self, tonic: PitchClass, starting_octave: i8) -> Vec<Note> {
         return self.to_chord(Some(tonic), Some(starting_octave)).to_notes().unwrap();
     }
 

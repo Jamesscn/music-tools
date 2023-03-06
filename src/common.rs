@@ -63,7 +63,8 @@ impl Fraction {
         return self.denominator;
     }
 
-    /// Returns the value of the fraction as a floating point number.
+    /// Returns the value of the fraction as a floating point number. This can
+    /// panic if the denominator is zero.
     /// 
     /// # Examples
     /// 
@@ -207,7 +208,8 @@ pub enum PentatonicType {
 }
 
 /// Given a letter from A to G and an offset, this function returns the
-/// letter at a given offset from the provided letter.
+/// letter at a given offset from the provided letter, or [`None`] if the
+/// letter provided was invalid.
 /// 
 /// # Parameters
 /// 
@@ -227,7 +229,7 @@ pub fn get_letter_at_offset(letter: char, offset: i8) -> Option<char> {
     const LETTERS: [char; 7] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
     let letter_option = LETTERS.iter().position(|&x| x == letter);
     return match letter_option {
-        Some(letter_index) => Some(LETTERS[((letter_index as i8 + offset) % 7) as usize]),
+        Some(letter_index) => Some(LETTERS[(letter_index as i8 + (offset % 7)).rem_euclid(7) as usize]),
         None => None
     }
 }

@@ -84,7 +84,7 @@ impl PitchClass {
     /// let f = PitchClasses::A.get_offset(-2);
     /// ```
     pub fn get_offset(&self, offset: i8) -> PitchClass {
-        return PITCH_CLASSES[((self.value as i8 + offset) % 12) as usize];
+        return PITCH_CLASSES[(self.value as i8 + (offset % 12)).rem_euclid(12) as usize];
     }
 
     /// Obtains a numeric value from 0 to 11 representing the pitch class,
