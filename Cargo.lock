@@ -34,6 +34,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "apres"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56be0b916c193860f9ab12d4f880f1c2c7015c722e4c5ba367536ed0dc511c75"
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -375,6 +381,7 @@ dependencies = [
 name = "musictools"
 version = "0.1.0"
 dependencies = [
+ "apres",
  "regex",
  "rodio",
 ]

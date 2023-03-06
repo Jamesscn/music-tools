@@ -1,5 +1,29 @@
 use std::time::Duration;
 use rodio::Source;
+use crate::note::Note;
+use crate::track::Track;
+
+#[derive(Copy, Clone, Debug)]
+struct Channel {
+    table_delta: f32,
+    table_index: f32,
+    note: Note
+}
+
+impl Channel {
+    pub fn update_table_index(&mut self, table_size: usize) {
+        self.table_index += self.table_delta;
+        self.table_index %= table_size as f32;
+    }
+
+    pub fn get_table_index(&self) -> f32 {
+        return self.table_index;
+    }
+
+    pub fn get_note_value(&self) -> i16 {
+        return self.note.get_value();
+    }
+}
 
 #[derive(Clone, Debug)]
 /// A structure which holds a wavetable oscillator.
@@ -39,8 +63,7 @@ use rodio::Source;
 pub struct WavetableOscillator {
     wave_table: Vec<f32>,
     sample_rate: u32,
-    table_deltas: Vec<f32>,
-    table_indexes: Vec<f32>
+    channels: Vec<Channel>
 }
 
 impl WavetableOscillator {
@@ -59,27 +82,30 @@ impl WavetableOscillator {
         return WavetableOscillator {
             wave_table,
             sample_rate,
-            table_deltas: Vec::new(),
-            table_indexes: Vec::new()
+            channels: Vec::new()
         };
     }
 
-    /// Adds a new frequency to the list of frequencies that will be used to
-    /// play the waveform.
-    /// 
-    /// # Parameters
-    /// 
-    /// - `frequency`: The frequency in hertz that will be added to the list.
-    pub fn add_frequency(&mut self, frequency: f32) {
-        let table_delta = frequency * self.wave_table.len() as f32 / self.sample_rate as f32;
-        self.table_deltas.push(table_delta);
-        self.table_indexes.push(0.0);
+    pub fn add_channel(&mut self, note: Note) {
+        for channel_index in 0..self.channels.len() {
+            if self.channels[channel_index].get_note_value() == note.get_value() {
+                return;
+            }
+        }
+        self.channels.push(Channel {
+            table_delta: note.get_frequency() * self.wave_table.len() as f32 / self.sample_rate as f32,
+            table_index: 0.0,
+            note
+        });
     }
 
-    /// Clears the list of frequencies that will be used to play the waveform.
-    pub fn clear_frequencies(&mut self) {
-        self.table_deltas.clear();
-        self.table_indexes.clear();
+    pub fn remove_channel(&mut self, note: Note) {
+        for channel_index in 0..self.channels.len() {
+            if self.channels[channel_index].get_note_value() == note.get_value() {
+                self.channels.remove(channel_index);
+                return;
+            }
+        }
     }
 
     /// Uses the function provided to generate the wave table.
@@ -132,6 +158,28 @@ impl WavetableOscillator {
     pub fn set_wave_function(&mut self, function: impl Fn(f32) -> f32, time_scale: f32) {
         self.wave_table = generate_wave_table(self.wave_table.len(), function, time_scale);
     }
+
+    pub fn play(&mut self, mut track: Track) {
+        let tick_ms = track.get_tick_duration();
+        loop {
+            let current_event_option = track.get_next_event();
+            if current_event_option.is_none() {
+                break;
+            }
+            let current_event = current_event_option.unwrap();
+            let note = current_event.get_note();
+            let delta_ticks = current_event.get_delta_ticks();
+            if current_event.is_active() {
+                self.add_channel(note);
+                println!("{}", note.get_names()[0]);
+            } else {
+                self.remove_channel(note);
+            }
+            if delta_ticks > 0 {
+                std::thread::sleep(Duration::from_millis((tick_ms * delta_ticks as f32) as u64));
+            }
+        }
+    }
 }
 
 fn generate_wave_table(table_size: usize, function: impl Fn(f32) -> f32, time_scale: f32) -> Vec<f32> {
@@ -150,16 +198,16 @@ impl Iterator for WavetableOscillator {
     fn next(&mut self) -> Option<f32> {
         let mut sample = 0.0;
         let table_size = self.wave_table.len();
-        for index in 0..self.table_deltas.len() {
-            let current_index = self.table_indexes[index] as usize;
+        let num_channels = self.channels.len();
+        for channel_index in 0..num_channels {
+            let current_index = self.channels[channel_index].get_table_index() as usize;
             let next_index = (current_index + 1) % table_size;
-            let lerp_frac = self.table_indexes[index] - current_index as f32;
+            let lerp_frac = self.channels[channel_index].get_table_index() - current_index as f32;
             let current_value = self.wave_table[current_index];
             let next_value = self.wave_table[next_index];
             let lerp_value = current_value + lerp_frac * (next_value - current_value);
-            sample += lerp_value / self.table_deltas.len() as f32;
-            self.table_indexes[index] += self.table_deltas[index];
-            self.table_indexes[index] %= table_size as f32;
+            sample += lerp_value / num_channels as f32;
+            self.channels[channel_index].update_table_index(table_size);
         }
         return Some(sample);
     }

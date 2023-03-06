@@ -162,7 +162,7 @@ impl Scale {
                 ScaleType::Aeolian | ScaleType::NaturalMinor => ["i7", "ii°7", "bIIImaj7", "iv7", "v7", "bVImaj7", "bVII7"],
                 ScaleType::Locrian => ["i°7", "bIImaj7", "biii7", "iv7", "bVmaj7", "bVI7", "bvii7"],
                 _ => return None
-            }
+            };
         } else {
             chord_numerals = match self.scale {
                 ScaleType::Minor | ScaleType::Aeolian | ScaleType::NaturalMinor => ["i", "ii°", "bIII", "iv", "V", "bVI", "bVII"],
@@ -173,7 +173,7 @@ impl Scale {
                 ScaleType::Mixolydian => ["I", "ii", "iii°", "IV", "v", "vi", "bVII"],
                 ScaleType::Locrian => ["i°", "bII", "biii", "iv", "bV", "bVI", "bvii"],
                 _ => return None
-            }
+            };
         }
         let chords = chord_numerals.iter().map(|x| Chord::from_numeral(x, tonic, octave).unwrap()).collect();
         return Some(chords);

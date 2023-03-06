@@ -35,7 +35,7 @@ impl Note {
             pitch_class,
             octave,
             base_frequency: 440.0
-        }
+        };
     }
 
     /// Constructs a [`Note`] from a string containing the pitch class and the
@@ -74,7 +74,7 @@ impl Note {
                 base_frequency: 440.0
             }),
             None => None
-        }
+        };
     }
 
     /// Constructs a [`Note`] from a midi index between 0 and 127. If the value
@@ -94,7 +94,7 @@ impl Note {
             pitch_class,
             octave,
             base_frequency: 440.0
-        })
+        });
     }
 
     /// Changes the reference frequency of A4 to a specific value for this

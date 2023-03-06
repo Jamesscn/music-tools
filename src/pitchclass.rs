@@ -60,7 +60,7 @@ impl PitchClass {
         if index < 12 {
             return Some(PITCH_CLASSES[index]);
         }
-        return None
+        return None;
     }
 
     /// Returns the [`PitchClass`] that is a certain offset away from the

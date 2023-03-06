@@ -30,7 +30,7 @@ impl Fraction {
         return Fraction {
             numerator,
             denominator
-        }
+        };
     }
 
     /// Returns the numerator or top half of the fraction.
@@ -94,7 +94,7 @@ impl Fraction {
         return Fraction {
             numerator: self.numerator / common_factor,
             denominator: self.denominator / common_factor
-        }
+        };
     }
 }
 
@@ -104,6 +104,37 @@ impl PartialEq for Fraction {
         let right_simplified = other.get_simplified();
         return left_simplified.numerator == right_simplified.numerator && left_simplified.denominator == right_simplified.denominator;
     }
+}
+
+/// The beat structure is the same as a fraction but used to keep track of the
+/// duration of a rhythmic beat with respect to the time signature.
+pub type Beat = Fraction;
+
+impl Beat {
+    /// The duration corresponding to a whole note.
+    pub const WHOLE: Beat = Beat::new(1, 1);
+    /// The duration corresponding to a half note.
+    pub const HALF: Beat = Beat::new(1, 2);
+    /// The duration corresponding to a quarter note.
+    pub const QUARTER: Beat = Beat::new(1, 4);
+    /// The duration corresponding to an eighth note.
+    pub const EIGHTH: Beat = Beat::new(1, 8);
+    /// The duration corresponding to a sixteenth note.
+    pub const SIXTEENTH: Beat = Beat::new(1, 16);
+    /// The duration corresponding to a thirty-second note.
+    pub const THIRTYSECOND: Beat = Beat::new(1, 32);
+    /// The duration corresponding to a dotted whole note.
+    pub const WHOLE_DOTTED: Beat = Beat::new(3, 2);
+    /// The duration corresponding to a dotted half note.
+    pub const HALF_DOTTED: Beat = Beat::new(3, 4);
+    /// The duration corresponding to a dotted quarter note.
+    pub const QUARTER_DOTTED: Beat = Beat::new(3, 8);
+    /// The duration corresponding to a dotted eighth note.
+    pub const EIGHTH_DOTTED: Beat = Beat::new(3, 16);
+    /// The duration corresponding to a dotted sixteenth note.
+    pub const SIXTEENTH_DOTTED: Beat = Beat::new(3, 32);
+    /// The duration corresponding to a dotted thirty-second note.
+    pub const THIRTYSECOND_DOTTED: Beat = Beat::new(3, 64);
 }
 
 /// This enum contains representations for the different modes or types of
@@ -231,7 +262,7 @@ pub fn get_letter_at_offset(letter: char, offset: i8) -> Option<char> {
     return match letter_option {
         Some(letter_index) => Some(LETTERS[(letter_index as i8 + (offset % 7)).rem_euclid(7) as usize]),
         None => None
-    }
+    };
 }
 
 fn gcd(a: u8, b: u8) -> u8 {

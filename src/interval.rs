@@ -21,7 +21,7 @@ impl Interval {
             value,
             full_name: None,
             short_name: None
-        }
+        };
     }
 
     /// Returns a positive integer representing the value of the interval.
