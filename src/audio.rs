@@ -1,5 +1,5 @@
 use std::time::Duration;
-use rodio::Source;
+use rodio::{Sink, Source, OutputStream};
 use crate::note::Note;
 use crate::track::Track;
 
@@ -158,28 +158,6 @@ impl WavetableOscillator {
     pub fn set_wave_function(&mut self, function: impl Fn(f32) -> f32, time_scale: f32) {
         self.wave_table = generate_wave_table(self.wave_table.len(), function, time_scale);
     }
-
-    pub fn play(&mut self, mut track: Track) {
-        let tick_ms = track.get_tick_duration();
-        loop {
-            let current_event_option = track.get_next_event();
-            if current_event_option.is_none() {
-                break;
-            }
-            let current_event = current_event_option.unwrap();
-            let note = current_event.get_note();
-            let delta_ticks = current_event.get_delta_ticks();
-            if current_event.is_active() {
-                self.add_channel(note);
-                println!("{}", note.get_names()[0]);
-            } else {
-                self.remove_channel(note);
-            }
-            if delta_ticks > 0 {
-                std::thread::sleep(Duration::from_millis((tick_ms * delta_ticks as f32) as u64));
-            }
-        }
-    }
 }
 
 fn generate_wave_table(table_size: usize, function: impl Fn(f32) -> f32, time_scale: f32) -> Vec<f32> {
@@ -265,4 +243,41 @@ impl Waveforms {
     pub const TRIANGLE_WAVE: &dyn Fn(f32) -> f32 = &triangle_wave;
     /// The sawtooth wave function with a period of 1 unit of time.
     pub const SAWTOOTH_WAVE: &dyn Fn(f32) -> f32 = &sawtooth_wave;
+}
+
+pub fn play(mut oscillator: WavetableOscillator, mut track: Track) {
+    let tick_ms = track.get_tick_duration();
+    let stream_result = OutputStream::try_default();
+    if stream_result.is_err() {
+        println!("No sound card detected!");
+        return;
+    }
+    let (_stream, stream_handle) = stream_result.unwrap();
+    let sink_result = Sink::try_new(&stream_handle);
+    if sink_result.is_err() {
+        println!("Could not create a sink!");
+        return;
+    }
+    let sink = sink_result.unwrap();
+    loop {
+        let current_event_option = track.get_next_event();
+        if current_event_option.is_none() {
+            break;
+        }
+        let current_event = current_event_option.unwrap();
+        let note = current_event.get_note();
+        let delta_ticks = current_event.get_delta_ticks();
+        if delta_ticks > 0 {
+            let tmp_oscillator = oscillator.clone();
+            sink.append(tmp_oscillator);
+            sink.play();
+            std::thread::sleep(Duration::from_millis((tick_ms * delta_ticks as f32) as u64));
+            sink.clear();
+        }
+        if current_event.is_active() {
+            oscillator.add_channel(note);
+        } else {
+            oscillator.remove_channel(note);
+        }
+    }
 }
