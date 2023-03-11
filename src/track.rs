@@ -45,7 +45,6 @@ impl Track {
     pub fn add_rest(&mut self, duration: Beat) {
         let delta_ticks = self.beat_to_ticks(duration);
         self.add_event(Note::from_midi_index(0).unwrap(), false, delta_ticks);
-        todo!();
     }
 
     pub fn add_chord(&mut self, chord: Chord, duration: Beat) -> bool {
@@ -77,6 +76,14 @@ impl Track {
         self.time_signature = time_signature;
     }
 
+    pub fn get_tempo(&self) -> f32 {
+        return self.tempo;
+    }
+
+    pub fn get_time_signature(&self) -> Fraction {
+        return self.time_signature;
+    }
+
     pub fn get_length(&self) -> u64 {
         return self.length;
     }
@@ -88,6 +95,10 @@ impl Track {
             return Some(event);
         }
         return None;
+    }
+
+    pub fn get_ticks_per_quarter_note(&self) -> u16 {
+        return self.ticks_per_quarter_note;
     }
 
     pub fn get_tick_duration(&mut self) -> f32 {

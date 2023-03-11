@@ -10,6 +10,12 @@ pub struct MIDI {
 }
 
 impl MIDI {
+    pub fn new() -> MIDI {
+        return MIDI {
+            tracks: Vec::new()
+        }
+    }
+
     pub fn import_from_file(file_path: &str) -> Option<MIDI> {
         let midi_object = match Apres_MIDI::from_path(file_path) {
             Ok(apres_midi_object) => apres_midi_object,
@@ -45,7 +51,7 @@ impl MIDI {
                         time_signature = Fraction::new(numerator, u8::pow(2, denominator as u32));
                     },
                     MIDIEvent::SetTempo(us_per_quarter_note) => {
-                        tempo = 60000000 as f32 / us_per_quarter_note as f32;
+                        tempo = 60000000.0 / us_per_quarter_note as f32;
                     },
                     _ => {}
                 }
@@ -65,8 +71,42 @@ impl MIDI {
         });
     }
 
-    pub fn export_to_file(file_path: String) {
-        todo!();
+    pub fn export_to_file(&self, file_path: &str) -> bool {
+        let mut midi_object = Apres_MIDI::new();
+        if self.tracks.len() == 0 {
+            return false;
+        }
+        let time_signature: Fraction = self.tracks[0].get_time_signature();
+        let tempo: f32 = self.tracks[0].get_tempo();
+        let ppqn: u16 = self.tracks[0].get_ticks_per_quarter_note();
+        let us_per_quarter_note: u32 = (60000000.0 / tempo) as u32;
+        let midi_num = time_signature.get_numerator();
+        let midi_denom = f64::log2(time_signature.get_denominator() as f64) as u8;
+        midi_object.set_ppqn(ppqn);
+        midi_object.insert_event(0, 0, MIDIEvent::TimeSignature(midi_num, midi_denom, 24, 8));
+        midi_object.insert_event(0, 0, MIDIEvent::SetTempo(us_per_quarter_note));
+        let mut track_index = 1;
+        for mut track in self.tracks.clone() {
+            let mut current_tick = 0;
+            while let Some(event) = track.get_next_event() {
+                let note_option = event.get_note().get_midi_index();
+                if note_option.is_none() {
+                    continue;
+                }
+                let note_index = note_option.unwrap();
+                let midi_event: MIDIEvent;
+                if event.is_active() {
+                    midi_event = MIDIEvent::NoteOn(0, note_index, 100);
+                } else {
+                    midi_event = MIDIEvent::NoteOff(0, note_index, 0);
+                }
+                current_tick += event.get_delta_ticks() as usize;
+                midi_object.insert_event(track_index, current_tick, midi_event);
+            }
+            track_index += 1;
+        }
+        midi_object.save(file_path);
+        return true;
     }
 
     pub fn add_track(&mut self, track: Track) {
