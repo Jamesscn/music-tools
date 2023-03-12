@@ -13,16 +13,13 @@ fn main() {
     let midi_object = MIDI::import_from_file(file_path.trim());
     if midi_object.is_some() {
         let midi = midi_object.unwrap();
-        let tracks = midi.get_tracks();
-        let num_tracks = tracks.len();
-        let mut current_track = 1;
-        for track in tracks {
-            println!("Playing track {} of {}...", current_track, num_tracks);
-            oscillator.play_track(square_wave_channel, track);
-            current_track += 1;
-        }
+        let num_tracks = midi.get_num_tracks();
         if num_tracks == 0 {
             println!("The MIDI file has no tracks or notes in it!");
+        } else {
+            let mut channels: Vec<usize> = Vec::new();
+            channels.resize(num_tracks, square_wave_channel);
+            oscillator.play_midi(channels, midi);
         }
     }
 }

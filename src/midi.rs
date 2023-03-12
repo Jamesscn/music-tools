@@ -116,4 +116,8 @@ impl MIDI {
     pub fn get_tracks(&self) -> Vec<Track> {
         return self.tracks.clone();
     }
+
+    pub fn get_num_tracks(&self) -> usize {
+        return self.tracks.len();
+    }
 }

@@ -1,7 +1,8 @@
 use std::time::Duration;
 use rodio::{Sink, Source, OutputStream};
+use crate::midi::MIDI;
 use crate::note::Note;
-use crate::track::Track;
+use crate::track::{Event, Track};
 
 #[derive(Clone)]
 struct Channel {
@@ -225,7 +226,7 @@ impl WavetableOscillator {
         }
     }
 
-    pub fn play_track(&mut self, channel_index: usize, mut track: Track) {
+    pub fn play_single_track(&mut self, channel_index: usize, mut track: Track) {
         let tick_ms = track.get_tick_duration();
         let stream_result = OutputStream::try_default();
         if stream_result.is_err() {
@@ -258,6 +259,71 @@ impl WavetableOscillator {
                 self.play_note(channel_index, note);
             } else {
                 self.stop_note(note);
+            }
+        }
+    }
+
+    pub fn play_midi(&mut self, channel_indexes: Vec<usize>, midi: MIDI) {
+        let num_tracks = midi.get_num_tracks();
+        if num_tracks == 0 {
+            return;
+        }
+        let stream_result = OutputStream::try_default();
+        if stream_result.is_err() {
+            println!("No sound card detected!");
+            return;
+        }
+        let (_stream, stream_handle) = stream_result.unwrap();
+        let sink_result = Sink::try_new(&stream_handle);
+        if sink_result.is_err() {
+            println!("Could not create a sink!");
+            return;
+        }
+        let sink = sink_result.unwrap();
+        let tick_ms = midi.get_tracks()[0].get_tick_duration();
+        let mut pending_track_events: Vec<Option<Event>> = Vec::new();
+        let mut wait_times: Vec<u64> = Vec::new();
+        pending_track_events.resize(num_tracks, None);
+        wait_times.resize(num_tracks, 0);
+        let mut tracks = midi.get_tracks().clone();
+        loop {
+            let mut remaining_wait_times: Vec<u64> = Vec::new();
+            'track: for track_index in 0..num_tracks {
+                let channel_index = channel_indexes[track_index % channel_indexes.len()];
+                let mut wait_time = wait_times[track_index];
+                while wait_time == 0 {
+                    let pending_event_option = pending_track_events[track_index];
+                    if pending_event_option.is_some() {
+                        let current_event = pending_event_option.unwrap();
+                        if current_event.is_active() {
+                            self.play_note(channel_index, current_event.get_note());
+                        } else {
+                            self.stop_note(current_event.get_note());
+                        }
+                    }
+                    let next_event_option = tracks[track_index].get_next_event();
+                    pending_track_events[track_index] = next_event_option;
+                    if next_event_option.is_some() {
+                        let next_event = next_event_option.unwrap();
+                        wait_time = next_event.get_delta_ticks();
+                    } else {
+                        break 'track;
+                    }
+                }
+                wait_times[track_index] = wait_time;
+                remaining_wait_times.push(wait_time);
+            }
+            let min_wait_ticks = match remaining_wait_times.iter().min() {
+                Some(min_wait_ticks) => min_wait_ticks,
+                None => break
+            };
+            let tmp_oscillator = self.clone();
+            sink.append(tmp_oscillator);
+            sink.play();
+            std::thread::sleep(Duration::from_millis((tick_ms * (*min_wait_ticks as f32)) as u64));
+            sink.clear();
+            for track_index in 0..num_tracks {
+                wait_times[track_index] -= min_wait_ticks;
             }
         }
     }

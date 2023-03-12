@@ -14,5 +14,5 @@ fn main() {
     }
     let mut oscillator = WavetableOscillator::new();
     let square_wave_channel = oscillator.add_channel(Waveforms::SQUARE_WAVE, 1.0);
-    oscillator.play_track(square_wave_channel, track);
+    oscillator.play_single_track(square_wave_channel, track);
 }

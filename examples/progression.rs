@@ -15,5 +15,5 @@ fn main() {
     }
     let mut oscillator = WavetableOscillator::new();
     let sine_wave_channel = oscillator.add_channel(f32::sin, 2.0 * std::f32::consts::PI);
-    oscillator.play_track(sine_wave_channel, track);
+    oscillator.play_single_track(sine_wave_channel, track);
 }
