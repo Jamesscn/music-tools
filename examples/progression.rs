@@ -13,6 +13,7 @@ fn main() {
         let chord = Chord::from_numeral(numeral, tonic, Some(octaves[index])).unwrap();
         track.add_chord(chord, Beat::HALF);
     }
-    let mut oscillator = WavetableOscillator::new(128, 44100);
-    oscillator.play(track);
+    let mut oscillator = WavetableOscillator::new();
+    let sine_wave_channel = oscillator.add_channel(f32::sin, 2.0 * std::f32::consts::PI);
+    oscillator.play_track(sine_wave_channel, track);
 }

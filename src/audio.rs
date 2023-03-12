@@ -3,108 +3,33 @@ use rodio::{Sink, Source, OutputStream};
 use crate::note::Note;
 use crate::track::Track;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone)]
 struct Channel {
-    table_delta: f32,
-    table_index: f32,
-    note: Note
+    wave_table: Vec<f32>,
+    wave_table_size: usize,
+    wave_function: fn(f32) -> f32,
+    wave_function_time_scale: f32
 }
 
 impl Channel {
-    pub fn update_table_index(&mut self, table_size: usize) {
-        self.table_index += self.table_delta;
-        self.table_index %= table_size as f32;
-    }
-
-    pub fn get_table_index(&self) -> f32 {
-        return self.table_index;
-    }
-
-    pub fn get_note_value(&self) -> i16 {
-        return self.note.get_value();
-    }
-}
-
-#[derive(Clone, Debug)]
-/// A structure which holds a wavetable oscillator.
-/// 
-/// A wavetable oscillator is used to store the shape of a wave in a table or
-/// an array which can later be played at a specific frequency. There are
-/// several advantages to storing a wave this way, most notably:
-/// 
-/// - Efficiency: It is more efficient to use a lookup table to store certain
-/// shapes of waves such as sine waves than to call the sin() function.
-/// - Timbre: It is easy to change the shape of the wave to something more
-/// complex such as a square, sawtooth or triangle wave.
-/// 
-/// This implementation of a wavetable oscillator also allows you to play
-/// multiple frequencies of the wave at the same time.
-/// 
-/// # Examples
-/// 
-/// ```rust
-/// use std::time::Duration;
-/// use rodio::{OutputStream, OutputStreamHandle, Sink};
-/// use musictools::audio::WavetableOscillator;
-/// 
-/// let mut oscillator = WavetableOscillator::new(128, 44100);
-/// oscillator.add_frequency(440.0);
-/// oscillator.add_frequency(659.3);
-/// let stream_result = OutputStream::try_default();
-/// if stream_result.is_ok() {
-///     let (_stream, stream_handle) = stream_result.unwrap();
-///     let sink = Sink::try_new(&stream_handle).unwrap();
-///     sink.append(oscillator);
-///     std::thread::sleep(Duration::from_millis(1000));
-/// } else {
-///     println!("No sound card detected!");
-/// }
-/// ```
-pub struct WavetableOscillator {
-    wave_table: Vec<f32>,
-    sample_rate: u32,
-    channels: Vec<Channel>
-}
-
-impl WavetableOscillator {
-    /// Creates and returns a new wavetable oscillator which can be used as a
-    /// [`rodio::Source`].
-    /// 
-    /// # Parameters
-    /// 
-    /// - `table_size`: Determines the size of the array that holds the wave,
-    /// and ultimately the resolution of the waveform.
-    /// - `sample_rate`: The sample rate in hertz that will be used while
-    /// reproducing the waveform through the user's speakers. This is
-    /// typically 44100 Hz.
-    pub fn new(table_size: usize, sample_rate: u32) -> WavetableOscillator {
-        let wave_table = generate_wave_table(table_size, f32::sin, 2.0 * std::f32::consts::PI);
-        return WavetableOscillator {
-            wave_table,
-            sample_rate,
-            channels: Vec::new()
+    pub fn new(table_size: usize, wave_function: fn(f32) -> f32, time_scale: f32) -> Channel {
+        let mut new_channel = Channel {
+            wave_table: Vec::new(),
+            wave_table_size: table_size,
+            wave_function,
+            wave_function_time_scale: time_scale,
         };
+        new_channel.generate_wave_table();
+        return new_channel;
     }
 
-    pub fn add_channel(&mut self, note: Note) {
-        for channel_index in 0..self.channels.len() {
-            if self.channels[channel_index].get_note_value() == note.get_value() {
-                return;
-            }
-        }
-        self.channels.push(Channel {
-            table_delta: note.get_frequency() * self.wave_table.len() as f32 / self.sample_rate as f32,
-            table_index: 0.0,
-            note
-        });
-    }
-
-    pub fn remove_channel(&mut self, note: Note) {
-        for channel_index in 0..self.channels.len() {
-            if self.channels[channel_index].get_note_value() == note.get_value() {
-                self.channels.remove(channel_index);
-                return;
-            }
+    pub fn generate_wave_table(&mut self) {
+        self.wave_table = Vec::with_capacity(self.wave_table_size);
+        for i in 0..self.wave_table_size {
+            let time_value = i as f32 / self.wave_table_size as f32;
+            let wave_function = self.wave_function;
+            let wave_value = wave_function(self.wave_function_time_scale * time_value);
+            self.wave_table.push(wave_value);
         }
     }
 
@@ -155,11 +80,152 @@ impl WavetableOscillator {
     /// let mut oscillator = WavetableOscillator::new(128, 44100);
     /// oscillator.set_wave_function(square_wave, 1.0);
     /// ```
-    pub fn set_wave_function(&mut self, function: impl Fn(f32) -> f32, time_scale: f32) {
-        self.wave_table = generate_wave_table(self.wave_table.len(), function, time_scale);
+    pub fn set_wave_function(&mut self, wave_function: fn(f32) -> f32, time_scale: f32) {
+        self.wave_function = wave_function;
+        self.wave_function_time_scale = time_scale;
+        self.generate_wave_table();
     }
 
-    pub fn play(&mut self, mut track: Track) {
+    pub fn get_wave_table_value(&self, index: usize) -> f32 {
+        return self.wave_table[index];
+    }
+
+    pub fn get_wave_table_size(&self) -> usize {
+        return self.wave_table.len();
+    }
+}
+
+#[derive(Copy, Clone)]
+struct Voice {
+    channel_index: usize,
+    frequency: f32,
+    table_index: f32,
+    sample_rate: u32
+}
+
+impl Voice {
+    pub fn new(channel_index: usize, frequency: f32, sample_rate: u32) -> Voice {
+        return Voice {
+            channel_index,
+            frequency,
+            table_index: 0.0,
+            sample_rate
+        }
+    }
+
+    pub fn update_table_index(&mut self, table_size: usize) {
+        let table_delta = self.frequency * table_size as f32 / self.sample_rate as f32;
+        self.table_index += table_delta;
+        self.table_index %= table_size as f32;
+    }
+
+    pub fn set_sample_rate(&mut self, sample_rate: u32) {
+        self.sample_rate = sample_rate;
+    }
+
+    pub fn get_channel_index(&self) -> usize {
+        return self.channel_index;
+    }
+    
+    pub fn get_table_index(&self) -> f32 {
+        return self.table_index;
+    }
+
+    pub fn get_frequency(&self) -> f32 {
+        return self.frequency;
+    }
+}
+
+#[derive(Clone)]
+/// A structure which holds a wavetable oscillator.
+/// 
+/// A wavetable oscillator is used to store the shape of a wave in a table or
+/// an array which can later be played at a specific frequency. There are
+/// several advantages to storing a wave this way, most notably:
+/// 
+/// - Efficiency: It is more efficient to use a lookup table to store certain
+/// shapes of waves such as sine waves than to call the sin() function.
+/// - Timbre: It is easy to change the shape of the wave to something more
+/// complex such as a square, sawtooth or triangle wave.
+/// 
+/// This implementation of a wavetable oscillator also allows you to play
+/// multiple frequencies of the wave at the same time.
+/// 
+/// # Examples
+/// 
+/// ```rust
+/// use std::time::Duration;
+/// use rodio::{OutputStream, OutputStreamHandle, Sink};
+/// use musictools::audio::WavetableOscillator;
+/// 
+/// let mut oscillator = WavetableOscillator::new(128, 44100);
+/// oscillator.add_frequency(440.0);
+/// oscillator.add_frequency(659.3);
+/// let stream_result = OutputStream::try_default();
+/// if stream_result.is_ok() {
+///     let (_stream, stream_handle) = stream_result.unwrap();
+///     let sink = Sink::try_new(&stream_handle).unwrap();
+///     sink.append(oscillator);
+///     std::thread::sleep(Duration::from_millis(1000));
+/// } else {
+///     println!("No sound card detected!");
+/// }
+/// ```
+pub struct WavetableOscillator {
+    channels: Vec<Channel>,
+    voices: Vec<Voice>,
+    sample_rate: u32
+}
+
+impl WavetableOscillator {
+    /// Creates and returns a new wavetable oscillator which can be used as a
+    /// [`rodio::Source`].
+    pub fn new() -> WavetableOscillator {
+        return WavetableOscillator {
+            channels: Vec::new(),
+            voices: Vec::new(),
+            sample_rate: 44100
+        }
+    }
+
+    pub fn set_sample_rate(&mut self, sample_rate: u32) {
+        self.sample_rate = sample_rate;
+        for voice in &mut self.voices {
+            voice.set_sample_rate(sample_rate);
+        }
+    }
+
+    pub fn add_channel(&mut self, wave_function: fn(f32) -> f32, time_scale: f32) -> usize {
+        self.channels.push(Channel::new(128, wave_function, time_scale));
+        return self.channels.len() - 1;
+    }
+
+    pub fn set_channel_wave_function(&mut self, channel_index: usize, wave_function: fn(f32) -> f32, time_scale: f32) {
+        if channel_index >= self.channels.len() {
+            return;
+        }
+        self.channels[channel_index].set_wave_function(wave_function, time_scale);
+    }
+
+    pub fn play_note(&mut self, channel_index: usize, note: Note) -> bool {
+        if channel_index >= self.channels.len() {
+            return false;
+        }
+        let note_voice = Voice::new(channel_index, note.get_frequency(), self.sample_rate);
+        self.voices.push(note_voice);
+        return true;
+    }
+
+    pub fn stop_note(&mut self, note: Note) {
+        for voice_index in 0..self.voices.len() {
+            if self.voices[voice_index].get_frequency() == note.get_frequency() {
+                self.voices.remove(voice_index);
+                return;
+            }
+        }
+    }
+
+    pub fn play_track(&mut self, channel_index: usize, mut track: Track) {
         let tick_ms = track.get_tick_duration();
         let stream_result = OutputStream::try_default();
         if stream_result.is_err() {
@@ -189,22 +255,12 @@ impl WavetableOscillator {
                 sink.clear();
             }
             if current_event.is_active() {
-                self.add_channel(note);
+                self.play_note(channel_index, note);
             } else {
-                self.remove_channel(note);
+                self.stop_note(note);
             }
         }
     }
-}
-
-fn generate_wave_table(table_size: usize, function: impl Fn(f32) -> f32, time_scale: f32) -> Vec<f32> {
-    let mut wave_table: Vec<f32> = Vec::with_capacity(table_size);
-    for i in 0..table_size {
-        let time_value = i as f32 / table_size as f32;
-        let wave_value = function(time_scale * time_value);
-        wave_table.push(wave_value);
-    }
-    return wave_table;
 }
 
 impl Iterator for WavetableOscillator {
@@ -212,17 +268,18 @@ impl Iterator for WavetableOscillator {
 
     fn next(&mut self) -> Option<f32> {
         let mut sample = 0.0;
-        let table_size = self.wave_table.len();
-        let num_channels = self.channels.len();
-        for channel_index in 0..num_channels {
-            let current_index = self.channels[channel_index].get_table_index() as usize;
+        for voice_index in 0..self.voices.len() {
+            let voice = &mut self.voices[voice_index];
+            let channel = &self.channels[voice.get_channel_index()];
+            let table_size = channel.get_wave_table_size();
+            let current_index = voice.get_table_index() as usize;
             let next_index = (current_index + 1) % table_size;
-            let lerp_frac = self.channels[channel_index].get_table_index() - current_index as f32;
-            let current_value = self.wave_table[current_index];
-            let next_value = self.wave_table[next_index];
+            let lerp_frac = voice.get_table_index() - current_index as f32;
+            let current_value = channel.get_wave_table_value(current_index);
+            let next_value = channel.get_wave_table_value(next_index);
             let lerp_value = current_value + lerp_frac * (next_value - current_value);
             sample += lerp_value * 0.2;
-            self.channels[channel_index].update_table_index(table_size);
+            voice.update_table_index(table_size);
         }
         return Some(sample);
     }
@@ -273,11 +330,11 @@ pub struct Waveforms;
 
 impl Waveforms {
     /// The sine wave function with a period of 1 unit of time.
-    pub const SINE_WAVE: &dyn Fn(f32) -> f32 = &sine_wave;
+    pub const SINE_WAVE: fn(f32) -> f32 = sine_wave;
     /// The square wave function with a period of 1 unit of time.
-    pub const SQUARE_WAVE: &dyn Fn(f32) -> f32 = &square_wave;
+    pub const SQUARE_WAVE: fn(f32) -> f32 = square_wave;
     /// The triangle wave function with a period of 1 unit of time.
-    pub const TRIANGLE_WAVE: &dyn Fn(f32) -> f32 = &triangle_wave;
+    pub const TRIANGLE_WAVE: fn(f32) -> f32 = triangle_wave;
     /// The sawtooth wave function with a period of 1 unit of time.
-    pub const SAWTOOTH_WAVE: &dyn Fn(f32) -> f32 = &sawtooth_wave;
+    pub const SAWTOOTH_WAVE: fn(f32) -> f32 = sawtooth_wave;
 }

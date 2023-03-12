@@ -12,7 +12,7 @@ fn main() {
         let duration = beats[index % beats.len()];
         track.add_note(note, duration);
     }
-    let mut oscillator = WavetableOscillator::new(128, 44100);
-    oscillator.set_wave_function(Waveforms::SQUARE_WAVE, 1.0);
-    oscillator.play(track);
+    let mut oscillator = WavetableOscillator::new();
+    let square_wave_channel = oscillator.add_channel(Waveforms::SQUARE_WAVE, 1.0);
+    oscillator.play_track(square_wave_channel, track);
 }
