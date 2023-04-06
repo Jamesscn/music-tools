@@ -1,3 +1,5 @@
+use std::cmp::min;
+use std::future::pending;
 use std::time::Duration;
 use rodio::{Sink, Source, OutputStream};
 use crate::midi::MIDI;
@@ -99,14 +101,16 @@ impl Channel {
 #[derive(Copy, Clone)]
 struct Voice {
     channel_index: usize,
+    track_index: usize,
     frequency: f32,
     table_index: f32,
     sample_rate: u32
 }
 
 impl Voice {
-    pub fn new(channel_index: usize, frequency: f32, sample_rate: u32) -> Voice {
+    pub fn new(track_index: usize, channel_index: usize, frequency: f32, sample_rate: u32) -> Voice {
         return Voice {
+            track_index,
             channel_index,
             frequency,
             table_index: 0.0,
@@ -126,6 +130,10 @@ impl Voice {
 
     pub fn get_channel_index(&self) -> usize {
         return self.channel_index;
+    }
+
+    pub fn get_track_index(&self) -> usize {
+        return self.track_index;
     }
     
     pub fn get_table_index(&self) -> f32 {
@@ -208,18 +216,27 @@ impl WavetableOscillator {
         self.channels[channel_index].set_wave_function(wave_function, time_scale);
     }
 
-    pub fn play_note(&mut self, channel_index: usize, note: Note) -> bool {
+    pub fn play_note(&mut self, track_index: usize, channel_index: usize, note: Note) -> bool {
         if channel_index >= self.channels.len() {
             return false;
         }
-        let note_voice = Voice::new(channel_index, note.get_frequency(), self.sample_rate);
+        let note_voice = Voice::new(track_index, channel_index, note.get_frequency(), self.sample_rate);
         self.voices.push(note_voice);
         return true;
     }
 
-    pub fn stop_note(&mut self, note: Note) {
-        for voice_index in 0..self.voices.len() {
-            if self.voices[voice_index].get_frequency() == note.get_frequency() {
+    pub fn stop_note(&mut self, track_index: usize, note: Note) {
+        for voice_index in (0..self.voices.len()).rev() {
+            if self.voices[voice_index].get_frequency() == note.get_frequency() && self.voices[voice_index].get_track_index() == track_index {
+                self.voices.remove(voice_index);
+                return;
+            }
+        }
+    }
+
+    pub fn stop_all_notes(&mut self, track_index: usize) {
+        for voice_index in (0..self.voices.len()).rev() {
+            if self.voices[voice_index].get_track_index() == track_index {
                 self.voices.remove(voice_index);
                 return;
             }
@@ -256,11 +273,12 @@ impl WavetableOscillator {
                 sink.clear();
             }
             if current_event.is_active() {
-                self.play_note(channel_index, note);
+                self.play_note(0, channel_index, note);
             } else {
-                self.stop_note(note);
+                self.stop_note(0, note);
             }
         }
+        self.stop_all_notes(0);
     }
 
     pub fn play_midi(&mut self, channel_indexes: Vec<usize>, midi: MIDI) {
@@ -281,50 +299,61 @@ impl WavetableOscillator {
         }
         let sink = sink_result.unwrap();
         let tick_ms = midi.get_tracks()[0].get_tick_duration();
-        let mut pending_track_events: Vec<Option<Event>> = Vec::new();
-        let mut wait_times: Vec<u64> = Vec::new();
-        pending_track_events.resize(num_tracks, None);
-        wait_times.resize(num_tracks, 0);
         let mut tracks = midi.get_tracks().clone();
+        let mut pending_event_tuples: Vec<(Event, u64, usize)> = Vec::new();
+        for track_index in 0..num_tracks {
+            let first_event_option = tracks[track_index].get_next_event();
+            if first_event_option.is_some() {
+                let first_event = first_event_option.unwrap();
+                let event_tuple = (first_event, first_event.get_delta_ticks(), track_index);
+                pending_event_tuples.push(event_tuple);
+            }
+        }
         loop {
-            let mut remaining_wait_times: Vec<u64> = Vec::new();
-            'track: for track_index in 0..num_tracks {
+            let mut next_event_tuples: Vec<(Event, u64, usize)> = Vec::new();
+            let mut min_wait_ticks = u64::MAX;
+            'track: for event_index in (0..pending_event_tuples.len()).rev() {
+                let event_tuple = pending_event_tuples[event_index];
+                let mut current_event = event_tuple.0;
+                let mut wait_time = event_tuple.1;
+                let track_index = event_tuple.2;
                 let channel_index = channel_indexes[track_index % channel_indexes.len()];
-                let mut wait_time = wait_times[track_index];
                 while wait_time == 0 {
-                    let pending_event_option = pending_track_events[track_index];
-                    if pending_event_option.is_some() {
-                        let current_event = pending_event_option.unwrap();
-                        if current_event.is_active() {
-                            self.play_note(channel_index, current_event.get_note());
-                        } else {
-                            self.stop_note(current_event.get_note());
-                        }
+                    if current_event.is_active() {
+                        self.play_note(track_index, channel_index, current_event.get_note());
+                    } else {
+                        self.stop_note(track_index, current_event.get_note());
                     }
                     let next_event_option = tracks[track_index].get_next_event();
-                    pending_track_events[track_index] = next_event_option;
-                    if next_event_option.is_some() {
-                        let next_event = next_event_option.unwrap();
-                        wait_time = next_event.get_delta_ticks();
-                    } else {
-                        break 'track;
+                    if next_event_option.is_none() {
+                        self.stop_all_notes(track_index);
+                        continue 'track
                     }
+                    let next_event = next_event_option.unwrap();
+                    wait_time = next_event.get_delta_ticks();
+                    current_event = next_event;
                 }
-                wait_times[track_index] = wait_time;
-                remaining_wait_times.push(wait_time);
+                min_wait_ticks = min(min_wait_ticks, wait_time);
+                next_event_tuples.insert(0, (current_event, wait_time, track_index));
             }
-            let min_wait_ticks = match remaining_wait_times.iter().min() {
-                Some(min_wait_ticks) => min_wait_ticks,
-                None => break
-            };
+            if next_event_tuples.len() == 0 {
+                break;
+            }
             let tmp_oscillator = self.clone();
             sink.append(tmp_oscillator);
             sink.play();
-            std::thread::sleep(Duration::from_millis((tick_ms * (*min_wait_ticks as f32)) as u64));
+            std::thread::sleep(Duration::from_millis((tick_ms * (min_wait_ticks as f32)) as u64));
             sink.clear();
-            for track_index in 0..num_tracks {
-                wait_times[track_index] -= min_wait_ticks;
+            for event_index in 0..next_event_tuples.len() {
+                let next_tuple = next_event_tuples[event_index];
+                let updated_time_tuple = (
+                    next_tuple.0,
+                    next_tuple.1 - min_wait_ticks,
+                    next_tuple.2
+                );
+                next_event_tuples[event_index] = updated_time_tuple;
             }
+            pending_event_tuples = next_event_tuples;
         }
     }
 }
