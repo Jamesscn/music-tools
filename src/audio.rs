@@ -46,42 +46,6 @@ impl Channel {
     /// the wave at that time between -1 and 1.
     /// - `time_scale`: This parameter scales the time variable that is passed
     /// to `function`.
-    /// 
-    /// # Examples
-    /// 
-    /// How to use a function from [`Waveforms`] to play triangle waves:
-    /// 
-    /// ```rust
-    /// use musictools::audio::{WavetableOscillator, Waveforms};
-    /// 
-    /// let mut oscillator = WavetableOscillator::new(128, 44100);
-    /// oscillator.set_wave_function(Waveforms::TRIANGLE_WAVE, 1.0);
-    /// ```
-    /// 
-    /// How to create an oscillator for a sine wave:
-    /// 
-    /// ```rust
-    /// use musictools::audio::WavetableOscillator;
-    /// 
-    /// let mut oscillator = WavetableOscillator::new(128, 44100);
-    /// oscillator.set_wave_function(f32::sin, 2.0 * std::f32::consts::PI);
-    /// ```
-    /// 
-    /// How to create an oscillator for a square wave:
-    /// 
-    /// ```rust
-    /// use musictools::audio::WavetableOscillator;
-    /// 
-    /// fn square_wave(time: f32) -> f32 {
-    ///     if time < 0.5 {
-    ///         return 0.0;
-    ///     }
-    ///     return 1.0;
-    /// }
-    /// 
-    /// let mut oscillator = WavetableOscillator::new(128, 44100);
-    /// oscillator.set_wave_function(square_wave, 1.0);
-    /// ```
     pub fn set_wave_function(&mut self, wave_function: fn(f32) -> f32, time_scale: f32) {
         self.wave_function = wave_function;
         self.wave_function_time_scale = time_scale;
@@ -161,22 +125,16 @@ impl Voice {
 /// # Examples
 /// 
 /// ```rust
-/// use std::time::Duration;
-/// use rodio::{OutputStream, OutputStreamHandle, Sink};
-/// use musictools::audio::WavetableOscillator;
+/// use musictools::note::Note;
+/// use musictools::track::Track;
+/// use musictools::common::{Fraction, Beat};
+/// use musictools::audio::{WavetableOscillator, Waveforms};
 /// 
-/// let mut oscillator = WavetableOscillator::new(128, 44100);
-/// oscillator.add_frequency(440.0);
-/// oscillator.add_frequency(659.3);
-/// let stream_result = OutputStream::try_default();
-/// if stream_result.is_ok() {
-///     let (_stream, stream_handle) = stream_result.unwrap();
-///     let sink = Sink::try_new(&stream_handle).unwrap();
-///     sink.append(oscillator);
-///     std::thread::sleep(Duration::from_millis(1000));
-/// } else {
-///     println!("No sound card detected!");
-/// }
+/// let mut oscillator = WavetableOscillator::new();
+/// let square_wave_channel = oscillator.add_channel(Waveforms::SQUARE_WAVE, 1.0);
+/// let mut track = Track::new(120.0, Fraction::new(4, 4));
+/// track.add_note(Note::from_string("A4").unwrap(), Beat::WHOLE);
+/// oscillator.play_single_track(square_wave_channel, track);
 /// ```
 #[derive(Clone)]
 pub struct WavetableOscillator {
