@@ -8,7 +8,7 @@ fn main() {
     let tonic = PitchClasses::C;
     let progression = ["IV", "V", "iii", "vi", "I", "bVI", "bVII", "I"];
     let octaves = [4, 4, 4, 4, 4, 4, 4, 5];
-    let mut track = Track::new(120.0, Fraction::new(4, 4), 360);
+    let mut track = Track::new(120.0, Fraction::new(4, 4));
     for (index, numeral) in progression.iter().enumerate() {
         let chord = Chord::from_numeral(numeral, tonic, Some(octaves[index])).unwrap();
         track.add_chord(chord, Beat::HALF);

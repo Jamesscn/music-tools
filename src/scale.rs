@@ -4,9 +4,9 @@ use crate::interval::Interval;
 use crate::pitchclass::PitchClass;
 use crate::common::{ScaleType, PentatonicType};
 
-#[derive(Clone, Debug)]
 /// A structure used to represent a scale of notes, or a major or minor
 /// pentatonic variation of a scale.
+#[derive(Clone, Debug)]
 pub struct Scale {
     intervals: Vec<Interval>,
     scale: ScaleType,

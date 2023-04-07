@@ -1,9 +1,9 @@
 use regex::Regex;
 use crate::pitchclass::PitchClass;
 
-#[derive(Copy, Clone, Debug)]
 /// A structure which is used to represent a note with a pitch class and an
 /// octave or frequency.
+#[derive(Copy, Clone, Debug)]
 pub struct Note {
     pitch_class: PitchClass,
     octave: i8,

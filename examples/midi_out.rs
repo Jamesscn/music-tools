@@ -10,9 +10,8 @@ fn main() {
     //The tempo and time signature of the song is set
     let tempo: f32 = 170.0;
     let waltz: Fraction = Fraction::new(3, 4);
-    let ppqn: u16 = 360;
-    let mut beat_track = Track::new(tempo, waltz, ppqn);
-    let mut melody_track = Track::new(tempo, waltz, ppqn);
+    let mut beat_track = Track::new(tempo, waltz);
+    let mut melody_track = Track::new(tempo, waltz);
 
     //The melody is obtained from the C minor and harmonic minor scales
     let minor_scale = Scale::from(ScaleType::Minor, PentatonicType::None).unwrap();

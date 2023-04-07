@@ -1,5 +1,4 @@
 use std::cmp::min;
-use std::future::pending;
 use std::time::Duration;
 use rodio::{Sink, Source, OutputStream};
 use crate::midi::MIDI;
@@ -145,7 +144,6 @@ impl Voice {
     }
 }
 
-#[derive(Clone)]
 /// A structure which holds a wavetable oscillator.
 /// 
 /// A wavetable oscillator is used to store the shape of a wave in a table or
@@ -180,6 +178,7 @@ impl Voice {
 ///     println!("No sound card detected!");
 /// }
 /// ```
+#[derive(Clone)]
 pub struct WavetableOscillator {
     channels: Vec<Channel>,
     voices: Vec<Voice>,
@@ -197,6 +196,12 @@ impl WavetableOscillator {
         }
     }
 
+    /// Changes the sample rate of the wavetable oscillator.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `sample_rate`: A positive integer representing the new sample rate
+    /// of the oscillator in hertz.
     pub fn set_sample_rate(&mut self, sample_rate: u32) {
         self.sample_rate = sample_rate;
         for voice in &mut self.voices {
@@ -204,11 +209,35 @@ impl WavetableOscillator {
         }
     }
 
+    /// Adds a new instrument channel to the wavetable oscillator, returning
+    /// the index of this new channel.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `wave_function`: The function used to generate the shape of the wave
+    /// that will be played by the new channel. It must recieve a parameter of
+    /// type [`f32`] representing the time value of the wave between 0 and
+    /// `time_scale`, and it must return an [`f32`] representing the height of
+    /// the wave at that time between -1 and 1.
+    /// - `time_scale`: This parameter scales the time variable that is passed
+    /// to `wave_function`.
     pub fn add_channel(&mut self, wave_function: fn(f32) -> f32, time_scale: f32) -> usize {
         self.channels.push(Channel::new(128, wave_function, time_scale));
         return self.channels.len() - 1;
     }
 
+    /// Changes the wave function used by an instrument channel.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `channel_index`: The index of the channel to change.
+    /// - `wave_function`: The function used to generate the shape of the wave
+    /// that will be played by the new channel. It must recieve a parameter of
+    /// type [`f32`] representing the time value of the wave between 0 and
+    /// `time_scale`, and it must return an [`f32`] representing the height of
+    /// the wave at that time between -1 and 1.
+    /// - `time_scale`: This parameter scales the time variable that is passed
+    /// to `wave_function`.
     pub fn set_channel_wave_function(&mut self, channel_index: usize, wave_function: fn(f32) -> f32, time_scale: f32) {
         if channel_index >= self.channels.len() {
             return;
@@ -216,6 +245,17 @@ impl WavetableOscillator {
         self.channels[channel_index].set_wave_function(wave_function, time_scale);
     }
 
+    /// Plays a note on a given track on the instrument channel provided. This
+    /// note will play indefinitely until it is stopped by another function.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `track_index`: The index of the track this note belongs to. This
+    /// value is used to keep track of the note, as the same note might be
+    /// played on multiple tracks.
+    /// - `channel_index`: The index of the instrument channel the note will
+    /// be played on.
+    /// - `note`: The [`Note`] to be played.
     pub fn play_note(&mut self, track_index: usize, channel_index: usize, note: Note) -> bool {
         if channel_index >= self.channels.len() {
             return false;
@@ -225,6 +265,13 @@ impl WavetableOscillator {
         return true;
     }
 
+    /// Stops playing a note if it was already playing. If the note was not
+    /// being played then the function will do nothing.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `track_index`: The index of the track the note was being played on.
+    /// - `note`: The [`Note`] to be stopped.
     pub fn stop_note(&mut self, track_index: usize, note: Note) {
         for voice_index in (0..self.voices.len()).rev() {
             if self.voices[voice_index].get_frequency() == note.get_frequency() && self.voices[voice_index].get_track_index() == track_index {
@@ -234,6 +281,12 @@ impl WavetableOscillator {
         }
     }
 
+    /// Stops playing all of the notes on a given track. If no notes were
+    /// playing then the function will do nothing.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `track_index`: The index of the track to stop all notes on.
     pub fn stop_all_notes(&mut self, track_index: usize) {
         for voice_index in (0..self.voices.len()).rev() {
             if self.voices[voice_index].get_track_index() == track_index {
@@ -243,6 +296,12 @@ impl WavetableOscillator {
         }
     }
 
+    /// Plays a single [`Track`] on a given channel.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `channel_index`: The index of the channel to play the track on.
+    /// - `track`: The [`Track`] to be played.
     pub fn play_single_track(&mut self, channel_index: usize, mut track: Track) {
         let tick_ms = track.get_tick_duration();
         let stream_result = OutputStream::try_default();
@@ -281,6 +340,15 @@ impl WavetableOscillator {
         self.stop_all_notes(0);
     }
 
+    /// Plays a [`MIDI`] on a set of channels. If the number of channels is
+    /// less than the number of MIDI tracks then the channels will be rotated
+    /// across the tracks.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `channel_indexes`: A vector of channel indexes that will be used to
+    /// play each MIDI track.
+    /// - `midi`: The [`MIDI`] to be played.
     pub fn play_midi(&mut self, channel_indexes: Vec<usize>, midi: MIDI) {
         let num_tracks = midi.get_num_tracks();
         if num_tracks == 0 {

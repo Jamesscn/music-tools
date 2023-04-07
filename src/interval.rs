@@ -1,8 +1,8 @@
 use std::cmp::Ordering;
 use crate::note::Note;
 
-#[derive(Copy, Clone, Debug)]
 /// A structure which is used to represent the interval between two notes.
+#[derive(Copy, Clone, Debug)]
 pub struct Interval {
     value: u8,
     full_name: Option<&'static str>,

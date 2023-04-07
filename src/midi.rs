@@ -4,18 +4,28 @@ use crate::note::Note;
 use crate::track::Track;
 use crate::common::Fraction;
 
+/// A structure which holds a MIDI object that can be imported from or exported
+/// to a MIDI file, containing a set of [`Track`] objects.
 #[derive(Clone, Debug)]
 pub struct MIDI {
     tracks: Vec<Track>
 }
 
 impl MIDI {
+    /// Creates an empty MIDI class with no tracks
     pub fn new() -> MIDI {
         return MIDI {
             tracks: Vec::new()
         }
     }
 
+    /// Imports a MIDI object from a MIDI file. The return value is an 
+    /// [`Option<MIDI>`] which can be [`None`] if the MIDI file provided does
+    /// not exist or is invalid.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `file_path`: A string of the path to the MIDI file to import.
     pub fn import_from_file(file_path: &str) -> Option<MIDI> {
         let midi_object = match Apres_MIDI::from_path(file_path) {
             Ok(apres_midi_object) => apres_midi_object,
@@ -30,7 +40,7 @@ impl MIDI {
         let mut tempo: f32 = 0.0;
         let mut time_signature: Fraction = Fraction::new(4, 4);
         for midi_track_info in midi_tracks {
-            let mut track = Track::new(tempo, time_signature, ticks_per_quarter_note);
+            let mut track = Track::new_with_ticks(tempo, time_signature, ticks_per_quarter_note);
             for (delta_ticks, event_id) in midi_track_info {
                 let event = match midi_object.get_event(event_id) {
                     Some(event_object) => event_object,
@@ -56,7 +66,7 @@ impl MIDI {
                     _ => {}
                 }
             }
-            if track.get_length() > 0 {
+            if track.get_duration() > 0 {
                 tracks.push(track);
             }
         }
@@ -71,6 +81,13 @@ impl MIDI {
         });
     }
 
+    /// Exports a MIDI object to a MIDI file. The function returns true if the
+    /// file was successfully exported or false if it was not or if the MIDI
+    /// object has no tracks.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `file_path`: A string of the path to save the MIDI file to.
     pub fn export_to_file(&self, file_path: &str) -> bool {
         let mut midi_object = Apres_MIDI::new();
         if self.tracks.len() == 0 {
@@ -109,14 +126,21 @@ impl MIDI {
         return true;
     }
 
+    /// Adds a [`Track`] to the MIDI object.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `track`: The [`Track`] to add to the current MIDI object.
     pub fn add_track(&mut self, track: Track) {
         self.tracks.push(track);
     }
 
+    /// Returns a vector of [`Track`] with the tracks of the MIDI object.
     pub fn get_tracks(&self) -> Vec<Track> {
         return self.tracks.clone();
     }
 
+    /// Returns the number of valid tracks in the MIDI object.
     pub fn get_num_tracks(&self) -> usize {
         return self.tracks.len();
     }

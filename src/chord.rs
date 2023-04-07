@@ -4,12 +4,12 @@ use crate::common::TriadQuality;
 use crate::pitchclass::PitchClass;
 use crate::interval::{Interval, Intervals};
 
-#[derive(Clone, Debug)]
 /// A structure which holds a chord, which is a group of consecutive intervals
 /// with a given inversion. A chord can optionally have a tonic which will
 /// define the pitch classes of each of the notes in the chord, and also an
 /// octave which will define the octaves of these pitch classes, or neither of
 /// these attributes.
+#[derive(Clone, Debug)]
 pub struct Chord {
     intervals: Vec<Interval>,
     tonic: Option<PitchClass>,

@@ -1,9 +1,8 @@
-#[derive(Copy, Clone, Debug)]
-
 /// A structure which is used to hold the exact representation of a fraction.
 /// Fractions are used in this library to precisely represent time signatures
 /// and the durations of beats. These fractions are not simplified when they
 /// are stored.
+#[derive(Copy, Clone, Debug)]
 pub struct Fraction {
     numerator: u8,
     denominator: u8
