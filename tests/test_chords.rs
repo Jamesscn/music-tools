@@ -1,7 +1,7 @@
-use musictools::chord::Chord;
-use musictools::common::TriadQuality;
-use musictools::note::Note;
-use musictools::pitchclass::PitchClasses;
+use music_tools::chord::Chord;
+use music_tools::common::TriadQuality;
+use music_tools::note::Note;
+use music_tools::pitchclass::PitchClasses;
 use std::cmp;
 
 #[test]

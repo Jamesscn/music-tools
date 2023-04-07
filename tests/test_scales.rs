@@ -1,6 +1,6 @@
-use musictools::common::{PentatonicType, ScaleType};
-use musictools::pitchclass::{PitchClass, PitchClasses};
-use musictools::scale::Scale;
+use music_tools::common::{PentatonicType, ScaleType};
+use music_tools::pitchclass::{PitchClass, PitchClasses};
+use music_tools::scale::Scale;
 use std::cmp;
 
 #[test]

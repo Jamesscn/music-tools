@@ -27,8 +27,8 @@ impl Scale {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::scale::Scale;
-    /// use musictools::common::{ScaleType, PentatonicType};
+    /// use music_tools::scale::Scale;
+    /// use music_tools::common::{ScaleType, PentatonicType};
     ///
     /// let locrian = Scale::from(ScaleType::Locrian, PentatonicType::None).unwrap();
     /// let some_pentatonic = Scale::from(ScaleType::Minor, PentatonicType::Major).unwrap();
@@ -131,9 +131,9 @@ impl Scale {
     /// locrian scale, starting at the fifth octave.
     ///
     /// ```rust
-    /// use musictools::scale::Scale;
-    /// use musictools::pitchclass::PitchClasses;
-    /// use musictools::common::{ScaleType, PentatonicType};
+    /// use music_tools::scale::Scale;
+    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::common::{ScaleType, PentatonicType};
     ///
     /// let locrian = Scale::from(ScaleType::Locrian, PentatonicType::None).unwrap();
     /// let g_locrian_chords = locrian.get_diatonic_chords(PitchClasses::G, Some(5), true).unwrap();

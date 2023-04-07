@@ -1,5 +1,5 @@
-use musictools::audio::{Waveforms, WavetableOscillator};
-use musictools::midi::MIDI;
+use music_tools::audio::{Waveforms, WavetableOscillator};
+use music_tools::midi::MIDI;
 use std::io::{self, Write};
 
 fn main() {

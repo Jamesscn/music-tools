@@ -16,7 +16,7 @@ impl PitchClass {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::pitchclass::PitchClass;
+    /// use music_tools::pitchclass::PitchClass;
     ///
     /// let a = PitchClass::from_name("A");
     /// let b_flat = PitchClass::from_name("Bb");
@@ -45,7 +45,7 @@ impl PitchClass {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::pitchclass::PitchClass;
+    /// use music_tools::pitchclass::PitchClass;
     ///
     /// let g_flat = PitchClass::from_value(6);
     /// ```
@@ -69,7 +69,7 @@ impl PitchClass {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let c = PitchClasses::A.get_offset(2);
     /// let f = PitchClasses::A.get_offset(-2);

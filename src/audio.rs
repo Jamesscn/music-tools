@@ -128,10 +128,10 @@ impl Voice {
 /// # Examples
 ///
 /// ```rust
-/// use musictools::note::Note;
-/// use musictools::track::Track;
-/// use musictools::common::{Fraction, Beat};
-/// use musictools::audio::{WavetableOscillator, Waveforms};
+/// use music_tools::note::Note;
+/// use music_tools::track::Track;
+/// use music_tools::common::{Fraction, Beat};
+/// use music_tools::audio::{WavetableOscillator, Waveforms};
 ///
 /// let mut oscillator = WavetableOscillator::new();
 /// let square_wave_channel = oscillator.add_channel(Waveforms::SQUARE_WAVE, 1.0);

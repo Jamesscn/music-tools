@@ -1,7 +1,7 @@
-use musictools::audio::{Waveforms, WavetableOscillator};
-use musictools::common::{Beat, Fraction};
-use musictools::note::Note;
-use musictools::track::Track;
+use music_tools::audio::{Waveforms, WavetableOscillator};
+use music_tools::common::{Beat, Fraction};
+use music_tools::note::Note;
+use music_tools::track::Track;
 
 fn main() {
     let mut track = Track::new(160.0, Fraction::new(5, 4));

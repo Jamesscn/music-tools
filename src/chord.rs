@@ -31,8 +31,8 @@ impl Chord {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::chord::Chord;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::chord::Chord;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let unison_chord = Chord::new(None, None);
     /// let g_unison_chord = Chord::new(Some(PitchClasses::G), None);
@@ -66,8 +66,8 @@ impl Chord {
     /// tonic pitch class.
     ///
     /// ```rust
-    /// use musictools::chord::Chord;
-    /// use musictools::common::TriadQuality;
+    /// use music_tools::chord::Chord;
+    /// use music_tools::common::TriadQuality;
     ///
     /// let chord = Chord::from_triad(TriadQuality::Major, None, None);
     /// ```
@@ -75,9 +75,9 @@ impl Chord {
     /// The following example demonstrates the creation of a G sus2 triad:
     ///
     /// ```rust
-    /// use musictools::chord::Chord;
-    /// use musictools::common::TriadQuality;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::chord::Chord;
+    /// use music_tools::common::TriadQuality;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let chord = Chord::from_triad(TriadQuality::Sus2, Some(PitchClasses::G), None);
     /// ```
@@ -85,9 +85,9 @@ impl Chord {
     /// The following example demonstrates the creation of a C5 augmented triad:
     ///
     /// ```rust
-    /// use musictools::chord::Chord;
-    /// use musictools::common::TriadQuality;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::chord::Chord;
+    /// use music_tools::common::TriadQuality;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let chord = Chord::from_triad(TriadQuality::Augmented, Some(PitchClasses::C), Some(5));
     /// ```
@@ -165,8 +165,8 @@ impl Chord {
     /// degrees above C4, which will be flat, augmented and will also contain a minor seventh.
     ///
     /// ```rust
-    /// use musictools::chord::Chord;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::chord::Chord;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let chord1 = Chord::from_numeral("bVII+7", PitchClasses::C, Some(4)).unwrap();
     /// let chord2 = Chord::from_numeral("♭VII+7", PitchClasses::C, Some(4)).unwrap();
@@ -177,8 +177,8 @@ impl Chord {
     /// seventh:
     ///
     /// ```rust
-    /// use musictools::chord::Chord;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::chord::Chord;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let chord1 = Chord::from_numeral("#ii°maj7", PitchClasses::G_SHARP, Some(5)).unwrap();
     /// let chord2 = Chord::from_numeral("♯ii°maj7", PitchClasses::G_SHARP, Some(5)).unwrap();
@@ -188,8 +188,8 @@ impl Chord {
     /// with no octave.
     ///
     /// ```rust
-    /// use musictools::chord::Chord;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::chord::Chord;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let chord = Chord::from_numeral("iii", PitchClasses::A, None).unwrap();
     /// ```
@@ -285,9 +285,9 @@ impl Chord {
     /// particular pitch classes or octaves.
     ///
     /// ```rust
-    /// use musictools::chord::Chord;
-    /// use musictools::common::TriadQuality;
-    /// use musictools::interval::Intervals;
+    /// use music_tools::chord::Chord;
+    /// use music_tools::common::TriadQuality;
+    /// use music_tools::interval::Intervals;
     ///
     /// let mut chord = Chord::from_triad(TriadQuality::Major, None, None);
     /// chord.add_interval(Intervals::MINOR_SEVENTH);
@@ -342,8 +342,8 @@ impl Chord {
     /// The following example constructs the first inversion of the major triad.
     ///
     /// ```rust
-    /// use musictools::chord::Chord;
-    /// use musictools::common::TriadQuality;
+    /// use music_tools::chord::Chord;
+    /// use music_tools::common::TriadQuality;
     ///
     /// let mut chord = Chord::from_triad(TriadQuality::Major, None, None);
     /// chord.set_inversion(1);
@@ -352,9 +352,9 @@ impl Chord {
     /// The following example constructs the second inversion of the C minor triad.
     ///
     /// ```rust
-    /// use musictools::chord::Chord;
-    /// use musictools::common::TriadQuality;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::chord::Chord;
+    /// use music_tools::common::TriadQuality;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let mut chord = Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::C), None);
     /// chord.set_inversion(2);
@@ -411,9 +411,9 @@ impl Chord {
     /// G4, B4 and D5.
     ///
     /// ```rust
-    /// use musictools::chord::Chord;
-    /// use musictools::common::TriadQuality;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::chord::Chord;
+    /// use music_tools::common::TriadQuality;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let mut chord = Chord::from_triad(TriadQuality::Major, Some(PitchClasses::G), Some(4));
     /// let notes = chord.to_notes().unwrap();

@@ -21,8 +21,8 @@ impl Note {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::note::Note;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::note::Note;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let a = Note::from(PitchClasses::A_SHARP, 5);
     /// let b = Note::from(PitchClasses::B_FLAT, 4);
@@ -48,7 +48,7 @@ impl Note {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::note::Note;
+    /// use music_tools::note::Note;
     ///
     /// let a = Note::from_string("A#5").unwrap();
     /// let b = Note::from_string("Bb4").unwrap();
@@ -105,8 +105,8 @@ impl Note {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::note::Note;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::note::Note;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let mut note = Note::from(PitchClasses::C, 5);
     /// println!("{}", note.get_frequency());
@@ -123,8 +123,8 @@ impl Note {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::note::Note;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::note::Note;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let mut note = Note::from(PitchClasses::C, 5);
     /// println!("{}", note.get_base_frequency());
@@ -173,8 +173,8 @@ impl Note {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::note::Note;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::note::Note;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let c_minus_one = Note::from(PitchClasses::C, -1);
     /// let zero = Note::from(PitchClasses::C, 0);
@@ -194,8 +194,8 @@ impl Note {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::note::Note;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::note::Note;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let middle_c = Note::from(PitchClasses::C, 4);
     /// println!("{}", middle_c.get_keyboard_index().unwrap());
@@ -214,8 +214,8 @@ impl Note {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::note::Note;
-    /// use musictools::pitchclass::PitchClasses;
+    /// use music_tools::note::Note;
+    /// use music_tools::pitchclass::PitchClasses;
     ///
     /// let middle_c = Note::from(PitchClasses::C, 4);
     /// println!("{}", middle_c.get_keyboard_index().unwrap());

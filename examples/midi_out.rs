@@ -1,10 +1,10 @@
-use musictools::chord::Chord;
-use musictools::common::{Beat, Fraction, PentatonicType, ScaleType, TriadQuality};
-use musictools::midi::MIDI;
-use musictools::note::Note;
-use musictools::pitchclass::PitchClasses;
-use musictools::scale::Scale;
-use musictools::track::Track;
+use music_tools::chord::Chord;
+use music_tools::common::{Beat, Fraction, PentatonicType, ScaleType, TriadQuality};
+use music_tools::midi::MIDI;
+use music_tools::note::Note;
+use music_tools::pitchclass::PitchClasses;
+use music_tools::scale::Scale;
+use music_tools::track::Track;
 
 fn main() {
     //The tempo and time signature of the song is set

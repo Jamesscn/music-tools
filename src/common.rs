@@ -18,7 +18,7 @@ impl Fraction {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::common::Fraction;
+    /// use music_tools::common::Fraction;
     ///
     /// let one_half = Fraction::new(1, 2);
     /// ```
@@ -34,7 +34,7 @@ impl Fraction {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::common::Fraction;
+    /// use music_tools::common::Fraction;
     ///
     /// let five_sevenths = Fraction::new(5, 7);
     /// let five = five_sevenths.get_numerator();
@@ -49,7 +49,7 @@ impl Fraction {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::common::Fraction;
+    /// use music_tools::common::Fraction;
     ///
     /// let five_sevenths = Fraction::new(5, 7);
     /// let seven = five_sevenths.get_denominator();
@@ -65,7 +65,7 @@ impl Fraction {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::common::Fraction;
+    /// use music_tools::common::Fraction;
     ///
     /// let two_and_a_half = Fraction::new(5, 2);
     /// let float_value = two_and_a_half.get_as_float();
@@ -80,7 +80,7 @@ impl Fraction {
     /// # Examples
     ///
     /// ```rust
-    /// use musictools::common::Fraction;
+    /// use music_tools::common::Fraction;
     ///
     /// let two_quarters = Fraction::new(2, 4);
     /// let one_half = two_quarters.get_simplified();
@@ -236,7 +236,7 @@ pub enum PentatonicType {
 /// # Examples
 ///
 /// ```rust
-/// use musictools::common::get_letter_at_offset;
+/// use music_tools::common::get_letter_at_offset;
 ///
 /// let positive_offset = get_letter_at_offset('F', 2).unwrap();
 /// let negative_offset = get_letter_at_offset('F', -2).unwrap();
