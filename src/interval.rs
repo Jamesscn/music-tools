@@ -10,8 +10,8 @@ pub struct Interval {
 }
 
 impl Interval {
-    /// Constructs an interval given a positive integer representing the value
-    /// of the interval or the distance between two notes.
+    /// Constructs an interval given a positive integer representing the value of the interval or
+    /// the distance between two notes.
     pub fn from(value: u8) -> Interval {
         let index = value as usize;
         if index < INTERVALS.len() {
@@ -29,14 +29,13 @@ impl Interval {
         self.value
     }
 
-    /// Returns the full name of the interval if it exists, such as Perfect
-    /// Unison or Diminished Fifth.
+    /// Returns the full name of the interval if it exists, such as Perfect Unison or Diminished
+    /// Fifth.
     pub fn get_name(&self) -> Option<&'static str> {
         self.full_name
     }
 
-    /// Returns an abbreviated name for the interval if it exists, such as P1
-    /// or m6.
+    /// Returns an abbreviated name for the interval if it exists, such as P1 or m6.
     pub fn get_short_name(&self) -> Option<&'static str> {
         self.short_name
     }
@@ -114,22 +113,22 @@ impl Intervals {
         full_name: Some("Perfect Fourth"),
         short_name: Some("P4"),
     };
-    /// The interval between two notes separated by six semitones, which is
-    /// also equivalent to the tritone and the augmented fourth.
+    /// The interval between two notes separated by six semitones, which is also equivalent to the
+    /// tritone and the augmented fourth.
     pub const DIMINISHED_FIFTH: Interval = Interval {
         value: 6,
         full_name: Some("Diminished Fifth"),
         short_name: Some("d5"),
     };
-    /// The interval between two notes separated by six semitones, which is
-    /// also equivalent to the diminished fifth and the augmented fourth.
+    /// The interval between two notes separated by six semitones, which is also equivalent to the
+    /// diminished fifth and the augmented fourth.
     pub const TRITONE: Interval = Interval {
         value: 6,
         full_name: Some("Tritone"),
         short_name: Some("TT"),
     };
-    /// The interval between two notes separated by six semitones, which is
-    /// also equivalent to the tritone and the diminished fifth.
+    /// The interval between two notes separated by six semitones, which is also equivalent to the
+    /// tritone and the diminished fifth.
     pub const AUGMENTED_FOURTH: Interval = Interval {
         value: 6,
         full_name: Some("Augmented Fourth"),
@@ -165,8 +164,7 @@ impl Intervals {
         full_name: Some("Major Seventh"),
         short_name: Some("M7"),
     };
-    /// The interval between two notes separated by twelve semitones or an
-    /// octave.
+    /// The interval between two notes separated by twelve semitones or an octave.
     pub const PERFECT_OCTAVE: Interval = Interval {
         value: 12,
         full_name: Some("Perfect Octave"),
@@ -202,15 +200,15 @@ impl Intervals {
         full_name: Some("Perfect Eleventh"),
         short_name: Some("P11"),
     };
-    /// The interval between two notes separated by eighteen semitones, which
-    /// is also equivalent to the augmented eleventh.
+    /// The interval between two notes separated by eighteen semitones, which is also equivalent to
+    /// the augmented eleventh.
     pub const DIMINISHED_TWELFTH: Interval = Interval {
         value: 18,
         full_name: Some("Diminished Twelfth"),
         short_name: Some("d12"),
     };
-    /// The interval between two notes separated by eighteen semitones, which
-    /// is also equivalent to the diminished twelfth.
+    /// The interval between two notes separated by eighteen semitones, which is also equivalent to
+    /// the diminished twelfth.
     pub const AUGMENTED_ELEVENTH: Interval = Interval {
         value: 18,
         full_name: Some("Augmented Eleventh"),
@@ -246,8 +244,7 @@ impl Intervals {
         full_name: Some("Major Fourteenth"),
         short_name: Some("M14"),
     };
-    /// The interval between two notes separated by twenty four semitones or
-    /// two octaves.
+    /// The interval between two notes separated by twenty four semitones or two octaves.
     pub const PERFECT_FIFTEENTH: Interval = Interval {
         value: 24,
         full_name: Some("Perfect Fifteenth"),

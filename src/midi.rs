@@ -4,8 +4,8 @@ use crate::track::Track;
 use apres::MIDIEvent;
 use apres::MIDI as Apres_MIDI;
 
-/// A structure which holds a MIDI object that can be imported from or exported
-/// to a MIDI file, containing a set of [`Track`] objects.
+/// A structure which holds a MIDI object that can be imported from or exported to a MIDI file,
+/// containing a set of [`Track`] objects.
 #[derive(Clone, Debug)]
 pub struct MIDI {
     tracks: Vec<Track>,
@@ -17,9 +17,8 @@ impl MIDI {
         MIDI { tracks: Vec::new() }
     }
 
-    /// Imports a MIDI object from a MIDI file. The return value is an
-    /// [`Option<MIDI>`] which can be [`None`] if the MIDI file provided does
-    /// not exist or is invalid.
+    /// Imports a MIDI object from a MIDI file. The return value is an [`Option<MIDI>`] which can be
+    /// [`None`] if the MIDI file provided does not exist or is invalid.
     ///
     /// # Parameters
     ///
@@ -96,9 +95,8 @@ impl MIDI {
         })
     }
 
-    /// Exports a MIDI object to a MIDI file. The function returns true if the
-    /// file was successfully exported or false if it was not or if the MIDI
-    /// object has no tracks.
+    /// Exports a MIDI object to a MIDI file. The function returns true if the file was successfully
+    /// exported or false if it was not or if the MIDI object has no tracks.
     ///
     /// # Parameters
     ///

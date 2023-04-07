@@ -39,13 +39,11 @@ impl Channel {
     ///
     /// # Parameters
     ///
-    /// - `function`: The function used to generate the shape of the wave that
-    /// will be played by the oscillator. It must recieve a parameter of type
-    /// [`f32`] representing the time value of the wave between 0 and
-    /// `time_scale`, and it must return an [`f32`] representing the height of
-    /// the wave at that time between -1 and 1.
-    /// - `time_scale`: This parameter scales the time variable that is passed
-    /// to `function`.
+    /// - `function`: The function used to generate the shape of the wave that will be played by the
+    ///   oscillator. It must recieve a parameter of type [`f32`] representing the time value of the
+    ///   wave between 0 and `time_scale`, and it must return an [`f32`] representing the height of
+    ///   the wave at that time between -1 and 1.
+    /// - `time_scale`: This parameter scales the time variable that is passed to `function`.
     pub fn set_wave_function(&mut self, wave_function: fn(f32) -> f32, time_scale: f32) {
         self.wave_function = wave_function;
         self.wave_function_time_scale = time_scale;
@@ -115,17 +113,17 @@ impl Voice {
 
 /// A structure which holds a wavetable oscillator.
 ///
-/// A wavetable oscillator is used to store the shape of a wave in a table or
-/// an array which can later be played at a specific frequency. There are
-/// several advantages to storing a wave this way, most notably:
+/// A wavetable oscillator is used to store the shape of a wave in a table or an array which can
+/// later be played at a specific frequency. There are several advantages to storing a wave this
+/// way, most notably:
 ///
-/// - Efficiency: It is more efficient to use a lookup table to store certain
-/// shapes of waves such as sine waves than to call the sin() function.
-/// - Timbre: It is easy to change the shape of the wave to something more
-/// complex such as a square, sawtooth or triangle wave.
+/// - Efficiency: It is more efficient to use a lookup table to store certain shapes of waves such
+///   as sine waves than to call the sin() function.
+/// - Timbre: It is easy to change the shape of the wave to something more complex such as a square,
+///   sawtooth or triangle wave.
 ///
-/// This implementation of a wavetable oscillator also allows you to play
-/// multiple frequencies of the wave at the same time.
+/// This implementation of a wavetable oscillator also allows you to play multiple frequencies of
+/// the wave at the same time.
 ///
 /// # Examples
 ///
@@ -149,8 +147,7 @@ pub struct WavetableOscillator {
 }
 
 impl WavetableOscillator {
-    /// Creates and returns a new wavetable oscillator which can be used as a
-    /// [`rodio::Source`].
+    /// Creates and returns a new wavetable oscillator which can be used as a [`rodio::Source`].
     pub fn new() -> WavetableOscillator {
         WavetableOscillator {
             channels: Vec::new(),
@@ -163,8 +160,8 @@ impl WavetableOscillator {
     ///
     /// # Parameters
     ///
-    /// - `sample_rate`: A positive integer representing the new sample rate
-    /// of the oscillator in hertz.
+    /// - `sample_rate`: A positive integer representing the new sample rate of the oscillator in
+    ///   hertz.
     pub fn set_sample_rate(&mut self, sample_rate: u32) {
         self.sample_rate = sample_rate;
         for voice in &mut self.voices {
@@ -172,18 +169,16 @@ impl WavetableOscillator {
         }
     }
 
-    /// Adds a new instrument channel to the wavetable oscillator, returning
-    /// the index of this new channel.
+    /// Adds a new instrument channel to the wavetable oscillator, returning the index of this new
+    /// channel.
     ///
     /// # Parameters
     ///
-    /// - `wave_function`: The function used to generate the shape of the wave
-    /// that will be played by the new channel. It must recieve a parameter of
-    /// type [`f32`] representing the time value of the wave between 0 and
-    /// `time_scale`, and it must return an [`f32`] representing the height of
-    /// the wave at that time between -1 and 1.
-    /// - `time_scale`: This parameter scales the time variable that is passed
-    /// to `wave_function`.
+    /// - `wave_function`: The function used to generate the shape of the wave that will be played
+    ///   by the new channel. It must recieve a parameter of type [`f32`] representing the time
+    ///   value of the wave between 0 and `time_scale`, and it must return an [`f32`] representing
+    ///   the height of the wave at that time between -1 and 1.
+    /// - `time_scale`: This parameter scales the time variable that is passed to `wave_function`.
     pub fn add_channel(&mut self, wave_function: fn(f32) -> f32, time_scale: f32) -> usize {
         self.channels
             .push(Channel::new(128, wave_function, time_scale));
@@ -195,13 +190,11 @@ impl WavetableOscillator {
     /// # Parameters
     ///
     /// - `channel_index`: The index of the channel to change.
-    /// - `wave_function`: The function used to generate the shape of the wave
-    /// that will be played by the new channel. It must recieve a parameter of
-    /// type [`f32`] representing the time value of the wave between 0 and
-    /// `time_scale`, and it must return an [`f32`] representing the height of
-    /// the wave at that time between -1 and 1.
-    /// - `time_scale`: This parameter scales the time variable that is passed
-    /// to `wave_function`.
+    /// - `wave_function`: The function used to generate the shape of the wave that will be played
+    ///   by the new channel. It must recieve a parameter of type [`f32`] representing the time
+    ///   value of the wave between 0 and `time_scale`, and it must return an [`f32`] representing
+    ///   the height of the wave at that time between -1 and 1.
+    /// - `time_scale`: This parameter scales the time variable that is passed to `wave_function`.
     pub fn set_channel_wave_function(
         &mut self,
         channel_index: usize,
@@ -214,16 +207,14 @@ impl WavetableOscillator {
         self.channels[channel_index].set_wave_function(wave_function, time_scale);
     }
 
-    /// Plays a note on a given track on the instrument channel provided. This
-    /// note will play indefinitely until it is stopped by another function.
+    /// Plays a note on a given track on the instrument channel provided. This note will play
+    /// indefinitely until it is stopped by another function.
     ///
     /// # Parameters
     ///
-    /// - `track_index`: The index of the track this note belongs to. This
-    /// value is used to keep track of the note, as the same note might be
-    /// played on multiple tracks.
-    /// - `channel_index`: The index of the instrument channel the note will
-    /// be played on.
+    /// - `track_index`: The index of the track this note belongs to. This value is used to keep
+    ///   track of the note, as the same note might be played on multiple tracks.
+    /// - `channel_index`: The index of the instrument channel the note will be played on.
     /// - `note`: The [`Note`] to be played.
     pub fn play_note(&mut self, track_index: usize, channel_index: usize, note: Note) -> bool {
         if channel_index >= self.channels.len() {
@@ -239,8 +230,8 @@ impl WavetableOscillator {
         true
     }
 
-    /// Stops playing a note if it was already playing. If the note was not
-    /// being played then the function will do nothing.
+    /// Stops playing a note if it was already playing. If the note was not being played then the
+    /// function will do nothing.
     ///
     /// # Parameters
     ///
@@ -257,8 +248,8 @@ impl WavetableOscillator {
         }
     }
 
-    /// Stops playing all of the notes on a given track. If no notes were
-    /// playing then the function will do nothing.
+    /// Stops playing all of the notes on a given track. If no notes were playing then the function
+    /// will do nothing.
     ///
     /// # Parameters
     ///
@@ -316,14 +307,12 @@ impl WavetableOscillator {
         self.stop_all_notes(0);
     }
 
-    /// Plays a [`MIDI`] on a set of channels. If the number of channels is
-    /// less than the number of MIDI tracks then the channels will be rotated
-    /// across the tracks.
+    /// Plays a [`MIDI`] on a set of channels. If the number of channels is less than the number of
+    /// MIDI tracks then the channels will be rotated across the tracks.
     ///
     /// # Parameters
     ///
-    /// - `channel_indexes`: A vector of channel indexes that will be used to
-    /// play each MIDI track.
+    /// - `channel_indexes`: A vector of channel indexes that will be used to play each MIDI track.
     /// - `midi`: The [`MIDI`] to be played.
     pub fn play_midi(&mut self, channel_indexes: Vec<usize>, midi: MIDI) {
         let num_tracks = midi.get_num_tracks();

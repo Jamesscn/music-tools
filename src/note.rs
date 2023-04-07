@@ -1,8 +1,7 @@
 use crate::pitchclass::PitchClass;
 use regex::Regex;
 
-/// A structure which is used to represent a note with a pitch class and an
-/// octave or frequency.
+/// A structure which is used to represent a note with a pitch class and an octave or frequency.
 #[derive(Copy, Clone, Debug)]
 pub struct Note {
     pitch_class: PitchClass,
@@ -15,10 +14,9 @@ impl Note {
     ///
     /// # Parameters
     ///
-    /// - `pitch_class`: A [`PitchClass`] representing the pitch class of the
-    /// note to be constructed.
-    /// - `octave`: An integer representing the octave of the note to be
-    /// constructed.
+    /// - `pitch_class`: A [`PitchClass`] representing the pitch class of the note to be
+    ///   constructed.
+    /// - `octave`: An integer representing the octave of the note to be constructed.
     ///
     /// # Examples
     ///
@@ -38,15 +36,14 @@ impl Note {
         }
     }
 
-    /// Constructs a [`Note`] from a string containing the pitch class and the
-    /// octave of the note. If the string is invalid, [`None`] is returned.
+    /// Constructs a [`Note`] from a string containing the pitch class and the octave of the note.
+    /// If the string is invalid, [`None`] is returned.
     ///
     /// # Parameters
     ///
-    /// - `string`: A string with the uppercase letter of the pitch class,
-    /// which can be followed by a `#` or `♯` to indicate it is a sharp pitch
-    /// class or a `b` or `♭` to indicate that it is a flat note, and which is
-    /// then followed by a number representing the octave of the note.
+    /// - `string`: A string with the uppercase letter of the pitch class, which can be followed by
+    ///   a `#` or `♯` to indicate it is a sharp pitch class or a `b` or `♭` to indicate that it is
+    ///   a flat note, and which is then followed by a number representing the octave of the note.
     ///
     /// # Examples
     ///
@@ -77,13 +74,12 @@ impl Note {
         })
     }
 
-    /// Constructs a [`Note`] from a midi index between 0 and 127. If the value
-    /// provided is outside of this range [`None`] is returned.
+    /// Constructs a [`Note`] from a midi index between 0 and 127. If the value provided is outside
+    /// of this range [`None`] is returned.
     ///
     /// # Parameters
     ///
-    /// - `index`: The index of the midi note, which can be any number between
-    /// 0 and 127 inclusive.
+    /// - `index`: The index of the midi note, which can be any number between 0 and 127 inclusive.
     pub fn from_midi_index(index: u8) -> Option<Note> {
         if index > 127 {
             return None;
@@ -97,16 +93,14 @@ impl Note {
         })
     }
 
-    /// Changes the reference frequency of A4 to a specific value for this
-    /// note, which will affect the frequency of the pitch class and octave
-    /// when calculated. The default value for this frequency is equal to 440
-    /// hertz.
+    /// Changes the reference frequency of A4 to a specific value for this note, which will affect
+    /// the frequency of the pitch class and octave when calculated. The default value for this
+    /// frequency is equal to 440 hertz.
     ///
     /// # Parameters
     ///
-    /// - `base_frequency`: A floating point number which will represent the
-    /// frequency in hertz of the reference note A4 when the frequency of the
-    /// current note is calculated.
+    /// - `base_frequency`: A floating point number which will represent the frequency in hertz of
+    ///   the reference note A4 when the frequency of the current note is calculated.
     ///
     /// # Examples
     ///
@@ -123,8 +117,8 @@ impl Note {
         self.base_frequency = base_frequency;
     }
 
-    /// Obtains the reference frequency of A4 with respect to this note in
-    /// hertz. The default value for this frequency is 440 hertz.
+    /// Obtains the reference frequency of A4 with respect to this note in hertz. The default value
+    /// for this frequency is 440 hertz.
     ///
     /// # Examples
     ///
@@ -141,9 +135,8 @@ impl Note {
         self.base_frequency
     }
 
-    /// Retuns the frequency in hertz of the current note. This frequency
-    /// depends on the reference frequency for the note A4, which can be
-    /// modified by the `set_base_frequency` function.
+    /// Retuns the frequency in hertz of the current note. This frequency depends on the reference
+    /// frequency for the note A4, which can be modified by the `set_base_frequency` function.
     pub fn get_frequency(&self) -> f32 {
         self.base_frequency
             * 2.0_f32.powf(
@@ -173,10 +166,9 @@ impl Note {
         names
     }
 
-    /// Returns a numerical value representing the position of the note with
-    /// respect to C0. If a key is below C0, then this function will return a
-    /// negative integer representing that note, or if it is above then the
-    /// function will return a positive integer.
+    /// Returns a numerical value representing the position of the note with respect to C0. If a key
+    /// is below C0, then this function will return a negative integer representing that note, or if
+    /// it is above then the function will return a positive integer.
     ///
     /// # Examples
     ///
@@ -195,9 +187,9 @@ impl Note {
         self.octave as i16 * 12 + self.pitch_class.get_value() as i16
     }
 
-    /// Returns an [`Option<u8>`] with an index representing the numerical
-    /// position of the note on a keyboard with 88 keys starting at A0 and
-    /// ending at C8, or [`None`] if the key is outside of this range.
+    /// Returns an [`Option<u8>`] with an index representing the numerical position of the note on a
+    /// keyboard with 88 keys starting at A0 and ending at C8, or [`None`] if the key is outside of
+    /// this range.
     ///
     /// # Examples
     ///
@@ -216,9 +208,8 @@ impl Note {
         Some(keyboard_index as u8)
     }
 
-    /// Returns an [`Option<u8>`] with the value of the current note according
-    /// to the MIDI standard, or [`None`] if the note is outside of the range
-    /// playable by MIDI.
+    /// Returns an [`Option<u8>`] with the value of the current note according to the MIDI standard,
+    /// or [`None`] if the note is outside of the range playable by MIDI.
     ///
     /// # Examples
     ///

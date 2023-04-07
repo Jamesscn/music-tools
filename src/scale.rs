@@ -4,8 +4,8 @@ use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::PitchClass;
 
-/// A structure used to represent a scale of notes, or a major or minor
-/// pentatonic variation of a scale.
+/// A structure used to represent a scale of notes, or a major or minor pentatonic variation of a
+/// scale.
 #[derive(Clone, Debug)]
 pub struct Scale {
     intervals: Vec<Interval>,
@@ -14,17 +14,15 @@ pub struct Scale {
 }
 
 impl Scale {
-    /// Constructs a scale of notes given the type of scale, and optionally
-    /// a pentatonic.
+    /// Constructs a scale of notes given the type of scale, and optionally a pentatonic.
     ///
     /// # Parameters
     ///
     /// - `scale`: A [`ScaleType`] representing the type of scale to return.
-    /// - `pentatonic`: A [`PentatonicType`] representing whether a major or
-    /// minor pentatonic should be applied to the scale, or if no pentatonic
-    /// should be applied. Pentatonics should only be provided if the type of
-    /// scale corresponds to a heptatonic scale, otherwise the function will
-    /// return None.
+    /// - `pentatonic`: A [`PentatonicType`] representing whether a major or minor pentatonic should
+    ///   be applied to the scale, or if no pentatonic should be applied. Pentatonics should only be
+    ///   provided if the type of scale corresponds to a heptatonic scale, otherwise the function
+    ///   will return None.
     ///
     /// # Examples
     ///
@@ -80,8 +78,8 @@ impl Scale {
         })
     }
 
-    /// Returns a vector of [`Interval`] representing the intervals of each
-    /// of the notes in the scale with respect to the tonic.
+    /// Returns a vector of [`Interval`] representing the intervals of each of the notes in the
+    /// scale with respect to the tonic.
     pub fn get_intervals(&self) -> Vec<Interval> {
         self.intervals.clone()
     }
@@ -91,14 +89,13 @@ impl Scale {
         self.scale
     }
 
-    /// Returns a [`PentatonicType`] representing the type of the pentatonic
-    /// used to construct the scale.
+    /// Returns a [`PentatonicType`] representing the type of the pentatonic used to construct the
+    /// scale.
     pub fn get_pentatonic_type(&self) -> PentatonicType {
         self.pentatonic
     }
 
-    /// Returns true if the scale is diatonic or heptatonic (has 7 notes), or
-    /// false if otherwise.
+    /// Returns true if the scale is diatonic or heptatonic (has 7 notes), or false if otherwise.
     pub fn is_diatonic(&self) -> bool {
         if self.intervals.len() == 8 {
             return true;
@@ -106,8 +103,7 @@ impl Scale {
         false
     }
 
-    /// Returns true if the scale is pentatonic (has 5 notes), or false if
-    /// otherwise.
+    /// Returns true if the scale is pentatonic (has 5 notes), or false if otherwise.
     pub fn is_pentatonic(&self) -> bool {
         if self.intervals.len() == 6 {
             return true;
@@ -115,27 +111,24 @@ impl Scale {
         false
     }
 
-    /// Returns an [`Option<Vec<Chord>>`] with a vector of the seven diatonic
-    /// chords of the current scale, given the pitch class of the tonic and
-    /// optionally the octave of each of these chords, or [`None`] if the
-    /// current scale is not diatonic.
+    /// Returns an [`Option<Vec<Chord>>`] with a vector of the seven diatonic chords of the current
+    /// scale, given the pitch class of the tonic and optionally the octave of each of these chords,
+    /// or [`None`] if the current scale is not diatonic.
     ///
     /// # Parameters
     ///
-    /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic
-    /// which will be offset by the numeral.
-    /// - `octave`: An [`Option<i8>`] which can be an integer representing the
-    /// octave of the first diatonic chord, or [`None`] if the chords should
-    /// not have any octave.
-    /// - `with_seventh`: A boolean which if set to true ensures that the
-    /// chords that are returned contain the corresponding seventh intervals
-    /// for the mode or scale, or if set to false ensures that the chords that
-    /// are returns are only triads.
+    /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic which will be offset
+    ///   by the numeral.
+    /// - `octave`: An [`Option<i8>`] which can be an integer representing the octave of the first
+    ///   diatonic chord, or [`None`] if the chords should not have any octave.
+    /// - `with_seventh`: A boolean which if set to true ensures that the chords that are returned
+    ///   contain the corresponding seventh intervals for the mode or scale, or if set to false
+    ///   ensures that the chords that are returns are only triads.
     ///
     /// # Examples
     ///
-    /// The following example shows how one can obtain the diatonic chords with
-    /// sevenths for the G locrian scale, starting at the fifth octave.
+    /// The following example shows how one can obtain the diatonic chords with sevenths for the G
+    /// locrian scale, starting at the fifth octave.
     ///
     /// ```rust
     /// use musictools::scale::Scale;
@@ -147,7 +140,7 @@ impl Scale {
     /// let mut index = 1;
     /// for chord in g_locrian_chords {
     ///     let chord_notes = chord.to_notes().unwrap();
-    ///     println!("Diatonic chord #{} of the G locrian scale contains the following notes:", index);
+    ///     println!("Diatonic chord #{} of the G locrian scale has the following notes:", index);
     ///     for note in chord_notes {
     ///         println!("{}{}", note.get_pitch_class().get_names()[0], note.get_octave());
     ///     }
@@ -201,12 +194,12 @@ impl Scale {
     ///
     /// # Parameters
     ///
-    /// - `tonic`: An [`Option<PitchClass>`] which will serve as the pitch
-    /// class of the tonic note if defined. If [`None`] is provided then the
-    /// chord will not assign the intervals it holds to any pitch classes.
-    /// - `octave`: An [`Option<i8>`] which will represent the octave the
-    /// chord is based on if defined. If [`None`] is provided then the chord
-    /// will not assign the intervals it holds to any octaves.
+    /// - `tonic`: An [`Option<PitchClass>`] which will serve as the pitch class of the tonic note
+    ///   if defined. If [`None`] is provided then the chord will not assign the intervals it holds
+    ///   to any pitch classes.
+    /// - `octave`: An [`Option<i8>`] which will represent the octave the chord is based on if
+    ///   defined. If [`None`] is provided then the chord will not assign the intervals it holds to
+    ///   any octaves.
     pub fn to_chord(&self, tonic: Option<PitchClass>, octave: Option<i8>) -> Chord {
         let mut chord = Chord::new(tonic, octave);
         for index in 1..self.intervals.len() {
@@ -215,28 +208,25 @@ impl Scale {
         chord
     }
 
-    /// Converts the scale to a vector of [`Note`], given a pitch class as the
-    /// tonic and the octave to place the notes of the chord over.
+    /// Converts the scale to a vector of [`Note`], given a pitch class as the tonic and the octave
+    /// to place the notes of the chord over.
     ///
     /// # Parameters
     ///
-    /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic
-    /// of the set of notes.
-    /// - `starting_octave`: An integer representing the octave to place the
-    /// tonic on.
+    /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic of the set of notes.
+    /// - `starting_octave`: An integer representing the octave to place the tonic on.
     pub fn to_notes(&self, tonic: PitchClass, starting_octave: i8) -> Vec<Note> {
         self.to_chord(Some(tonic), Some(starting_octave))
             .to_notes()
             .unwrap()
     }
 
-    /// Converts the scale to a vector of [`PitchClass`], given a pitch class
-    /// as the tonic.
+    /// Converts the scale to a vector of [`PitchClass`], given a pitch class as the tonic.
     ///
     /// # Parameters
     ///
-    /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic
-    /// of the other pitch classes.
+    /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic of the other pitch
+    ///   classes.
     pub fn to_pitch_classes(&self, tonic: PitchClass) -> Vec<PitchClass> {
         self.to_chord(Some(tonic), None).to_pitch_classes().unwrap()
     }
