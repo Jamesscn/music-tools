@@ -111,12 +111,11 @@ impl MIDI {
                     continue;
                 }
                 let note_index = note_option.unwrap();
-                let midi_event: MIDIEvent;
-                if event.is_active() {
-                    midi_event = MIDIEvent::NoteOn(0, note_index, 100);
+                let midi_event: MIDIEvent = if event.is_active() {
+                    MIDIEvent::NoteOn(0, note_index, 100)
                 } else {
-                    midi_event = MIDIEvent::NoteOff(0, note_index, 0);
-                }
+                    MIDIEvent::NoteOff(0, note_index, 0)
+                };
                 current_tick += event.get_delta_ticks() as usize;
                 midi_object.insert_event(track_index, current_tick, midi_event);
             }
@@ -143,5 +142,11 @@ impl MIDI {
     /// Returns the number of valid tracks in the MIDI object.
     pub fn get_num_tracks(&self) -> usize {
         self.tracks.len()
+    }
+}
+
+impl Default for MIDI {
+    fn default() -> Self {
+        Self::new()
     }
 }

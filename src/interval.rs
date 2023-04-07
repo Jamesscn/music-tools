@@ -48,14 +48,13 @@ impl Interval {
     /// - `first`: A [`Note`] representing the first note.
     /// - `second`: A [`Note`] representing the second note.
     pub fn get_interval(first: Note, second: Note) -> Interval {
-        let difference: u16;
         let first_value = first.get_value();
         let second_value = second.get_value();
-        if first_value <= second_value {
-            difference = (second_value - first_value) as u16;
+        let difference: u16 = if first_value <= second_value {
+            (second_value - first_value) as u16
         } else {
-            difference = (first_value - second_value) as u16;
-        }
+            (first_value - second_value) as u16
+        };
         if difference > 255 {
             panic!("Interval between notes is greater than a u8");
         }

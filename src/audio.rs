@@ -369,10 +369,9 @@ impl WavetableOscillator {
         let tick_ms = midi.get_tracks()[0].get_tick_duration();
         let mut tracks = midi.get_tracks();
         let mut pending_event_tuples: Vec<(Event, u64, usize)> = Vec::new();
-        for track_index in 0..num_tracks {
-            let first_event_option = tracks[track_index].get_next_event();
-            if first_event_option.is_some() {
-                let first_event = first_event_option.unwrap();
+        for (track_index, track) in tracks.iter_mut().enumerate() {
+            let first_event_option = track.get_next_event();
+            if let Some(first_event) = first_event_option {
                 let event_tuple = (first_event, first_event.get_delta_ticks(), track_index);
                 pending_event_tuples.push(event_tuple);
             }
@@ -412,17 +411,21 @@ impl WavetableOscillator {
             sink.play();
             std::thread::sleep(Duration::from_millis((tick_ms * (min_wait_ticks as f32)) as u64));
             sink.clear();
-            for event_index in 0..next_event_tuples.len() {
-                let next_tuple = next_event_tuples[event_index];
-                let updated_time_tuple = (
-                    next_tuple.0,
-                    next_tuple.1 - min_wait_ticks,
-                    next_tuple.2
+            for event in next_event_tuples.iter_mut() {
+                *event = (
+                    event.0,
+                    event.1 - min_wait_ticks,
+                    event.2
                 );
-                next_event_tuples[event_index] = updated_time_tuple;
             }
             pending_event_tuples = next_event_tuples;
         }
+    }
+}
+
+impl Default for WavetableOscillator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

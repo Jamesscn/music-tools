@@ -24,8 +24,7 @@ impl PitchClass {
     /// let b_flat = PitchClass::from_name("Bb");
     /// ```
     pub fn from_name(pitch_class_name: &str) -> Option<PitchClass> {
-        for pitch_class_index in 0..12 {
-            let pitch_class = PITCH_CLASSES[pitch_class_index];
+        for pitch_class in PITCH_CLASSES {
             for current_name in pitch_class.names {
                 if current_name == &pitch_class_name {
                     return Some(pitch_class);
