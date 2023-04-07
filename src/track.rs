@@ -1,6 +1,6 @@
-use crate::note::Note;
 use crate::chord::Chord;
-use crate::common::{Fraction, Beat};
+use crate::common::{Beat, Fraction};
+use crate::note::Note;
 
 /// This structure is used to store a track with a sequence of events with the
 /// same structure as a MIDI event, however holding [`Note`] structures
@@ -12,7 +12,7 @@ pub struct Track {
     ticks_per_quarter_note: u16,
     duration: u64,
     current_event: usize,
-    events: Vec<Event>
+    events: Vec<Event>,
 }
 
 impl Track {
@@ -25,28 +25,32 @@ impl Track {
             ticks_per_quarter_note: 360,
             duration: 0,
             current_event: 0,
-            events: Vec::new()
+            events: Vec::new(),
         }
     }
 
     /// Creates an empty track with a given tempo, time signature and MIDI
     /// ticks per quarter note.
-    pub fn new_with_ticks(tempo: f32, time_signature: Fraction, ticks_per_quarter_note: u16) -> Track {
+    pub fn new_with_ticks(
+        tempo: f32,
+        time_signature: Fraction,
+        ticks_per_quarter_note: u16,
+    ) -> Track {
         Track {
             tempo,
             time_signature,
             ticks_per_quarter_note,
             duration: 0,
             current_event: 0,
-            events: Vec::new()
+            events: Vec::new(),
         }
     }
 
     /// Adds a new [`Event`] to the current track, which can be used to turn
     /// a [`Note`] on or off after a certain amount of MIDI ticks.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `note`: The [`Note`] to be activated or deactivated.
     /// - `active`: A boolean representing whether to activate or deactivate
     /// the note.
@@ -55,16 +59,16 @@ impl Track {
         self.events.push(Event {
             note,
             active,
-            delta_ticks
+            delta_ticks,
         });
         self.duration += delta_ticks;
     }
 
     /// Adds a [`Note`] to the end of the current track which will be played
     /// for the given duration.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `note`: The [`Note`] to be added.
     /// - `duration`: A [`Beat`] representing the duration to play the note
     /// for.
@@ -75,9 +79,9 @@ impl Track {
     }
 
     /// Adds a rest to the end of the current track.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `duration`: The duration the rest will take.
     pub fn add_rest(&mut self, duration: Beat) {
         let delta_ticks = self.beat_to_ticks(duration);
@@ -87,9 +91,9 @@ impl Track {
     /// Adds a [`Chord`] to the end of the current track which will be played
     /// for the given duration. The function will return false if the chord
     /// could not be converted to a set of [`Note`] objects.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `chord`: The [`Chord`] to be added.
     /// - `duration`: A [`Beat`] representing the duration to play the chord
     /// for.
@@ -97,7 +101,7 @@ impl Track {
         let delta_ticks = self.beat_to_ticks(duration);
         let notes = match chord.to_notes() {
             Some(notes_vec) => notes_vec,
-            None => return false
+            None => return false,
         };
         for note in notes.clone() {
             self.add_event(note, true, 0);
@@ -116,18 +120,18 @@ impl Track {
 
     /// Sets the tempo of the current track to a given value in beats per
     /// minute.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `tempo`: The new tempo of the track.
     pub fn set_tempo(&mut self, tempo: f32) {
         self.tempo = tempo;
     }
 
     /// Sets the time signature of the current track to a given value.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `time_signature`: A [`Fraction`] representing the new time signature
     /// of the track.
     pub fn set_time_signature(&mut self, time_signature: Fraction) {
@@ -189,13 +193,13 @@ impl Track {
             if delta_ticks > 0 {
                 let note: Note = match last_note_option {
                     Some(last_note) => last_note,
-                    None => rest_note
+                    None => rest_note,
                 };
                 flattened.push((note, delta_ticks));
             } else if let Some(last_note) = last_note_option {
                 if let Some(note_candidate) = last_note_candidate {
                     if note_candidate.get_frequency() < last_note.get_frequency() {
-                        continue
+                        continue;
                     }
                 }
             }
@@ -222,11 +226,16 @@ impl Track {
             values.push(frequency);
             values.push(ticks);
         }
-        values.into_iter().map(|int_val| int_val.to_string()).collect::<Vec<String>>().join(" ")
+        values
+            .into_iter()
+            .map(|int_val| int_val.to_string())
+            .collect::<Vec<String>>()
+            .join(" ")
     }
 
     fn beat_to_ticks(&self, beat: Beat) -> u64 {
-        (4 * self.ticks_per_quarter_note as u64 * beat.get_numerator() as u64) / beat.get_denominator() as u64
+        (4 * self.ticks_per_quarter_note as u64 * beat.get_numerator() as u64)
+            / beat.get_denominator() as u64
     }
 }
 
@@ -235,7 +244,7 @@ impl Track {
 pub struct Event {
     note: Note,
     active: bool,
-    delta_ticks: u64
+    delta_ticks: u64,
 }
 
 impl Event {

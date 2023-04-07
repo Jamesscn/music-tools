@@ -1,10 +1,10 @@
+use musictools::chord::Chord;
+use musictools::common::{Beat, Fraction, PentatonicType, ScaleType, TriadQuality};
 use musictools::midi::MIDI;
 use musictools::note::Note;
-use musictools::track::Track;
-use musictools::chord::Chord;
-use musictools::scale::Scale;
 use musictools::pitchclass::PitchClasses;
-use musictools::common::{TriadQuality, ScaleType, PentatonicType, Fraction, Beat};
+use musictools::scale::Scale;
+use musictools::track::Track;
 
 fn main() {
     //The tempo and time signature of the song is set
@@ -19,8 +19,9 @@ fn main() {
     let c_minor_scale = minor_scale.to_notes(PitchClasses::C, 5);
     let c_harmonic_double_scale = [
         &harmonic_minor_scale.to_notes(PitchClasses::C, 4)[0..7],
-        &harmonic_minor_scale.to_notes(PitchClasses::C, 5)
-    ].concat();
+        &harmonic_minor_scale.to_notes(PitchClasses::C, 5),
+    ]
+    .concat();
     let c_minor_functions = [5, 3, 2, 1, 1, 2, 3, 1, 3, 5, 6, 5];
     let c_harmonic_minor_functions = [11, 11, 9, 8, 7, 5, 7, 9, 7, 9, 11, 12, 13];
     let mut melody_notes: Vec<Note> = Vec::new();
@@ -35,13 +36,33 @@ fn main() {
 
     //The beats for each of the notes are predefined
     let melody_beats = [
-        Beat::HALF_DOTTED, Beat::HALF, Beat::QUARTER, Beat::WHOLE,
-        Beat::QUARTER, Beat::QUARTER, Beat::QUARTER, Beat::QUARTER,
-        Beat::QUARTER, Beat::HALF, Beat::QUARTER, Beat::HALF_DOTTED,
-        Beat::HALF_DOTTED, Beat::HALF_DOTTED, Beat::HALF, Beat::QUARTER,
-        Beat::WHOLE, Beat::QUARTER, Beat::QUARTER, Beat::QUARTER,
-        Beat::QUARTER, Beat::QUARTER, Beat::QUARTER, Beat::QUARTER,
-        Beat::QUARTER, Beat::HALF_DOTTED, Beat::HALF_DOTTED
+        Beat::HALF_DOTTED,
+        Beat::HALF,
+        Beat::QUARTER,
+        Beat::WHOLE,
+        Beat::QUARTER,
+        Beat::QUARTER,
+        Beat::QUARTER,
+        Beat::QUARTER,
+        Beat::QUARTER,
+        Beat::HALF,
+        Beat::QUARTER,
+        Beat::HALF_DOTTED,
+        Beat::HALF_DOTTED,
+        Beat::HALF_DOTTED,
+        Beat::HALF,
+        Beat::QUARTER,
+        Beat::WHOLE,
+        Beat::QUARTER,
+        Beat::QUARTER,
+        Beat::QUARTER,
+        Beat::QUARTER,
+        Beat::QUARTER,
+        Beat::QUARTER,
+        Beat::QUARTER,
+        Beat::QUARTER,
+        Beat::HALF_DOTTED,
+        Beat::HALF_DOTTED,
     ];
 
     //The chord progression is added on track 1
@@ -57,9 +78,15 @@ fn main() {
                 beat_track.add_note(Note::from(PitchClasses::G, 2), Beat::QUARTER);
             }
         } else if !(30..54).contains(&index) {
-            beat_track.add_chord(Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::C), Some(3)), Beat::QUARTER);
+            beat_track.add_chord(
+                Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::C), Some(3)),
+                Beat::QUARTER,
+            );
         } else {
-            beat_track.add_chord(Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::F), Some(3)), Beat::QUARTER);
+            beat_track.add_chord(
+                Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::F), Some(3)),
+                Beat::QUARTER,
+            );
         }
     }
 

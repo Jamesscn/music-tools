@@ -5,40 +5,40 @@
 #[derive(Copy, Clone, Debug)]
 pub struct Fraction {
     numerator: u8,
-    denominator: u8
+    denominator: u8,
 }
 
 impl Fraction {
     /// Creates a new fraction with a given numerator and denominator.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `numerator`: A positive integer representing the numerator of the
     /// fraction.
     /// - `denominator`: A positive integer representing the denominator of
     /// the fraction.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```rust
     /// use musictools::common::Fraction;
-    /// 
+    ///
     /// let one_half = Fraction::new(1, 2);
     /// ```
     pub const fn new(numerator: u8, denominator: u8) -> Fraction {
         Fraction {
             numerator,
-            denominator
+            denominator,
         }
     }
 
     /// Returns the numerator or top half of the fraction.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```rust
     /// use musictools::common::Fraction;
-    /// 
+    ///
     /// let five_sevenths = Fraction::new(5, 7);
     /// let five = five_sevenths.get_numerator();
     /// println!("{five}");
@@ -48,12 +48,12 @@ impl Fraction {
     }
 
     /// Returns the denominator or bottom half of the fraction.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```rust
     /// use musictools::common::Fraction;
-    /// 
+    ///
     /// let five_sevenths = Fraction::new(5, 7);
     /// let seven = five_sevenths.get_denominator();
     /// println!("{seven}");
@@ -64,12 +64,12 @@ impl Fraction {
 
     /// Returns the value of the fraction as a floating point number. This can
     /// panic if the denominator is zero.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```rust
     /// use musictools::common::Fraction;
-    /// 
+    ///
     /// let two_and_a_half = Fraction::new(5, 2);
     /// let float_value = two_and_a_half.get_as_float();
     /// println!("{float_value}");
@@ -79,12 +79,12 @@ impl Fraction {
     }
 
     /// Returns a new fraction with a simplified numerator and denominator.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```rust
     /// use musictools::common::Fraction;
-    /// 
+    ///
     /// let two_quarters = Fraction::new(2, 4);
     /// let one_half = two_quarters.get_simplified();
     /// ```
@@ -92,7 +92,7 @@ impl Fraction {
         let common_factor = gcd(self.numerator, self.denominator);
         Fraction {
             numerator: self.numerator / common_factor,
-            denominator: self.denominator / common_factor
+            denominator: self.denominator / common_factor,
         }
     }
 }
@@ -101,7 +101,8 @@ impl PartialEq for Fraction {
     fn eq(&self, other: &Self) -> bool {
         let left_simplified = self.get_simplified();
         let right_simplified = other.get_simplified();
-        left_simplified.numerator == right_simplified.numerator && left_simplified.denominator == right_simplified.denominator
+        left_simplified.numerator == right_simplified.numerator
+            && left_simplified.denominator == right_simplified.denominator
     }
 }
 
@@ -160,8 +161,8 @@ pub enum ScaleType {
     /// as the natural minor scale.
     Aeolian,
     /// The scale of the Locrian mode, which is the seventh mode and is equal
-    /// to the natural minor scale with a minor second instead of a major 
-    /// second and a diminished fifth instead of a perfect fifth. 
+    /// to the natural minor scale with a minor second instead of a major
+    /// second and a diminished fifth instead of a perfect fifth.
     Locrian,
     /// The major scale, which is the same as the Ionian mode.
     Major,
@@ -199,7 +200,7 @@ pub enum ScaleType {
     Whole,
     /// The chromatic scale, which consists of all twelve pitch classes
     /// separated by a semitone.
-    Chromatic
+    Chromatic,
 }
 
 /// This enum contains representations for the different types of triads that
@@ -223,7 +224,7 @@ pub enum TriadQuality {
     Augmented,
     /// A diminished triad, which consists of the tonic, a minor third and a
     /// diminished fifth.
-    Diminished
+    Diminished,
 }
 
 /// This enum is used to represent the type of a pentatonic.
@@ -234,23 +235,23 @@ pub enum PentatonicType {
     /// Corresponds to a major pentatonic.
     Major,
     /// Corresponds to a minor pentatonic.
-    Minor
+    Minor,
 }
 
 /// Given a letter from A to G and an offset, this function returns the
 /// letter at a given offset from the provided letter, or [`None`] if the
 /// letter provided was invalid.
-/// 
+///
 /// # Parameters
-/// 
+///
 /// - `letter`: A [`char`] with the letter to offset.
 /// - `offset`: A positive or negative integer to offset `letter` by.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use musictools::common::get_letter_at_offset;
-/// 
+///
 /// let positive_offset = get_letter_at_offset('F', 2).unwrap();
 /// let negative_offset = get_letter_at_offset('F', -2).unwrap();
 /// println!("F + 2 = {positive_offset}, F - 2 = {negative_offset}");
@@ -258,9 +259,14 @@ pub enum PentatonicType {
 pub fn get_letter_at_offset(letter: char, offset: i8) -> Option<char> {
     const LETTERS: [char; 7] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
     let letter_option = LETTERS.iter().position(|&x| x == letter);
-    letter_option.map(|letter_index| LETTERS[(letter_index as i8 + (offset % 7)).rem_euclid(7) as usize])
+    letter_option
+        .map(|letter_index| LETTERS[(letter_index as i8 + (offset % 7)).rem_euclid(7) as usize])
 }
 
 fn gcd(a: u8, b: u8) -> u8 {
-    if b == 0 { a } else { gcd(b, a % b) }
+    if b == 0 {
+        a
+    } else {
+        gcd(b, a % b)
+    }
 }

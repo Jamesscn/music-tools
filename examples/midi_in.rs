@@ -1,6 +1,6 @@
-use std::io::{self, Write};
+use musictools::audio::{Waveforms, WavetableOscillator};
 use musictools::midi::MIDI;
-use musictools::audio::{WavetableOscillator, Waveforms};
+use std::io::{self, Write};
 
 fn main() {
     //The midi file is opened and read
@@ -8,7 +8,9 @@ fn main() {
     print!("> ");
     io::stdout().flush().expect("Could not flush output!");
     let mut file_path: String = String::new();
-    io::stdin().read_line(&mut file_path).expect("Could not read input!");
+    io::stdin()
+        .read_line(&mut file_path)
+        .expect("Could not read input!");
     let midi_object = MIDI::import_from_file(file_path.trim());
 
     //The oscillator that will play the midi file is created
@@ -16,7 +18,7 @@ fn main() {
 
     //All notes of the midi file will be played as square waves
     let square_wave_channel = oscillator.add_channel(Waveforms::SQUARE_WAVE, 1.0);
-    
+
     if midi_object.is_some() {
         let midi = midi_object.unwrap();
         let num_tracks = midi.get_num_tracks();
