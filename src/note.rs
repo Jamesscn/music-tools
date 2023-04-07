@@ -31,11 +31,11 @@ impl Note {
     /// let c = Note::from(PitchClasses::C, 3);
     /// ```
     pub fn from(pitch_class: PitchClass, octave: i8) -> Note {
-        return Note {
+        Note {
             pitch_class,
             octave,
             base_frequency: 440.0
-        };
+        }
     }
 
     /// Constructs a [`Note`] from a string containing the pitch class and the
@@ -59,22 +59,19 @@ impl Note {
     /// ```
     pub fn from_string(string: &str) -> Option<Note> {
         let regex = Regex::new(r"^([A-G])(♮|x|b{1,2}|♭{1,2}|\#{1,2}|♯{1,2})?(\-?\d+)$").unwrap();
-        if !regex.is_match(&string) {
+        if !regex.is_match(string) {
             return None;
         }
-        let regex_capture_groups = regex.captures(&string).unwrap();
+        let regex_capture_groups = regex.captures(string).unwrap();
         let pitch_class_letter = regex_capture_groups.get(1).map_or("", |x| x.as_str());
         let accidental = regex_capture_groups.get(2).map_or("", |x| x.as_str());
         let octave: i8 = regex_capture_groups.get(3).map_or(0, |x| x.as_str().parse::<i8>().unwrap());
         let pitch_class_option = PitchClass::from_name(format!("{pitch_class_letter}{accidental}").as_str());
-        return match pitch_class_option {
-            Some(pitch_class) => Some(Note {
+        pitch_class_option.map(|pitch_class| Note {
                 pitch_class,
                 octave,
                 base_frequency: 440.0
-            }),
-            None => None
-        };
+            })
     }
 
     /// Constructs a [`Note`] from a midi index between 0 and 127. If the value
@@ -90,11 +87,11 @@ impl Note {
         }
         let pitch_class = PitchClass::from_value(index % 12).unwrap();
         let octave = (index / 12) as i8 - 1;
-        return Some(Note {
+        Some(Note {
             pitch_class,
             octave,
             base_frequency: 440.0
-        });
+        })
     }
 
     /// Changes the reference frequency of A4 to a specific value for this
@@ -138,24 +135,24 @@ impl Note {
     /// println!("{}", note.get_base_frequency());
     /// ```
     pub fn get_base_frequency(&self) -> f32 {
-        return self.base_frequency;
+        self.base_frequency
     }
 
     /// Retuns the frequency in hertz of the current note. This frequency
     /// depends on the reference frequency for the note A4, which can be
     /// modified by the `set_base_frequency` function.
     pub fn get_frequency(&self) -> f32 {
-        return self.base_frequency as f32 * (2.0 as f32).powf(self.octave as f32 + (self.pitch_class.get_value() as i8 - 9) as f32 / 12 as f32 - 4.0);
+        self.base_frequency as f32 * 2.0_f32.powf(self.octave as f32 + (self.pitch_class.get_value() as i8 - 9) as f32 / 12_f32 - 4.0)
     }
 
     /// Returns the octave of the current note.
     pub fn get_octave(&self) -> i8 {
-        return self.octave;
+        self.octave
     }
 
     /// Returns a [`PitchClass`] representing the pitch class of the note.
     pub fn get_pitch_class(&self) -> PitchClass {
-        return self.pitch_class;
+        self.pitch_class
     }
 
     /// Returns a [`Vec<String>`] with a set of names for the current note.
@@ -167,7 +164,7 @@ impl Note {
             name.push_str(&self.octave.to_string());
             names.push(name);
         }
-        return names;
+        names
     }
 
     /// Returns a numerical value representing the position of the note with
@@ -189,7 +186,7 @@ impl Note {
     /// println!("{}", middle_c.get_value());
     /// ```
     pub fn get_value(&self) -> i16 {
-        return self.octave as i16 * 12 + self.pitch_class.get_value() as i16;
+        self.octave as i16 * 12 + self.pitch_class.get_value() as i16
     }
 
     /// Returns an [`Option<u8>`] with an index representing the numerical
@@ -207,10 +204,10 @@ impl Note {
     /// ```
     pub fn get_keyboard_index(&self) -> Option<u8> {
         let keyboard_index = self.get_value() - 8;
-        if keyboard_index < 1 || keyboard_index > 88 {
+        if !(1..=88).contains(&keyboard_index) {
             return None;
         }
-        return Some(keyboard_index as u8);
+        Some(keyboard_index as u8)
     }
 
     /// Returns an [`Option<u8>`] with the value of the current note according
@@ -228,15 +225,15 @@ impl Note {
     /// ```
     pub fn get_midi_index(&self) -> Option<u8> {
         let midi_index = self.get_value() + 12;
-        if midi_index < 0 || midi_index > 127 {
+        if !(0..=127).contains(&midi_index) {
             return None;
         }
-        return Some(midi_index as u8);
+        Some(midi_index as u8)
     }
 }
 
 impl PartialEq for Note {
     fn eq(&self, other: &Self) -> bool {
-        return self.get_keyboard_index() == other.get_keyboard_index() && self.base_frequency == other.base_frequency;
+        self.get_keyboard_index() == other.get_keyboard_index() && self.base_frequency == other.base_frequency
     }
 }

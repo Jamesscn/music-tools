@@ -48,7 +48,7 @@ fn main() {
     for index in 0..60 {
         if index % 3 == 0 {
             if index % 6 == 0 {
-                if index < 30 || index >= 54 {
+                if !(30..54).contains(&index) {
                     beat_track.add_note(Note::from(PitchClasses::C, 3), Beat::QUARTER);
                 } else {
                     beat_track.add_note(Note::from(PitchClasses::D, 3), Beat::QUARTER);
@@ -56,12 +56,10 @@ fn main() {
             } else {
                 beat_track.add_note(Note::from(PitchClasses::G, 2), Beat::QUARTER);
             }
+        } else if !(30..54).contains(&index) {
+            beat_track.add_chord(Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::C), Some(3)), Beat::QUARTER);
         } else {
-            if index < 30 || index >= 54 {
-                beat_track.add_chord(Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::C), Some(3)), Beat::QUARTER);
-            } else {
-                beat_track.add_chord(Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::F), Some(3)), Beat::QUARTER);
-            }
+            beat_track.add_chord(Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::F), Some(3)), Beat::QUARTER);
         }
     }
 

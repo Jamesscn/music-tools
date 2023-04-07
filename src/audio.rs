@@ -22,7 +22,7 @@ impl Channel {
             wave_function_time_scale: time_scale,
         };
         new_channel.generate_wave_table();
-        return new_channel;
+        new_channel
     }
 
     pub fn generate_wave_table(&mut self) {
@@ -89,11 +89,11 @@ impl Channel {
     }
 
     pub fn get_wave_table_value(&self, index: usize) -> f32 {
-        return self.wave_table[index];
+        self.wave_table[index]
     }
 
     pub fn get_wave_table_size(&self) -> usize {
-        return self.wave_table.len();
+        self.wave_table.len()
     }
 }
 
@@ -108,7 +108,7 @@ struct Voice {
 
 impl Voice {
     pub fn new(track_index: usize, channel_index: usize, frequency: f32, sample_rate: u32) -> Voice {
-        return Voice {
+        Voice {
             track_index,
             channel_index,
             frequency,
@@ -128,19 +128,19 @@ impl Voice {
     }
 
     pub fn get_channel_index(&self) -> usize {
-        return self.channel_index;
+        self.channel_index
     }
 
     pub fn get_track_index(&self) -> usize {
-        return self.track_index;
+        self.track_index
     }
     
     pub fn get_table_index(&self) -> f32 {
-        return self.table_index;
+        self.table_index
     }
 
     pub fn get_frequency(&self) -> f32 {
-        return self.frequency;
+        self.frequency
     }
 }
 
@@ -189,7 +189,7 @@ impl WavetableOscillator {
     /// Creates and returns a new wavetable oscillator which can be used as a
     /// [`rodio::Source`].
     pub fn new() -> WavetableOscillator {
-        return WavetableOscillator {
+        WavetableOscillator {
             channels: Vec::new(),
             voices: Vec::new(),
             sample_rate: 44100
@@ -223,7 +223,7 @@ impl WavetableOscillator {
     /// to `wave_function`.
     pub fn add_channel(&mut self, wave_function: fn(f32) -> f32, time_scale: f32) -> usize {
         self.channels.push(Channel::new(128, wave_function, time_scale));
-        return self.channels.len() - 1;
+        self.channels.len() - 1
     }
 
     /// Changes the wave function used by an instrument channel.
@@ -262,7 +262,7 @@ impl WavetableOscillator {
         }
         let note_voice = Voice::new(track_index, channel_index, note.get_frequency(), self.sample_rate);
         self.voices.push(note_voice);
-        return true;
+        true
     }
 
     /// Stops playing a note if it was already playing. If the note was not
@@ -367,7 +367,7 @@ impl WavetableOscillator {
         }
         let sink = sink_result.unwrap();
         let tick_ms = midi.get_tracks()[0].get_tick_duration();
-        let mut tracks = midi.get_tracks().clone();
+        let mut tracks = midi.get_tracks();
         let mut pending_event_tuples: Vec<(Event, u64, usize)> = Vec::new();
         for track_index in 0..num_tracks {
             let first_event_option = tracks[track_index].get_next_event();
@@ -404,7 +404,7 @@ impl WavetableOscillator {
                 min_wait_ticks = min(min_wait_ticks, wait_time);
                 next_event_tuples.insert(0, (current_event, wait_time, track_index));
             }
-            if next_event_tuples.len() == 0 {
+            if next_event_tuples.is_empty() {
                 break;
             }
             let tmp_oscillator = self.clone();
@@ -444,48 +444,48 @@ impl Iterator for WavetableOscillator {
             sample += lerp_value * 0.2;
             voice.update_table_index(table_size);
         }
-        return Some(sample);
+        Some(sample)
     }
 }
 
 impl Source for WavetableOscillator {
     fn channels(&self) -> u16 {
-        return 1;
+        1
     }
 
     fn sample_rate(&self) -> u32 {
-        return self.sample_rate;
+        self.sample_rate
     }
 
     fn current_frame_len(&self) -> Option<usize> {
-        return None;
+        None
     }
 
     fn total_duration(&self) -> Option<Duration> {
-        return None;
+        None
     }
 }
 
 fn sine_wave(time: f32) -> f32 {
-    return f32::sin(2.0 * std::f32::consts::PI * time);
+    f32::sin(2.0 * std::f32::consts::PI * time)
 }
 
 fn square_wave(time: f32) -> f32 {
     if time < 0.5 {
         return -1.0;
     }
-    return 1.0;
+    1.0
 }
 
 fn triangle_wave(time: f32) -> f32 {
     if time < 0.5 {
         return -4.0 * time + 1.0;
     }
-    return 4.0 * time - 3.0;
+    4.0 * time - 3.0
 }
 
 fn sawtooth_wave(time: f32) -> f32 {
-    return 2.0 * time - 1.0;
+    2.0 * time - 1.0
 }
 
 /// A structure containing common waveforms.

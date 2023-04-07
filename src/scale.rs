@@ -68,28 +68,28 @@ impl Scale {
             intervals.remove(5);
             intervals.remove(1);
         }
-        return Some(Scale {
+        Some(Scale {
             intervals,
             scale,
             pentatonic
-        });
+        })
     }
 
     /// Returns a vector of [`Interval`] representing the intervals of each
     /// of the notes in the scale with respect to the tonic.
     pub fn get_intervals(&self) -> Vec<Interval> {
-        return self.intervals.clone();
+        self.intervals.clone()
     }
 
     /// Returns a [`ScaleType`] representing the type of the current scale.
     pub fn get_scale_type(&self) -> ScaleType {
-        return self.scale;
+        self.scale
     }
 
     /// Returns a [`PentatonicType`] representing the type of the pentatonic
     /// used to construct the scale.
     pub fn get_pentatonic_type(&self) -> PentatonicType {
-        return self.pentatonic;
+        self.pentatonic
     }
 
     /// Returns true if the scale is diatonic or heptatonic (has 7 notes), or
@@ -98,7 +98,7 @@ impl Scale {
         if self.intervals.len() == 8 {
             return true;
         }
-        return false;
+        false
     }
 
     /// Returns true if the scale is pentatonic (has 5 notes), or false if
@@ -107,7 +107,7 @@ impl Scale {
         if self.intervals.len() == 6 {
             return true;
         }
-        return false;
+        false
     }
 
     /// Returns an [`Option<Vec<Chord>>`] with a vector of the seven diatonic
@@ -176,7 +176,7 @@ impl Scale {
             };
         }
         let chords = chord_numerals.iter().map(|x| Chord::from_numeral(x, tonic, octave).unwrap()).collect();
-        return Some(chords);
+        Some(chords)
     }
 
     /// Converts the scale into a [`Chord`].
@@ -194,7 +194,7 @@ impl Scale {
         for index in 1..self.intervals.len() {
             chord.add_interval(self.intervals[index]);
         }
-        return chord;
+        chord
     }
 
     /// Converts the scale to a vector of [`Note`], given a pitch class as the
@@ -207,7 +207,7 @@ impl Scale {
     /// - `starting_octave`: An integer representing the octave to place the
     /// tonic on.
     pub fn to_notes(&self, tonic: PitchClass, starting_octave: i8) -> Vec<Note> {
-        return self.to_chord(Some(tonic), Some(starting_octave)).to_notes().unwrap();
+        self.to_chord(Some(tonic), Some(starting_octave)).to_notes().unwrap()
     }
 
     /// Converts the scale to a vector of [`PitchClass`], given a pitch class
@@ -218,12 +218,12 @@ impl Scale {
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic
     /// of the other pitch classes.
     pub fn to_pitch_classes(&self, tonic: PitchClass) -> Vec<PitchClass> {
-        return self.to_chord(Some(tonic), None).to_pitch_classes().unwrap();
+        self.to_chord(Some(tonic), None).to_pitch_classes().unwrap()
     }
 }
 
 impl PartialEq for Scale {
     fn eq(&self, other: &Self) -> bool {
-        return self.scale == other.scale && self.pentatonic == other.pentatonic;
+        self.scale == other.scale && self.pentatonic == other.pentatonic
     }
 }

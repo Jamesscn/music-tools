@@ -19,27 +19,27 @@ impl Track {
     /// Creates an empty track with a given tempo and time signature, with a
     /// default value of 360 MIDI ticks per quarter note.
     pub fn new(tempo: f32, time_signature: Fraction) -> Track {
-        return Track {
+        Track {
             tempo,
             time_signature,
             ticks_per_quarter_note: 360,
             duration: 0,
             current_event: 0,
             events: Vec::new()
-        };
+        }
     }
 
     /// Creates an empty track with a given tempo, time signature and MIDI
     /// ticks per quarter note.
     pub fn new_with_ticks(tempo: f32, time_signature: Fraction, ticks_per_quarter_note: u16) -> Track {
-        return Track {
+        Track {
             tempo,
             time_signature,
             ticks_per_quarter_note,
             duration: 0,
             current_event: 0,
             events: Vec::new()
-        };
+        }
     }
 
     /// Adds a new [`Event`] to the current track, which can be used to turn
@@ -111,7 +111,7 @@ impl Track {
                 self.add_event(note, false, 0);
             }
         }
-        return true;
+        true
     }
 
     /// Sets the tempo of the current track to a given value in beats per
@@ -136,17 +136,17 @@ impl Track {
 
     /// Returns the tempo of the track in beats per minute.
     pub fn get_tempo(&self) -> f32 {
-        return self.tempo;
+        self.tempo
     }
 
     /// Returns a [`Fraction`] representing the time signature of the track.
     pub fn get_time_signature(&self) -> Fraction {
-        return self.time_signature;
+        self.time_signature
     }
 
     /// Returns the total duration of the track in MIDI ticks.
     pub fn get_duration(&self) -> u64 {
-        return self.duration;
+        self.duration
     }
 
     /// Returns an [`Option<Event>`] which may contain the next MIDI event
@@ -157,21 +157,21 @@ impl Track {
             self.current_event += 1;
             return Some(event);
         }
-        return None;
+        None
     }
 
     /// Returns the amount of MIDI ticks in a quarter note.
     pub fn get_ticks_per_quarter_note(&self) -> u16 {
-        return self.ticks_per_quarter_note;
+        self.ticks_per_quarter_note
     }
 
     /// Returns the duration of a single tick in milliseconds.
     pub fn get_tick_duration(&mut self) -> f32 {
-        return 60000.0 / (self.tempo * self.ticks_per_quarter_note as f32);
+        60000.0 / (self.tempo * self.ticks_per_quarter_note as f32)
     }
 
     fn beat_to_ticks(&self, beat: Beat) -> u64 {
-        return (4 * self.ticks_per_quarter_note as u64 * beat.get_numerator() as u64) / beat.get_denominator() as u64;
+        (4 * self.ticks_per_quarter_note as u64 * beat.get_numerator() as u64) / beat.get_denominator() as u64
     }
 }
 
@@ -186,18 +186,18 @@ pub struct Event {
 impl Event {
     /// Returns the [`Note`] associated with the current event.
     pub fn get_note(&self) -> Note {
-        return self.note;
+        self.note
     }
 
     /// Returns true if the event activates the current note, or false if it
     /// deactivates it.
     pub fn is_active(&self) -> bool {
-        return self.active;
+        self.active
     }
 
     /// Returns the amount of MIDI ticks between the last event and the current
     /// event.
     pub fn get_delta_ticks(&self) -> u64 {
-        return self.delta_ticks;
+        self.delta_ticks
     }
 }

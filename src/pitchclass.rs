@@ -32,7 +32,7 @@ impl PitchClass {
                 }
             }
         }
-        return None;
+        None
     }
 
     /// Returns an [`Option`] with a [`PitchClass`] given its value from 0 to
@@ -60,7 +60,7 @@ impl PitchClass {
         if index < 12 {
             return Some(PITCH_CLASSES[index]);
         }
-        return None;
+        None
     }
 
     /// Returns the [`PitchClass`] that is a certain offset away from the
@@ -84,24 +84,24 @@ impl PitchClass {
     /// let f = PitchClasses::A.get_offset(-2);
     /// ```
     pub fn get_offset(&self, offset: i8) -> PitchClass {
-        return PITCH_CLASSES[(self.value as i8 + (offset % 12)).rem_euclid(12) as usize];
+        PITCH_CLASSES[(self.value as i8 + (offset % 12)).rem_euclid(12) as usize]
     }
 
     /// Obtains a numeric value from 0 to 11 representing the pitch class,
     /// where 0 corresponds to the pitch class for C, 1 to C sharp and so on.
     pub fn get_value(&self) -> u8 {
-        return self.value;
+        self.value
     }
 
     /// Returns a vector of equivalent names for this pitch class.
     pub fn get_names(&self) -> &'static [&'static str] {
-        return self.names;
+        self.names
     }
 }
 
 impl PartialEq for PitchClass {
     fn eq(&self, other: &Self) -> bool {
-        return self.value == other.value;
+        self.value == other.value
     }
 }
 

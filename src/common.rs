@@ -26,10 +26,10 @@ impl Fraction {
     /// let one_half = Fraction::new(1, 2);
     /// ```
     pub const fn new(numerator: u8, denominator: u8) -> Fraction {
-        return Fraction {
+        Fraction {
             numerator,
             denominator
-        };
+        }
     }
 
     /// Returns the numerator or top half of the fraction.
@@ -44,7 +44,7 @@ impl Fraction {
     /// println!("{five}");
     /// ```
     pub fn get_numerator(&self) -> u8 {
-        return self.numerator;
+        self.numerator
     }
 
     /// Returns the denominator or bottom half of the fraction.
@@ -59,7 +59,7 @@ impl Fraction {
     /// println!("{seven}");
     /// ```
     pub fn get_denominator(&self) -> u8 {
-        return self.denominator;
+        self.denominator
     }
 
     /// Returns the value of the fraction as a floating point number. This can
@@ -75,7 +75,7 @@ impl Fraction {
     /// println!("{float_value}");
     /// ```
     pub fn get_as_float(&self) -> f32 {
-        return self.numerator as f32 / self.denominator as f32;
+        self.numerator as f32 / self.denominator as f32
     }
 
     /// Returns a new fraction with a simplified numerator and denominator.
@@ -90,10 +90,10 @@ impl Fraction {
     /// ```
     pub fn get_simplified(&self) -> Fraction {
         let common_factor = gcd(self.numerator, self.denominator);
-        return Fraction {
+        Fraction {
             numerator: self.numerator / common_factor,
             denominator: self.denominator / common_factor
-        };
+        }
     }
 }
 
@@ -101,7 +101,7 @@ impl PartialEq for Fraction {
     fn eq(&self, other: &Self) -> bool {
         let left_simplified = self.get_simplified();
         let right_simplified = other.get_simplified();
-        return left_simplified.numerator == right_simplified.numerator && left_simplified.denominator == right_simplified.denominator;
+        left_simplified.numerator == right_simplified.numerator && left_simplified.denominator == right_simplified.denominator
     }
 }
 
@@ -258,12 +258,9 @@ pub enum PentatonicType {
 pub fn get_letter_at_offset(letter: char, offset: i8) -> Option<char> {
     const LETTERS: [char; 7] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
     let letter_option = LETTERS.iter().position(|&x| x == letter);
-    return match letter_option {
-        Some(letter_index) => Some(LETTERS[(letter_index as i8 + (offset % 7)).rem_euclid(7) as usize]),
-        None => None
-    };
+    letter_option.map(|letter_index| LETTERS[(letter_index as i8 + (offset % 7)).rem_euclid(7) as usize])
 }
 
 fn gcd(a: u8, b: u8) -> u8 {
-    return if b == 0 { a } else { gcd(b, a % b) };
+    if b == 0 { a } else { gcd(b, a % b) }
 }

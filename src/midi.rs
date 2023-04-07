@@ -14,7 +14,7 @@ pub struct MIDI {
 impl MIDI {
     /// Creates an empty MIDI class with no tracks
     pub fn new() -> MIDI {
-        return MIDI {
+        MIDI {
             tracks: Vec::new()
         }
     }
@@ -76,9 +76,9 @@ impl MIDI {
             track.set_tempo(tempo);
             timed_tracks.push(track);
         }
-        return Some(MIDI {
+        Some(MIDI {
             tracks: timed_tracks
-        });
+        })
     }
 
     /// Exports a MIDI object to a MIDI file. The function returns true if the
@@ -90,7 +90,7 @@ impl MIDI {
     /// - `file_path`: A string of the path to save the MIDI file to.
     pub fn export_to_file(&self, file_path: &str) -> bool {
         let mut midi_object = Apres_MIDI::new();
-        if self.tracks.len() == 0 {
+        if self.tracks.is_empty() {
             return false;
         }
         let time_signature: Fraction = self.tracks[0].get_time_signature();
@@ -123,7 +123,7 @@ impl MIDI {
             track_index += 1;
         }
         midi_object.save(file_path);
-        return true;
+        true
     }
 
     /// Adds a [`Track`] to the MIDI object.
@@ -137,11 +137,11 @@ impl MIDI {
 
     /// Returns a vector of [`Track`] with the tracks of the MIDI object.
     pub fn get_tracks(&self) -> Vec<Track> {
-        return self.tracks.clone();
+        self.tracks.clone()
     }
 
     /// Returns the number of valid tracks in the MIDI object.
     pub fn get_num_tracks(&self) -> usize {
-        return self.tracks.len();
+        self.tracks.len()
     }
 }
