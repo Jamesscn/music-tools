@@ -142,7 +142,7 @@ impl Note {
     /// depends on the reference frequency for the note A4, which can be
     /// modified by the `set_base_frequency` function.
     pub fn get_frequency(&self) -> f32 {
-        self.base_frequency as f32 * 2.0_f32.powf(self.octave as f32 + (self.pitch_class.get_value() as i8 - 9) as f32 / 12_f32 - 4.0)
+        self.base_frequency * 2.0_f32.powf(self.octave as f32 + (self.pitch_class.get_value() as i8 - 9) as f32 / 12_f32 - 4.0)
     }
 
     /// Returns the octave of the current note.
