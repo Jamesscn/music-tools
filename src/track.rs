@@ -170,6 +170,61 @@ impl Track {
         60000.0 / (self.tempo * self.ticks_per_quarter_note as f32)
     }
 
+    /// Returns the track as a vector of tuples with a [`Note`] and a [`u64`]
+    /// representing how many MIDI ticks the note plays for. This function
+    /// assumes that the track is monophonic. If multiple events intersect then
+    /// this function only considers the highest note and discards all other
+    /// notes.
+    pub fn flatten(&self) -> Vec<(Note, u64)> {
+        let mut flattened: Vec<(Note, u64)> = Vec::new();
+        let mut last_note_option: Option<Note> = None;
+        let rest_note = Note::from_midi_index(0).unwrap();
+        for event in &self.events {
+            let delta_ticks = event.get_delta_ticks();
+            let last_note_candidate = if event.is_active() {
+                Some(event.get_note())
+            } else {
+                None
+            };
+            if delta_ticks > 0 {
+                let note: Note = match last_note_option {
+                    Some(last_note) => last_note,
+                    None => rest_note
+                };
+                flattened.push((note, delta_ticks));
+            } else if let Some(last_note) = last_note_option {
+                if let Some(note_candidate) = last_note_candidate {
+                    if note_candidate.get_frequency() < last_note.get_frequency() {
+                        continue
+                    }
+                }
+            }
+            last_note_option = last_note_candidate;
+        }
+        flattened
+    }
+
+    /// Returns a flattened copy of the track as a string that can be played by
+    /// the GRUB bootloader.
+    pub fn to_grub(&mut self) -> String {
+        let grub_tempo = self.tempo as u64 * self.ticks_per_quarter_note as u64;
+        let mut values: Vec<u64> = vec![grub_tempo];
+        for (note, ticks) in self.flatten() {
+            let frequency = if let Some(value) = note.get_midi_index() {
+                if value == 0 {
+                    0
+                } else {
+                    note.get_frequency() as u64
+                }
+            } else {
+                note.get_frequency() as u64
+            };
+            values.push(frequency);
+            values.push(ticks);
+        }
+        values.into_iter().map(|int_val| int_val.to_string()).collect::<Vec<String>>().join(" ")
+    }
+
     fn beat_to_ticks(&self, beat: Beat) -> u64 {
         (4 * self.ticks_per_quarter_note as u64 * beat.get_numerator() as u64) / beat.get_denominator() as u64
     }
