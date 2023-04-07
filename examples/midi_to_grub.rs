@@ -1,5 +1,5 @@
+use music_tools::midi::MIDI;
 use std::io::{self, Write};
-use musictools::midi::MIDI;
 
 fn main() {
     //The midi file is opened and read
@@ -7,7 +7,9 @@ fn main() {
     print!("> ");
     io::stdout().flush().expect("Could not flush output!");
     let mut file_path: String = String::new();
-    io::stdin().read_line(&mut file_path).expect("Could not read input!");
+    io::stdin()
+        .read_line(&mut file_path)
+        .expect("Could not read input!");
     let midi_object = MIDI::import_from_file(file_path.trim());
 
     //The midi file is turned into a GRUB string

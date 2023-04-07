@@ -1,8 +1,8 @@
-use musictools::chord::Chord;
-use musictools::track::Track;
-use musictools::common::{Beat, Fraction};
-use musictools::pitchclass::PitchClasses;
-use musictools::audio::WavetableOscillator;
+use music_tools::audio::WavetableOscillator;
+use music_tools::chord::Chord;
+use music_tools::common::{Beat, Fraction};
+use music_tools::pitchclass::PitchClasses;
+use music_tools::track::Track;
 
 fn main() {
     let tonic = PitchClasses::C;

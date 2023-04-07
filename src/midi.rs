@@ -1,30 +1,27 @@
-use apres::MIDIEvent;
-use apres::MIDI as Apres_MIDI;
+use crate::common::Fraction;
 use crate::note::Note;
 use crate::track::Track;
-use crate::common::Fraction;
+use apres::MIDIEvent;
+use apres::MIDI as Apres_MIDI;
 
-/// A structure which holds a MIDI object that can be imported from or exported
-/// to a MIDI file, containing a set of [`Track`] objects.
+/// A structure which holds a MIDI object that can be imported from or exported to a MIDI file,
+/// containing a set of [`Track`] objects.
 #[derive(Clone, Debug)]
 pub struct MIDI {
-    tracks: Vec<Track>
+    tracks: Vec<Track>,
 }
 
 impl MIDI {
     /// Creates an empty MIDI class with no tracks
     pub fn new() -> MIDI {
-        MIDI {
-            tracks: Vec::new()
-        }
+        MIDI { tracks: Vec::new() }
     }
 
-    /// Imports a MIDI object from a MIDI file. The return value is an 
-    /// [`Option<MIDI>`] which can be [`None`] if the MIDI file provided does
-    /// not exist or is invalid.
-    /// 
+    /// Imports a MIDI object from a MIDI file. The return value is an [`Option<MIDI>`] which can be
+    /// [`None`] if the MIDI file provided does not exist or is invalid.
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `file_path`: A string of the path to the MIDI file to import.
     pub fn import_from_file(file_path: &str) -> Option<MIDI> {
         let midi_object = match Apres_MIDI::from_path(file_path) {
@@ -44,25 +41,42 @@ impl MIDI {
             for (delta_ticks, event_id) in midi_track_info {
                 let event = match midi_object.get_event(event_id) {
                     Some(event_object) => event_object,
-                    None => continue
+                    None => continue,
                 };
                 match event {
                     MIDIEvent::NoteOn(_channel, note_index, velocity) => {
                         if velocity > 0 {
-                            track.add_event(Note::from_midi_index(note_index).unwrap(), true, delta_ticks as u64);
+                            track.add_event(
+                                Note::from_midi_index(note_index).unwrap(),
+                                true,
+                                delta_ticks as u64,
+                            );
                         } else {
-                            track.add_event(Note::from_midi_index(note_index).unwrap(), false, delta_ticks as u64);
+                            track.add_event(
+                                Note::from_midi_index(note_index).unwrap(),
+                                false,
+                                delta_ticks as u64,
+                            );
                         }
-                    },
+                    }
                     MIDIEvent::NoteOff(_channel, note_index, _velocity) => {
-                        track.add_event(Note::from_midi_index(note_index).unwrap(), false, delta_ticks as u64);
-                    },
-                    MIDIEvent::TimeSignature(numerator, denominator, _clocks_per_metronome, _thirtysecondths_per_quarter) => {
+                        track.add_event(
+                            Note::from_midi_index(note_index).unwrap(),
+                            false,
+                            delta_ticks as u64,
+                        );
+                    }
+                    MIDIEvent::TimeSignature(
+                        numerator,
+                        denominator,
+                        _clocks_per_metronome,
+                        _thirtysecondths_per_quarter,
+                    ) => {
                         time_signature = Fraction::new(numerator, u8::pow(2, denominator as u32));
-                    },
+                    }
                     MIDIEvent::SetTempo(us_per_quarter_note) => {
                         tempo = 60000000.0 / us_per_quarter_note as f32;
-                    },
+                    }
                     _ => {}
                 }
             }
@@ -77,16 +91,15 @@ impl MIDI {
             timed_tracks.push(track);
         }
         Some(MIDI {
-            tracks: timed_tracks
+            tracks: timed_tracks,
         })
     }
 
-    /// Exports a MIDI object to a MIDI file. The function returns true if the
-    /// file was successfully exported or false if it was not or if the MIDI
-    /// object has no tracks.
-    /// 
+    /// Exports a MIDI object to a MIDI file. The function returns true if the file was successfully
+    /// exported or false if it was not or if the MIDI object has no tracks.
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `file_path`: A string of the path to save the MIDI file to.
     pub fn export_to_file(&self, file_path: &str) -> bool {
         let mut midi_object = Apres_MIDI::new();
@@ -126,9 +139,9 @@ impl MIDI {
     }
 
     /// Adds a [`Track`] to the MIDI object.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `track`: The [`Track`] to add to the current MIDI object.
     pub fn add_track(&mut self, track: Track) {
         self.tracks.push(track);
