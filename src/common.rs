@@ -1,9 +1,8 @@
-#[derive(Copy, Clone, Debug)]
-
 /// A structure which is used to hold the exact representation of a fraction.
 /// Fractions are used in this library to precisely represent time signatures
 /// and the durations of beats. These fractions are not simplified when they
 /// are stored.
+#[derive(Copy, Clone, Debug)]
 pub struct Fraction {
     numerator: u8,
     denominator: u8
@@ -27,7 +26,7 @@ impl Fraction {
     /// let one_half = Fraction::new(1, 2);
     /// ```
     pub const fn new(numerator: u8, denominator: u8) -> Fraction {
-        return Fraction {
+        Fraction {
             numerator,
             denominator
         }
@@ -45,7 +44,7 @@ impl Fraction {
     /// println!("{five}");
     /// ```
     pub fn get_numerator(&self) -> u8 {
-        return self.numerator;
+        self.numerator
     }
 
     /// Returns the denominator or bottom half of the fraction.
@@ -60,10 +59,11 @@ impl Fraction {
     /// println!("{seven}");
     /// ```
     pub fn get_denominator(&self) -> u8 {
-        return self.denominator;
+        self.denominator
     }
 
-    /// Returns the value of the fraction as a floating point number.
+    /// Returns the value of the fraction as a floating point number. This can
+    /// panic if the denominator is zero.
     /// 
     /// # Examples
     /// 
@@ -75,7 +75,7 @@ impl Fraction {
     /// println!("{float_value}");
     /// ```
     pub fn get_as_float(&self) -> f32 {
-        return self.numerator as f32 / self.denominator as f32;
+        self.numerator as f32 / self.denominator as f32
     }
 
     /// Returns a new fraction with a simplified numerator and denominator.
@@ -90,7 +90,7 @@ impl Fraction {
     /// ```
     pub fn get_simplified(&self) -> Fraction {
         let common_factor = gcd(self.numerator, self.denominator);
-        return Fraction {
+        Fraction {
             numerator: self.numerator / common_factor,
             denominator: self.denominator / common_factor
         }
@@ -101,8 +101,39 @@ impl PartialEq for Fraction {
     fn eq(&self, other: &Self) -> bool {
         let left_simplified = self.get_simplified();
         let right_simplified = other.get_simplified();
-        return left_simplified.numerator == right_simplified.numerator && left_simplified.denominator == right_simplified.denominator;
+        left_simplified.numerator == right_simplified.numerator && left_simplified.denominator == right_simplified.denominator
     }
+}
+
+/// The beat structure is the same as a fraction but used to keep track of the
+/// duration of a rhythmic beat with respect to the time signature.
+pub type Beat = Fraction;
+
+impl Beat {
+    /// The duration corresponding to a whole note.
+    pub const WHOLE: Beat = Beat::new(1, 1);
+    /// The duration corresponding to a half note.
+    pub const HALF: Beat = Beat::new(1, 2);
+    /// The duration corresponding to a quarter note.
+    pub const QUARTER: Beat = Beat::new(1, 4);
+    /// The duration corresponding to an eighth note.
+    pub const EIGHTH: Beat = Beat::new(1, 8);
+    /// The duration corresponding to a sixteenth note.
+    pub const SIXTEENTH: Beat = Beat::new(1, 16);
+    /// The duration corresponding to a thirty-second note.
+    pub const THIRTYSECOND: Beat = Beat::new(1, 32);
+    /// The duration corresponding to a dotted whole note.
+    pub const WHOLE_DOTTED: Beat = Beat::new(3, 2);
+    /// The duration corresponding to a dotted half note.
+    pub const HALF_DOTTED: Beat = Beat::new(3, 4);
+    /// The duration corresponding to a dotted quarter note.
+    pub const QUARTER_DOTTED: Beat = Beat::new(3, 8);
+    /// The duration corresponding to a dotted eighth note.
+    pub const EIGHTH_DOTTED: Beat = Beat::new(3, 16);
+    /// The duration corresponding to a dotted sixteenth note.
+    pub const SIXTEENTH_DOTTED: Beat = Beat::new(3, 32);
+    /// The duration corresponding to a dotted thirty-second note.
+    pub const THIRTYSECOND_DOTTED: Beat = Beat::new(3, 64);
 }
 
 /// This enum contains representations for the different modes or types of
@@ -207,7 +238,8 @@ pub enum PentatonicType {
 }
 
 /// Given a letter from A to G and an offset, this function returns the
-/// letter at a given offset from the provided letter.
+/// letter at a given offset from the provided letter, or [`None`] if the
+/// letter provided was invalid.
 /// 
 /// # Parameters
 /// 
@@ -226,12 +258,9 @@ pub enum PentatonicType {
 pub fn get_letter_at_offset(letter: char, offset: i8) -> Option<char> {
     const LETTERS: [char; 7] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
     let letter_option = LETTERS.iter().position(|&x| x == letter);
-    return match letter_option {
-        Some(letter_index) => Some(LETTERS[((letter_index as i8 + offset) % 7) as usize]),
-        None => None
-    }
+    letter_option.map(|letter_index| LETTERS[(letter_index as i8 + (offset % 7)).rem_euclid(7) as usize])
 }
 
 fn gcd(a: u8, b: u8) -> u8 {
-    return if b == 0 { a } else { gcd(b, a % b) };
+    if b == 0 { a } else { gcd(b, a % b) }
 }

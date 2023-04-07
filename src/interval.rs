@@ -1,7 +1,8 @@
 use std::cmp::Ordering;
+use crate::note::Note;
 
-#[derive(Copy, Clone, Debug)]
 /// A structure which is used to represent the interval between two notes.
+#[derive(Copy, Clone, Debug)]
 pub struct Interval {
     value: u8,
     full_name: Option<&'static str>,
@@ -16,7 +17,7 @@ impl Interval {
         if index < INTERVALS.len() {
             return INTERVALS[index];
         }
-        return Interval {
+        Interval {
             value,
             full_name: None,
             short_name: None
@@ -25,25 +26,45 @@ impl Interval {
 
     /// Returns a positive integer representing the value of the interval.
     pub fn get_value(&self) -> u8 {
-        return self.value;
+        self.value
     }
 
     /// Returns the full name of the interval if it exists, such as Perfect
     /// Unison or Diminished Fifth.
     pub fn get_name(&self) -> Option<&'static str> {
-        return self.full_name;
+        self.full_name
     }
 
     /// Returns an abbreviated name for the interval if it exists, such as P1
     /// or m6.
     pub fn get_short_name(&self) -> Option<&'static str> {
-        return self.short_name;
+        self.short_name
+    }
+
+    /// Returns the interval between two notes.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `first`: A [`Note`] representing the first note.
+    /// - `second`: A [`Note`] representing the second note.
+    pub fn get_interval(first: Note, second: Note) -> Interval {
+        let first_value = first.get_value();
+        let second_value = second.get_value();
+        let difference: u16 = if first_value <= second_value {
+            (second_value - first_value) as u16
+        } else {
+            (first_value - second_value) as u16
+        };
+        if difference > 255 {
+            panic!("Interval between notes is greater than a u8");
+        }
+        Interval::from(difference as u8)
     }
 }
 
 impl PartialEq for Interval {
     fn eq(&self, other: &Self) -> bool {
-        return self.value == other.value;
+        self.value == other.value
     }
 }
 

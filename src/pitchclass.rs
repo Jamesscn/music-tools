@@ -1,6 +1,6 @@
-#[derive(Copy, Clone, Debug)]
 /// A structure used to define one of the pitch classes of the twelve tone
 /// equal temperament system.
+#[derive(Copy, Clone, Debug)]
 pub struct PitchClass {
     value: u8,
     names: &'static [&'static str]
@@ -24,15 +24,14 @@ impl PitchClass {
     /// let b_flat = PitchClass::from_name("Bb");
     /// ```
     pub fn from_name(pitch_class_name: &str) -> Option<PitchClass> {
-        for pitch_class_index in 0..12 {
-            let pitch_class = PITCH_CLASSES[pitch_class_index];
+        for pitch_class in PITCH_CLASSES {
             for current_name in pitch_class.names {
                 if current_name == &pitch_class_name {
                     return Some(pitch_class);
                 }
             }
         }
-        return None;
+        None
     }
 
     /// Returns an [`Option`] with a [`PitchClass`] given its value from 0 to
@@ -60,7 +59,7 @@ impl PitchClass {
         if index < 12 {
             return Some(PITCH_CLASSES[index]);
         }
-        return None
+        None
     }
 
     /// Returns the [`PitchClass`] that is a certain offset away from the
@@ -84,24 +83,24 @@ impl PitchClass {
     /// let f = PitchClasses::A.get_offset(-2);
     /// ```
     pub fn get_offset(&self, offset: i8) -> PitchClass {
-        return PITCH_CLASSES[((self.value as i8 + offset) % 12) as usize];
+        PITCH_CLASSES[(self.value as i8 + (offset % 12)).rem_euclid(12) as usize]
     }
 
     /// Obtains a numeric value from 0 to 11 representing the pitch class,
     /// where 0 corresponds to the pitch class for C, 1 to C sharp and so on.
     pub fn get_value(&self) -> u8 {
-        return self.value;
+        self.value
     }
 
     /// Returns a vector of equivalent names for this pitch class.
     pub fn get_names(&self) -> &'static [&'static str] {
-        return self.names;
+        self.names
     }
 }
 
 impl PartialEq for PitchClass {
     fn eq(&self, other: &Self) -> bool {
-        return self.value == other.value;
+        self.value == other.value
     }
 }
 

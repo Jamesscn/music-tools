@@ -31,10 +31,12 @@ A set of tools related to music theory.
 - Functional harmony
   - You can get the diatonic chords of any key and mode
   - You can get a diatonic chord given a roman numeral
-- The rhythm module allows you to make rhythms
-  - Supports fractional beats
+- The track module allows you to combine notes with a rhythm and play them
+  - Supports chords and rests
+  - Supports time signatures and tempos
 - Notes return their frequencies based on a given base frequency
   - This allows you to set A4 equal to any frequency (such as 432 Hz)
+- The midi module allows you to import from and export to MIDI files
 
 ## Limitations
 

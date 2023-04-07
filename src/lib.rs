@@ -20,9 +20,9 @@ pub mod chord;
 /// scale.
 pub mod scale;
 
-/// The rhythm module contains a structure which can be used to represent a
-/// rhythmic sequence.
-pub mod rhythm;
+/// The track module contains a structure which can be used to represent a
+/// sequence of notes in time.
+pub mod track;
 
 /// The common module contains common structures, enums and functions that
 /// are used by other modules.
@@ -35,3 +35,7 @@ pub mod interval;
 /// The pitchclass module contains a structure which can be used to represent
 /// a pitch class.
 pub mod pitchclass;
+
+/// The midi module contains a structure which can be used to import and export
+/// tracks to MIDI files.
+pub mod midi;
