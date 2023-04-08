@@ -10,7 +10,7 @@ fn main() {
     io::stdin()
         .read_line(&mut file_path)
         .expect("Could not read input!");
-    let midi = MIDI::import_from_file(file_path.trim()).unwrap();
+    let midi = MIDI::import_from_file(file_path.trim()).expect("Could not import MIDI file");
     let num_tracks = midi.get_num_tracks();
     if num_tracks == 0 {
         println!("The MIDI file has no tracks or notes in it!");

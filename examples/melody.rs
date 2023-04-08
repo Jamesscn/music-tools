@@ -21,5 +21,5 @@ fn main() {
     let square_wave_channel = oscillator.add_channel(Waveforms::SQUARE_WAVE, 1.0);
     oscillator
         .play_single_track(square_wave_channel, track)
-        .unwrap();
+        .expect("Could not play the example melody!");
 }
