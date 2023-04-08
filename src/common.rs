@@ -1,3 +1,6 @@
+use std::error::Error;
+use std::fmt;
+
 /// A structure which is used to hold the exact representation of a fraction. Fractions are used in
 /// this library to precisely represent time signatures and the durations of beats. These fractions
 /// are not simplified when they are stored.
@@ -23,6 +26,9 @@ impl Fraction {
     /// let one_half = Fraction::new(1, 2);
     /// ```
     pub const fn new(numerator: u8, denominator: u8) -> Fraction {
+        if denominator == 0 {
+            panic!("Cannot create a fraction with a denominator of zero!");
+        }
         Fraction {
             numerator,
             denominator,
@@ -225,28 +231,75 @@ pub enum PentatonicType {
     Minor,
 }
 
-/// Given a letter from A to G and an offset, this function returns the letter at a given offset
-/// from the provided letter, or [`None`] if the letter provided was invalid.
-///
-/// # Parameters
-///
-/// - `letter`: A [`char`] with the letter to offset.
-/// - `offset`: A positive or negative integer to offset `letter` by.
-///
-/// # Examples
-///
-/// ```rust
-/// use music_tools::common::get_letter_at_offset;
-///
-/// let positive_offset = get_letter_at_offset('F', 2).unwrap();
-/// let negative_offset = get_letter_at_offset('F', -2).unwrap();
-/// println!("F + 2 = {positive_offset}, F - 2 = {negative_offset}");
-/// ```
-pub fn get_letter_at_offset(letter: char, offset: i8) -> Option<char> {
-    const LETTERS: [char; 7] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-    let letter_option = LETTERS.iter().position(|&x| x == letter);
-    letter_option
-        .map(|letter_index| LETTERS[(letter_index as i8 + (offset % 7)).rem_euclid(7) as usize])
+/// An error which is returned when a function receives an input that was not in the expected
+/// format.
+#[derive(Debug)]
+pub struct InputError {
+    /// A more specific message that explains the reason why the string was invalid.
+    pub message: &'static str,
+}
+
+impl Error for InputError {}
+impl fmt::Display for InputError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid input provided - {}", self.message)
+    }
+}
+
+/// An error which is returned when audio could not be played.
+#[derive(Debug)]
+pub struct AudioPlayError {
+    /// A more specific message that explains the reason why the audio could not be played.
+    pub message: &'static str,
+}
+
+impl Error for AudioPlayError {}
+impl fmt::Display for AudioPlayError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "audio could not be played - {}", self.message)
+    }
+}
+
+/// An error which is returned when a [`crate::chord::Chord`] without a tonic or octave is used in
+/// an operation that requires either or both of these items to be defined for the chord.
+#[derive(Debug)]
+pub struct IncompleteChordError {
+    /// A boolean indicating if the chord needs a tonic in order to perform the operation.
+    pub needs_tonic: bool,
+    /// A boolean indicating if the chord needs an octave in order to perform the operation.
+    pub needs_octave: bool,
+    /// A boolean indicating if the chord has a tonic.
+    pub has_tonic: bool,
+    /// A boolean indicating if the chord has an octave.
+    pub has_octave: bool,
+}
+
+impl Error for IncompleteChordError {}
+impl fmt::Display for IncompleteChordError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let requirements = if self.needs_tonic && self.needs_octave {
+            "a tonic and an octave"
+        } else if self.needs_tonic {
+            "a tonic"
+        } else if self.needs_octave {
+            "an octave"
+        } else {
+            unreachable!("IncompleteChordError was thrown but not needed")
+        };
+        let given = if self.has_tonic && self.has_octave {
+            unreachable!("IncompleteChordError was thrown but not needed")
+        } else if self.has_tonic {
+            "only had a tonic"
+        } else if self.has_octave {
+            "only had an octave"
+        } else {
+            "did not have a tonic nor an octave"
+        };
+        write!(
+            f,
+            "operation requiring a chord with {requirements} was called but the chord {given}",
+        )
+    }
 }
 
 fn gcd(a: u8, b: u8) -> u8 {

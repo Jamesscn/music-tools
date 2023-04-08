@@ -1,3 +1,5 @@
+use crate::common::InputError;
+
 /// A structure used to define one of the pitch classes of the twelve tone equal temperament system.
 #[derive(Copy, Clone, Debug)]
 pub struct PitchClass {
@@ -6,7 +8,8 @@ pub struct PitchClass {
 }
 
 impl PitchClass {
-    /// Returns a [`PitchClass`] representing a pitch class given its name.
+    /// Returns a [`Result`] which can contain a [`PitchClass`] representing a pitch class given its
+    /// name, or an [`InputError`] if the input string was invalid.
     ///
     /// # Parameters
     ///
@@ -21,19 +24,22 @@ impl PitchClass {
     /// let a = PitchClass::from_name("A");
     /// let b_flat = PitchClass::from_name("Bb");
     /// ```
-    pub fn from_name(pitch_class_name: &str) -> Option<PitchClass> {
+    pub fn from_name(pitch_class_name: &str) -> Result<PitchClass, InputError> {
         for pitch_class in PITCH_CLASSES {
             for current_name in pitch_class.names {
                 if current_name == &pitch_class_name {
-                    return Some(pitch_class);
+                    return Ok(pitch_class);
                 }
             }
         }
-        None
+        Err(InputError {
+            message: "string does not conform to expected pitch class format",
+        })
     }
 
-    /// Returns an [`Option`] with a [`PitchClass`] given its value from 0 to 11, where 0 represents
-    /// C, 1 represents D flat and so on. If the index is greater than 11 then [`None`] is returned.
+    /// Returns a [`Result`] which can contain a [`PitchClass`] given its value from 0 to 11, where
+    /// 0 represents C, 1 represents D flat and so on. If the index is greater than 11 then an
+    /// [`InputError`] is returned.
     ///
     /// # Parameters
     ///
@@ -49,12 +55,14 @@ impl PitchClass {
     ///
     /// let g_flat = PitchClass::from_value(6);
     /// ```
-    pub fn from_value(value: u8) -> Option<PitchClass> {
+    pub fn from_value(value: u8) -> Result<PitchClass, InputError> {
         let index = value as usize;
         if index < 12 {
-            return Some(PITCH_CLASSES[index]);
+            return Ok(PITCH_CLASSES[index]);
         }
-        None
+        Err(InputError {
+            message: "the value provided must be an integer between 0 and 11",
+        })
     }
 
     /// Returns the [`PitchClass`] that is a certain offset away from the current one.

@@ -1,3 +1,4 @@
+use crate::common::AudioPlayError;
 use crate::midi::MIDI;
 use crate::note::Note;
 use crate::track::{Event, Track};
@@ -258,7 +259,6 @@ impl WavetableOscillator {
         for voice_index in (0..self.voices.len()).rev() {
             if self.voices[voice_index].get_track_index() == track_index {
                 self.voices.remove(voice_index);
-                return;
             }
         }
     }
@@ -269,18 +269,24 @@ impl WavetableOscillator {
     ///
     /// - `channel_index`: The index of the channel to play the track on.
     /// - `track`: The [`Track`] to be played.
-    pub fn play_single_track(&mut self, channel_index: usize, mut track: Track) {
+    pub fn play_single_track(
+        &mut self,
+        channel_index: usize,
+        mut track: Track,
+    ) -> Result<(), AudioPlayError> {
         let tick_ms = track.get_tick_duration();
         let stream_result = OutputStream::try_default();
         if stream_result.is_err() {
-            println!("No sound card detected!");
-            return;
+            return Err(AudioPlayError {
+                message: "no sound card detected",
+            });
         }
         let (_stream, stream_handle) = stream_result.unwrap();
         let sink_result = Sink::try_new(&stream_handle);
         if sink_result.is_err() {
-            println!("Could not create a sink!");
-            return;
+            return Err(AudioPlayError {
+                message: "sink could not be created",
+            });
         }
         let sink = sink_result.unwrap();
         loop {
@@ -305,6 +311,7 @@ impl WavetableOscillator {
             }
         }
         self.stop_all_notes(0);
+        Ok(())
     }
 
     /// Plays a [`MIDI`] on a set of channels. If the number of channels is less than the number of
@@ -314,21 +321,29 @@ impl WavetableOscillator {
     ///
     /// - `channel_indexes`: A vector of channel indexes that will be used to play each MIDI track.
     /// - `midi`: The [`MIDI`] to be played.
-    pub fn play_midi(&mut self, channel_indexes: Vec<usize>, midi: MIDI) {
+    pub fn play_midi(
+        &mut self,
+        channel_indexes: Vec<usize>,
+        midi: MIDI,
+    ) -> Result<(), AudioPlayError> {
         let num_tracks = midi.get_num_tracks();
         if num_tracks == 0 {
-            return;
+            return Err(AudioPlayError {
+                message: "midi object has no tracks",
+            });
         }
         let stream_result = OutputStream::try_default();
         if stream_result.is_err() {
-            println!("No sound card detected!");
-            return;
+            return Err(AudioPlayError {
+                message: "no sound card detected",
+            });
         }
         let (_stream, stream_handle) = stream_result.unwrap();
         let sink_result = Sink::try_new(&stream_handle);
         if sink_result.is_err() {
-            println!("Could not create a sink!");
-            return;
+            return Err(AudioPlayError {
+                message: "sink could not be created",
+            });
         }
         let sink = sink_result.unwrap();
         let tick_ms = midi.get_tracks()[0].get_tick_duration();
@@ -383,6 +398,7 @@ impl WavetableOscillator {
             }
             pending_event_tuples = next_event_tuples;
         }
+        Ok(())
     }
 }
 

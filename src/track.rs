@@ -1,5 +1,5 @@
 use crate::chord::Chord;
-use crate::common::{Beat, Fraction};
+use crate::common::{Beat, Fraction, IncompleteChordError};
 use crate::note::Note;
 
 /// This structure is used to store a track with a sequence of events with the same structure as a
@@ -84,19 +84,16 @@ impl Track {
     }
 
     /// Adds a [`Chord`] to the end of the current track which will be played for the given
-    /// duration. The function will return false if the chord could not be converted to a set of
-    /// [`Note`] objects.
+    /// duration. The function will return a [`Result`] which can contain an
+    /// [`IncompleteChordError`] if the chord did not have a tonic or an octave.
     ///
     /// # Parameters
     ///
     /// - `chord`: The [`Chord`] to be added.
     /// - `duration`: A [`Beat`] representing the duration to play the chord for.
-    pub fn add_chord(&mut self, chord: Chord, duration: Beat) -> bool {
+    pub fn add_chord(&mut self, chord: Chord, duration: Beat) -> Result<(), IncompleteChordError> {
         let delta_ticks = self.beat_to_ticks(duration);
-        let notes = match chord.to_notes() {
-            Some(notes_vec) => notes_vec,
-            None => return false,
-        };
+        let notes = chord.to_notes()?;
         for note in notes.clone() {
             self.add_event(note, true, 0);
         }
@@ -109,7 +106,7 @@ impl Track {
                 self.add_event(note, false, 0);
             }
         }
-        true
+        Ok(())
     }
 
     /// Sets the tempo of the current track to a given value in beats per minute.

@@ -78,15 +78,19 @@ fn main() {
                 beat_track.add_note(Note::from(PitchClasses::G, 2), Beat::QUARTER);
             }
         } else if !(30..54).contains(&index) {
-            beat_track.add_chord(
-                Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::C), Some(3)),
-                Beat::QUARTER,
-            );
+            beat_track
+                .add_chord(
+                    Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::C), Some(3)),
+                    Beat::QUARTER,
+                )
+                .unwrap();
         } else {
-            beat_track.add_chord(
-                Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::F), Some(3)),
-                Beat::QUARTER,
-            );
+            beat_track
+                .add_chord(
+                    Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::F), Some(3)),
+                    Beat::QUARTER,
+                )
+                .unwrap();
         }
     }
 
@@ -103,5 +107,6 @@ fn main() {
     let mut midi: MIDI = MIDI::new();
     midi.add_track(beat_track);
     midi.add_track(melody_track);
-    midi.export_to_file("second_waltz.mid");
+    midi.export_to_file("second_waltz.mid")
+        .expect("could not create midi file");
 }

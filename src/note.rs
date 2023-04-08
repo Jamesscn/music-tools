@@ -1,3 +1,4 @@
+use crate::common::InputError;
 use crate::pitchclass::PitchClass;
 use regex::Regex;
 
@@ -37,7 +38,8 @@ impl Note {
     }
 
     /// Constructs a [`Note`] from a string containing the pitch class and the octave of the note.
-    /// If the string is invalid, [`None`] is returned.
+    /// The function returns a [`Result`] which can contain the note or an [`InputError`] if the
+    /// input string was not valid.
     ///
     /// # Parameters
     ///
@@ -54,10 +56,12 @@ impl Note {
     /// let b = Note::from_string("Bb4").unwrap();
     /// let c = Note::from_string("C3").unwrap();
     /// ```
-    pub fn from_string(string: &str) -> Option<Note> {
+    pub fn from_string(string: &str) -> Result<Note, InputError> {
         let regex = Regex::new(r"^([A-G])(♮|x|b{1,2}|♭{1,2}|\#{1,2}|♯{1,2})?(\-?\d+)$").unwrap();
         if !regex.is_match(string) {
-            return None;
+            return Err(InputError {
+                message: "string does not conform to expected note format",
+            });
         }
         let regex_capture_groups = regex.captures(string).unwrap();
         let pitch_class_letter = regex_capture_groups.get(1).map_or("", |x| x.as_str());
@@ -65,28 +69,30 @@ impl Note {
         let octave: i8 = regex_capture_groups
             .get(3)
             .map_or(0, |x| x.as_str().parse::<i8>().unwrap());
-        let pitch_class_option =
-            PitchClass::from_name(format!("{pitch_class_letter}{accidental}").as_str());
-        pitch_class_option.map(|pitch_class| Note {
+        let pitch_class =
+            PitchClass::from_name(format!("{pitch_class_letter}{accidental}").as_str())?;
+        Ok(Note {
             pitch_class,
             octave,
             base_frequency: 440.0,
         })
     }
 
-    /// Constructs a [`Note`] from a midi index between 0 and 127. If the value provided is outside
-    /// of this range [`None`] is returned.
+    /// Constructs a [`Note`] from a midi index between 0 and 127. The function returns a [`Result`]
+    /// which can contain the note or an [`InputError`] if the input string was not valid.
     ///
     /// # Parameters
     ///
     /// - `index`: The index of the midi note, which can be any number between 0 and 127 inclusive.
-    pub fn from_midi_index(index: u8) -> Option<Note> {
+    pub fn from_midi_index(index: u8) -> Result<Note, InputError> {
         if index > 127 {
-            return None;
+            return Err(InputError {
+                message: "the midi index must be an integer between 0 and 127",
+            });
         }
         let pitch_class = PitchClass::from_value(index % 12).unwrap();
         let octave = (index / 12) as i8 - 1;
-        Some(Note {
+        Ok(Note {
             pitch_class,
             octave,
             base_frequency: 440.0,

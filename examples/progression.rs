@@ -11,9 +11,11 @@ fn main() {
     let mut track = Track::new(120.0, Fraction::new(4, 4));
     for (index, numeral) in progression.iter().enumerate() {
         let chord = Chord::from_numeral(numeral, tonic, Some(octaves[index])).unwrap();
-        track.add_chord(chord, Beat::HALF);
+        track.add_chord(chord, Beat::HALF).unwrap();
     }
     let mut oscillator = WavetableOscillator::new();
     let sine_wave_channel = oscillator.add_channel(f32::sin, 2.0 * std::f32::consts::PI);
-    oscillator.play_single_track(sine_wave_channel, track);
+    oscillator
+        .play_single_track(sine_wave_channel, track)
+        .unwrap();
 }

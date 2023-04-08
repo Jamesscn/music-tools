@@ -1,4 +1,4 @@
-use crate::common::Fraction;
+use crate::common::{Fraction, InputError};
 use crate::note::Note;
 use crate::track::Track;
 use apres::MIDIEvent;
@@ -17,18 +17,19 @@ impl MIDI {
         MIDI { tracks: Vec::new() }
     }
 
-    /// Imports a MIDI object from a MIDI file. The return value is an [`Option<MIDI>`] which can be
-    /// [`None`] if the MIDI file provided does not exist or is invalid.
+    /// Imports a MIDI object from a MIDI file. The return value is a [`Result`] which can be either
+    /// a [`MIDI`] or an [`InputError`] if the MIDI file provided does not exist or is invalid.
     ///
     /// # Parameters
     ///
     /// - `file_path`: A string of the path to the MIDI file to import.
-    pub fn import_from_file(file_path: &str) -> Option<MIDI> {
+    pub fn import_from_file(file_path: &str) -> Result<MIDI, InputError> {
         let midi_object = match Apres_MIDI::from_path(file_path) {
             Ok(apres_midi_object) => apres_midi_object,
             Err(_) => {
-                println!("Could not read MIDI file from {file_path}!");
-                return None;
+                return Err(InputError {
+                    message: "the path provided does not exist or the midi file was invalid",
+                })
             }
         };
         let ticks_per_quarter_note = midi_object.get_ppqn();
@@ -90,21 +91,25 @@ impl MIDI {
             track.set_tempo(tempo);
             timed_tracks.push(track);
         }
-        Some(MIDI {
+        Ok(MIDI {
             tracks: timed_tracks,
         })
     }
 
-    /// Exports a MIDI object to a MIDI file. The function returns true if the file was successfully
-    /// exported or false if it was not or if the MIDI object has no tracks.
+    /// Exports a MIDI object to a MIDI file. The function returns a [`Result`] which can be an
+    /// [`InputError`] if the MIDI file could not be saved. Unfortunately the apres library does
+    /// not return if the file was successfully saved, so this is something that has to be looked
+    /// into in the future.
     ///
     /// # Parameters
     ///
     /// - `file_path`: A string of the path to save the MIDI file to.
-    pub fn export_to_file(&self, file_path: &str) -> bool {
+    pub fn export_to_file(&self, file_path: &str) -> Result<(), InputError> {
         let mut midi_object = Apres_MIDI::new();
         if self.tracks.is_empty() {
-            return false;
+            return Err(InputError {
+                message: "the midi object could not be saved because it has no tracks",
+            });
         }
         let time_signature: Fraction = self.tracks[0].get_time_signature();
         let tempo: f32 = self.tracks[0].get_tempo();
@@ -134,8 +139,8 @@ impl MIDI {
             }
             track_index += 1;
         }
-        midi_object.save(file_path);
-        true
+        midi_object.save(file_path); // This function does not indicate if saving was successful!
+        Ok(())
     }
 
     /// Adds a [`Track`] to the MIDI object.

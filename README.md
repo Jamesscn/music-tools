@@ -37,6 +37,7 @@ A set of tools related to music theory.
 - Notes return their frequencies based on a given base frequency
   - This allows you to set A4 equal to any frequency (such as 432 Hz)
 - The midi module allows you to import from and export to MIDI files
+- There is also support to convert a track into a GRUB bootloader tune
 
 ## Limitations
 

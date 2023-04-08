@@ -1,4 +1,4 @@
-use crate::common::TriadQuality;
+use crate::common::{IncompleteChordError, InputError, TriadQuality};
 use crate::interval::{Interval, Intervals};
 use crate::note::Note;
 use crate::pitchclass::PitchClass;
@@ -139,21 +139,22 @@ impl Chord {
     /// Constructs a chord from a string with a roman numeral that represents the offset of the
     /// chord from a tonic, and a pitch class representing that tonic. One can also provide an
     /// [`Option<i8>`] representing the octave of the chord to be constructed. The string can also
-    /// contain an accidental, the quality of the chord and a seventh note. This function returns an
-    /// [`Option<Chord>`] which can be [`None`] if the input string was invalid.
+    /// contain an accidental, the quality of the chord and a seventh note. The function returns a
+    /// [`Result`] which can contain the new [`Chord`] or an [`InputError`] if the string could not
+    /// be parsed correctly.
     ///
     /// # Parameters
     ///
     /// - `input_numeral`: A string that can contain the following items in the following order:
-    ///     - An optional accidental `b` or `♭` which will treat the chord as a flat chord, or `#`
+    ///     - (Optional) an accidental `b` or `♭` which will treat the chord as a flat chord, or `#`
     ///       or `♯` which will treat the chord as a sharp chord.
-    ///     - A numeral I - VII or i - vii which will represent the scale degree to offset the chord
-    ///       from the tonic. If the numeral is in uppercase then the chord will be a major chord,
-    ///       and if it is in lowercase it will be a minor chord.
-    ///     - A quality `°` which will make the chord diminished or `+` which will make the chord
-    ///       augmented.
-    ///     - A seventh `7` which will add a minor seventh on top of the chord, or `maj7` which will
-    ///       add a major seventh on top of the chord.
+    ///     - (Required) A numeral I - VII or i - vii which will represent the scale degree to
+    ///       offset the chord from the tonic. If the numeral is in uppercase then the chord will be
+    ///       a major chord, and if it is in lowercase it will be a minor chord.
+    ///     - (Optional) A quality `°` which will make the chord diminished or `+` which will make
+    ///       the chord augmented.
+    ///     - (Optional) A seventh `7` which will add a minor seventh on top of the chord, or `maj7`
+    ///       which will add a major seventh on top of the chord.
     /// - `tonic`: A [`PitchClass`] representing the tonic or root note which will be offset by the
     ///   numeral.
     /// - `octave`: An [`Option<i8>`] representing the octave of the chord that will be returned. If
@@ -197,13 +198,15 @@ impl Chord {
         input_numeral: &str,
         tonic: PitchClass,
         octave: Option<i8>,
-    ) -> Option<Chord> {
+    ) -> Result<Chord, InputError> {
         let numeral_array = ["I", "II", "III", "IV", "V", "VI", "VII"];
         let numeral_regex =
             Regex::new(r"^(b|♭|\#|♯)?(I|II|III|IV|V|VI|VII|i|ii|iii|iv|v|vi|vii)(°|\+)?(maj7|7)?$")
                 .unwrap();
         if !numeral_regex.is_match(input_numeral) {
-            return None;
+            return Err(InputError {
+                message: "string does not conform to expected numeral format",
+            });
         }
         let regex_capture_groups = numeral_regex.captures(input_numeral).unwrap();
         let accidental = regex_capture_groups.get(1).map_or("", |m| m.as_str());
@@ -219,27 +222,41 @@ impl Chord {
             if quality == "+" {
                 triad_quality = TriadQuality::Augmented;
             } else if quality == "°" {
-                return None;
+                return Err(InputError {
+                    message: concat!(
+                        "numeral cannot be uppercase and contain ° symbol, it must either be ",
+                        "augmented (uppercase with a +) or diminished (lowercase with a °)"
+                    ),
+                });
             } else {
                 triad_quality = TriadQuality::Major;
             }
         } else if quality == "°" {
             triad_quality = TriadQuality::Diminished;
         } else if quality == "+" {
-            return None;
+            return Err(InputError {
+                message: concat!(
+                    "numeral cannot be lowercase and contain + symbol, it must either be ",
+                    "augmented (uppercase with a +) or diminished (lowercase with a °)"
+                ),
+            });
         } else {
             triad_quality = TriadQuality::Minor;
         }
         let increment: u8;
         if accidental == "b" || accidental == "♭" {
-            increment = match numeral_value {
-                1 => 1,
-                2 => 3,
-                4 => 6,
-                5 => 8,
-                6 => 10,
-                _ => return None,
-            };
+            increment =
+                match numeral_value {
+                    1 => 1,
+                    2 => 3,
+                    4 => 6,
+                    5 => 8,
+                    6 => 10,
+                    _ => return Err(InputError {
+                        message:
+                            "only numerals ii, II, iii, III, v, V, vi, VI, vii and VII can be flat",
+                    }),
+                };
         } else if accidental == "#" || accidental == "♯" {
             increment = match numeral_value {
                 0 => 1,
@@ -247,7 +264,11 @@ impl Chord {
                 3 => 6,
                 4 => 8,
                 5 => 10,
-                _ => return None,
+                _ => {
+                    return Err(InputError {
+                        message: "only numerals i, I, ii, II, iv, IV, v, V, vi and VI can be sharp",
+                    })
+                }
             };
         } else {
             increment = match numeral_value {
@@ -258,7 +279,7 @@ impl Chord {
                 4 => 7,
                 5 => 9,
                 6 => 11,
-                _ => return None,
+                _ => unreachable!(),
             };
         }
         let chord_tonic = tonic.get_offset(increment as i8);
@@ -270,7 +291,7 @@ impl Chord {
         } else if seventh == "7" {
             chord.add_interval(Intervals::MINOR_SEVENTH);
         }
-        Some(chord)
+        Ok(chord)
     }
 
     /// Adds an interval on top of the current chord.
@@ -401,9 +422,9 @@ impl Chord {
         self.octave
     }
 
-    /// Returns an [`Option<Vec<Note>>`] which contains a vector of consecutive [`Note`] objects
-    /// with the pitch classes and octaves of each note in the chord, or [`None`] if either the
-    /// tonic or the octave of the chord are [`None`].
+    /// Returns a [`Result`] which can contain a [`Vec<Note>`] with consecutive [`Note`] objects for
+    /// each of the pitch classes and octaves of each note in the chord, or an
+    /// [`IncompleteChordError`] if either the tonic or the octave of the chord are [`None`].
     ///
     /// # Examples
     ///
@@ -418,9 +439,15 @@ impl Chord {
     /// let mut chord = Chord::from_triad(TriadQuality::Major, Some(PitchClasses::G), Some(4));
     /// let notes = chord.to_notes().unwrap();
     /// ```
-    pub fn to_notes(&self) -> Option<Vec<Note>> {
-        self.tonic?;
-        self.octave?;
+    pub fn to_notes(&self) -> Result<Vec<Note>, IncompleteChordError> {
+        if self.tonic.is_none() || self.octave.is_none() {
+            return Err(IncompleteChordError {
+                needs_tonic: true,
+                needs_octave: true,
+                has_tonic: self.tonic.is_some(),
+                has_octave: self.octave.is_some(),
+            });
+        }
         let mut notes: Vec<Note> = Vec::new();
         let intervals = self.get_intervals();
         for interval in intervals {
@@ -431,16 +458,23 @@ impl Chord {
             let current_note = Note::from(current_pitch_class, current_octave);
             notes.push(current_note);
         }
-        Some(notes)
+        Ok(notes)
     }
 
-    /// Returns an [`Option<Vec<PitchClass>>`] which contains a vector of [`PitchClass`]
-    /// corresponding to the pitch classes of the notes in the current chord, or [`None`] if the
-    /// tonic of the chord is [`None`]. Note that this representation of a chord is not optimal
-    /// because it makes it impossible to distinguish the difference between an interval less than
-    /// an octave and any interval larger than an octave.
-    pub fn to_pitch_classes(&self) -> Option<Vec<PitchClass>> {
-        self.tonic?;
+    /// Returns a [`Result`] which can contain a [`Vec<PitchClass>`] corresponding to the pitch
+    /// classes of the notes in the current chord, or an [`IncompleteChordError`] if the tonic of
+    /// the chord is [`None`]. Note that this representation of a chord is not optimal because it
+    /// makes it impossible to tell the difference between an interval less than an octave and any
+    /// interval larger than an octave.
+    pub fn to_pitch_classes(&self) -> Result<Vec<PitchClass>, IncompleteChordError> {
+        if self.tonic.is_none() {
+            return Err(IncompleteChordError {
+                needs_tonic: true,
+                needs_octave: false,
+                has_tonic: self.tonic.is_some(),
+                has_octave: self.octave.is_some(),
+            });
+        }
         let mut pitch_classes: Vec<PitchClass> = Vec::new();
         let intervals = self.get_intervals();
         for interval in intervals {
@@ -448,6 +482,6 @@ impl Chord {
             let current_pitch_class = self.tonic.unwrap().get_offset(current_semitone as i8);
             pitch_classes.push(current_pitch_class);
         }
-        Some(pitch_classes)
+        Ok(pitch_classes)
     }
 }

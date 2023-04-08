@@ -1,5 +1,5 @@
 use crate::chord::Chord;
-use crate::common::{PentatonicType, ScaleType};
+use crate::common::{InputError, PentatonicType, ScaleType};
 use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::PitchClass;
@@ -14,7 +14,9 @@ pub struct Scale {
 }
 
 impl Scale {
-    /// Constructs a scale of notes given the type of scale, and optionally a pentatonic.
+    /// Constructs a scale of notes given the type of scale, and optionally a pentatonic. This
+    /// function returns a [`Result`] which can contain the [`Scale`] or an [`InputError`] if the
+    /// input parameters were invalid.
     ///
     /// # Parameters
     ///
@@ -34,7 +36,7 @@ impl Scale {
     /// let some_pentatonic = Scale::from(ScaleType::Minor, PentatonicType::Major).unwrap();
     /// let chromatic_scale = Scale::from(ScaleType::Chromatic, PentatonicType::None).unwrap();
     /// ```
-    pub fn from(scale: ScaleType, pentatonic: PentatonicType) -> Option<Scale> {
+    pub fn from(scale: ScaleType, pentatonic: PentatonicType) -> Result<Scale, InputError> {
         let scale_intervals: Vec<u8> = match scale {
             ScaleType::Major | ScaleType::Ionian => vec![0, 2, 4, 5, 7, 9, 11, 12],
             ScaleType::Minor
@@ -62,7 +64,9 @@ impl Scale {
             intervals.push(Interval::from(interval_value));
         }
         if pentatonic != PentatonicType::None && intervals.len() != 8 {
-            return None;
+            return Err(InputError {
+                message: "cannot create a pentatonic scale from a scale that is not diatonic",
+            });
         }
         if pentatonic == PentatonicType::Major {
             intervals.remove(6);
@@ -71,7 +75,7 @@ impl Scale {
             intervals.remove(5);
             intervals.remove(1);
         }
-        Some(Scale {
+        Ok(Scale {
             intervals,
             scale,
             pentatonic,
@@ -111,9 +115,9 @@ impl Scale {
         false
     }
 
-    /// Returns an [`Option<Vec<Chord>>`] with a vector of the seven diatonic chords of the current
-    /// scale, given the pitch class of the tonic and optionally the octave of each of these chords,
-    /// or [`None`] if the current scale is not diatonic.
+    /// Returns a [`Result`] which can contain a [`Vec<Chord>`] consisting of the seven diatonic
+    /// chords of the current scale, given the pitch class of the tonic and optionally the octave of
+    /// each of these chords, or an [`InputError`] if the current scale is not diatonic.
     ///
     /// # Parameters
     ///
@@ -152,7 +156,10 @@ impl Scale {
         tonic: PitchClass,
         octave: Option<i8>,
         with_seventh: bool,
-    ) -> Option<Vec<Chord>> {
+    ) -> Result<Vec<Chord>, InputError> {
+        let invalid_scale_error = Err(InputError {
+            message: "cannot obtain the diatonic chords for a scale that is not diatonic",
+        });
         let chord_numerals: [&str; 7] = if with_seventh {
             match self.scale {
                 ScaleType::Minor => ["i7", "ii°7", "bIIImaj7", "iv7", "Vmaj7", "bVImaj7", "bVII7"],
@@ -167,7 +174,7 @@ impl Scale {
                     ["i7", "ii°7", "bIIImaj7", "iv7", "v7", "bVImaj7", "bVII7"]
                 }
                 ScaleType::Locrian => ["i°7", "bIImaj7", "biii7", "iv7", "bVmaj7", "bVI7", "bvii7"],
-                _ => return None,
+                _ => return invalid_scale_error,
             }
         } else {
             match self.scale {
@@ -180,14 +187,14 @@ impl Scale {
                 ScaleType::Lydian => ["I", "II", "iii", "#iv°", "V", "vi", "vii"],
                 ScaleType::Mixolydian => ["I", "ii", "iii°", "IV", "v", "vi", "bVII"],
                 ScaleType::Locrian => ["i°", "bII", "biii", "iv", "bV", "bVI", "bvii"],
-                _ => return None,
+                _ => return invalid_scale_error,
             }
         };
         let chords = chord_numerals
             .iter()
             .map(|x| Chord::from_numeral(x, tonic, octave).unwrap())
             .collect();
-        Some(chords)
+        Ok(chords)
     }
 
     /// Converts the scale into a [`Chord`].
