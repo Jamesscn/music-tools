@@ -10,6 +10,7 @@ pub struct Track {
     time_signature: Fraction,
     ticks_per_quarter_note: u16,
     duration: u64,
+    current_delta_ticks: u64,
     current_event: usize,
     events: Vec<Event>,
 }
@@ -23,6 +24,7 @@ impl Track {
             time_signature,
             ticks_per_quarter_note: 360,
             duration: 0,
+            current_delta_ticks: 0,
             current_event: 0,
             events: Vec::new(),
         }
@@ -39,6 +41,7 @@ impl Track {
             time_signature,
             ticks_per_quarter_note,
             duration: 0,
+            current_delta_ticks: 0,
             current_event: 0,
             events: Vec::new(),
         }
@@ -53,11 +56,13 @@ impl Track {
     /// - `active`: A boolean representing whether to activate or deactivate the note.
     /// - `delta_ticks`: The amount of MIDI ticks until the event should occur.
     pub fn add_event(&mut self, note: Note, active: bool, delta_ticks: u64) {
+        let total_delta_ticks = self.current_delta_ticks + delta_ticks;
         self.events.push(Event {
             note,
             active,
-            delta_ticks,
+            delta_ticks: total_delta_ticks,
         });
+        self.current_delta_ticks = 0;
         self.duration += delta_ticks;
     }
 
@@ -80,7 +85,8 @@ impl Track {
     /// - `duration`: The duration the rest will take.
     pub fn add_rest(&mut self, duration: Beat) {
         let delta_ticks = self.beat_to_ticks(duration);
-        self.add_event(Note::from_midi_index(0).unwrap(), false, delta_ticks);
+        self.current_delta_ticks += delta_ticks;
+        self.duration += delta_ticks;
     }
 
     /// Adds a [`Chord`] to the end of the current track which will be played for the given
@@ -159,7 +165,7 @@ impl Track {
     }
 
     /// Returns the duration of a single tick in milliseconds.
-    pub fn get_tick_duration(&mut self) -> f32 {
+    pub fn get_tick_duration(&self) -> f32 {
         60000.0 / (self.tempo * self.ticks_per_quarter_note as f32)
     }
 

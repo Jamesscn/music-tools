@@ -20,6 +20,6 @@ fn main() {
     let mut oscillator = WavetableOscillator::new();
     let square_wave_channel = oscillator.add_channel(Waveforms::SQUARE_WAVE, 1.0);
     oscillator
-        .play_single_track(square_wave_channel, track)
+        .play_tracks(vec![square_wave_channel], vec![track])
         .expect("Could not play the example melody!");
 }

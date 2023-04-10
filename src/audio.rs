@@ -36,15 +36,6 @@ impl Channel {
         }
     }
 
-    /// Uses the function provided to generate the wave table.
-    ///
-    /// # Parameters
-    ///
-    /// - `function`: The function used to generate the shape of the wave that will be played by the
-    ///   oscillator. It must recieve a parameter of type [`f32`] representing the time value of the
-    ///   wave between 0 and `time_scale`, and it must return an [`f32`] representing the height of
-    ///   the wave at that time between -1 and 1.
-    /// - `time_scale`: This parameter scales the time variable that is passed to `function`.
     pub fn set_wave_function(&mut self, wave_function: fn(f32) -> f32, time_scale: f32) {
         self.wave_function = wave_function;
         self.wave_function_time_scale = time_scale;
@@ -263,75 +254,24 @@ impl WavetableOscillator {
         }
     }
 
-    /// Plays a single [`Track`] on a given channel.
+    /// Plays a [`Track`] on a set of channels. If the number of channels is less than the number of
+    /// tracks then the channels will be rotated across the tracks.
     ///
     /// # Parameters
     ///
-    /// - `channel_index`: The index of the channel to play the track on.
-    /// - `track`: The [`Track`] to be played.
-    pub fn play_single_track(
-        &mut self,
-        channel_index: usize,
-        mut track: Track,
-    ) -> Result<(), AudioPlayError> {
-        let tick_ms = track.get_tick_duration();
-        let stream_result = OutputStream::try_default();
-        if stream_result.is_err() {
-            return Err(AudioPlayError {
-                message: "no sound card detected",
-            });
-        }
-        let (_stream, stream_handle) = stream_result.unwrap();
-        let sink_result = Sink::try_new(&stream_handle);
-        if sink_result.is_err() {
-            return Err(AudioPlayError {
-                message: "sink could not be created",
-            });
-        }
-        let sink = sink_result.unwrap();
-        loop {
-            let current_event_option = track.get_next_event();
-            if current_event_option.is_none() {
-                break;
-            }
-            let current_event = current_event_option.unwrap();
-            let note = current_event.get_note();
-            let delta_ticks = current_event.get_delta_ticks();
-            if delta_ticks > 0 {
-                let tmp_oscillator = self.clone();
-                sink.append(tmp_oscillator);
-                sink.play();
-                std::thread::sleep(Duration::from_millis((tick_ms * delta_ticks as f32) as u64));
-                sink.clear();
-            }
-            if current_event.is_active() {
-                self.play_note(0, channel_index, note);
-            } else {
-                self.stop_note(0, note);
-            }
-        }
-        self.stop_all_notes(0);
-        Ok(())
-    }
-
-    /// Plays a [`MIDI`] on a set of channels. If the number of channels is less than the number of
-    /// MIDI tracks then the channels will be rotated across the tracks.
-    ///
-    /// # Parameters
-    ///
-    /// - `channel_indexes`: A vector of channel indexes that will be used to play each MIDI track.
-    /// - `midi`: The [`MIDI`] to be played.
-    pub fn play_midi(
+    /// - `channel_indexes`: A vector of channel indexes that will be used to play each track.
+    /// - `tracks`: A vector of all the [`Track`] objects to be played.
+    pub fn play_tracks(
         &mut self,
         channel_indexes: Vec<usize>,
-        midi: MIDI,
+        tracks: Vec<Track>,
     ) -> Result<(), AudioPlayError> {
-        let num_tracks = midi.get_num_tracks();
-        if num_tracks == 0 {
+        if tracks.len() == 0 {
             return Err(AudioPlayError {
-                message: "midi object has no tracks",
+                message: "no tracks to play",
             });
         }
+        let tick_ms = tracks[0].get_tick_duration();
         let stream_result = OutputStream::try_default();
         if stream_result.is_err() {
             return Err(AudioPlayError {
@@ -346,10 +286,9 @@ impl WavetableOscillator {
             });
         }
         let sink = sink_result.unwrap();
-        let tick_ms = midi.get_tracks()[0].get_tick_duration();
-        let mut tracks = midi.get_tracks();
+        let mut mut_tracks = tracks.clone();
         let mut pending_event_tuples: Vec<(Event, u64, usize)> = Vec::new();
-        for (track_index, track) in tracks.iter_mut().enumerate() {
+        for (track_index, track) in mut_tracks.iter_mut().enumerate() {
             let first_event_option = track.get_next_event();
             if let Some(first_event) = first_event_option {
                 let event_tuple = (first_event, first_event.get_delta_ticks(), track_index);
@@ -371,7 +310,7 @@ impl WavetableOscillator {
                     } else {
                         self.stop_note(track_index, current_event.get_note());
                     }
-                    let next_event_option = tracks[track_index].get_next_event();
+                    let next_event_option = mut_tracks[track_index].get_next_event();
                     if next_event_option.is_none() {
                         self.stop_all_notes(track_index);
                         continue 'track;
@@ -399,6 +338,21 @@ impl WavetableOscillator {
             pending_event_tuples = next_event_tuples;
         }
         Ok(())
+    }
+
+    /// Plays a [`MIDI`] on a set of channels. If the number of channels is less than the number of
+    /// MIDI tracks then the channels will be rotated across the tracks.
+    ///
+    /// # Parameters
+    ///
+    /// - `channel_indexes`: A vector of channel indexes that will be used to play each MIDI track.
+    /// - `midi`: The [`MIDI`] to be played.
+    pub fn play_midi(
+        &mut self,
+        channel_indexes: Vec<usize>,
+        midi: MIDI,
+    ) -> Result<(), AudioPlayError> {
+        self.play_tracks(channel_indexes, midi.get_tracks())
     }
 }
 

@@ -16,6 +16,6 @@ fn main() {
     let mut oscillator = WavetableOscillator::new();
     let sine_wave_channel = oscillator.add_channel(f32::sin, 2.0 * std::f32::consts::PI);
     oscillator
-        .play_single_track(sine_wave_channel, track)
+        .play_tracks(vec![sine_wave_channel], vec![track])
         .expect("Could not play the example progression!");
 }
