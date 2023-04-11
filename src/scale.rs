@@ -101,18 +101,12 @@ impl Scale {
 
     /// Returns true if the scale is diatonic or heptatonic (has 7 notes), or false if otherwise.
     pub fn is_diatonic(&self) -> bool {
-        if self.intervals.len() == 8 {
-            return true;
-        }
-        false
+        self.intervals.len() == 8
     }
 
     /// Returns true if the scale is pentatonic (has 5 notes), or false if otherwise.
     pub fn is_pentatonic(&self) -> bool {
-        if self.intervals.len() == 6 {
-            return true;
-        }
-        false
+        self.intervals.len() == 6
     }
 
     /// Returns a [`Result`] which can contain a [`Vec<Chord>`] consisting of the seven diatonic

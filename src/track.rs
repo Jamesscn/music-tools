@@ -169,6 +169,11 @@ impl Track {
         60000.0 / (self.tempo * self.ticks_per_quarter_note as f32)
     }
 
+    /// Resets the internal event tracker to the start of the track.
+    pub fn reset_tracker(&mut self) {
+        self.current_event = 0;
+    }
+
     /// Returns the track as a vector of tuples with a [`Note`] and a [`u64`] representing how many
     /// MIDI ticks the note plays for. This function assumes that the track is monophonic. If
     /// multiple events intersect then this function only considers the highest note and discards

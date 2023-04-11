@@ -264,7 +264,7 @@ impl WavetableOscillator {
     pub fn play_tracks(
         &mut self,
         channel_indexes: Vec<usize>,
-        tracks: Vec<Track>,
+        mut tracks: Vec<Track>,
     ) -> Result<(), AudioPlayError> {
         if tracks.len() == 0 {
             return Err(AudioPlayError {
@@ -286,9 +286,8 @@ impl WavetableOscillator {
             });
         }
         let sink = sink_result.unwrap();
-        let mut mut_tracks = tracks.clone();
         let mut pending_event_tuples: Vec<(Event, u64, usize)> = Vec::new();
-        for (track_index, track) in mut_tracks.iter_mut().enumerate() {
+        for (track_index, track) in &mut tracks.iter_mut().enumerate() {
             let first_event_option = track.get_next_event();
             if let Some(first_event) = first_event_option {
                 let event_tuple = (first_event, first_event.get_delta_ticks(), track_index);
@@ -310,7 +309,7 @@ impl WavetableOscillator {
                     } else {
                         self.stop_note(track_index, current_event.get_note());
                     }
-                    let next_event_option = mut_tracks[track_index].get_next_event();
+                    let next_event_option = &mut tracks[track_index].get_next_event();
                     if next_event_option.is_none() {
                         self.stop_all_notes(track_index);
                         continue 'track;
@@ -332,10 +331,13 @@ impl WavetableOscillator {
                 (tick_ms * (min_wait_ticks as f32)) as u64,
             ));
             sink.clear();
-            for event in next_event_tuples.iter_mut() {
+            for event in &mut next_event_tuples {
                 *event = (event.0, event.1 - min_wait_ticks, event.2);
             }
             pending_event_tuples = next_event_tuples;
+        }
+        for mut track in tracks {
+            track.reset_tracker();
         }
         Ok(())
     }
@@ -367,8 +369,7 @@ impl Iterator for WavetableOscillator {
 
     fn next(&mut self) -> Option<f32> {
         let mut sample = 0.0;
-        for voice_index in 0..self.voices.len() {
-            let voice = &mut self.voices[voice_index];
+        for voice in &mut self.voices {
             let channel = &self.channels[voice.get_channel_index()];
             let table_size = channel.get_wave_table_size();
             let current_index = voice.get_table_index() as usize;

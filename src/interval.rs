@@ -67,6 +67,8 @@ impl PartialEq for Interval {
     }
 }
 
+impl Eq for Interval {}
+
 impl PartialOrd for Interval {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.value.partial_cmp(&other.value)
@@ -139,6 +141,12 @@ impl Intervals {
         value: 7,
         full_name: Some("Perfect Fifth"),
         short_name: Some("P5"),
+    };
+    /// The interval between two notes separated by eight semitones.
+    pub const AUGMENTED_FIFTH: Interval = Interval {
+        value: 8,
+        full_name: Some("Augmented Fifth"),
+        short_name: Some("A5"),
     };
     /// The interval between two notes separated by eight semitones.
     pub const MINOR_SIXTH: Interval = Interval {

@@ -110,7 +110,7 @@ impl Note {
         let pitch_class_val = self.pitch_class.get_value() as isize + offset;
         Note {
             pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
-            octave: self.octave + pitch_class_val.div_floor(12isize) as i8,
+            octave: self.octave + pitch_class_val.div_floor(12) as i8,
             base_frequency: self.base_frequency,
         }
     }
@@ -120,7 +120,7 @@ impl Note {
         let pitch_class_val = self.pitch_class.get_value() as i8 + 1;
         Note {
             pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
-            octave: self.octave + pitch_class_val.div_floor(12i8),
+            octave: self.octave + pitch_class_val.div_floor(12),
             base_frequency: self.base_frequency,
         }
     }
@@ -130,7 +130,7 @@ impl Note {
         let pitch_class_val = self.pitch_class.get_value() as i8 - 1;
         Note {
             pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
-            octave: self.octave + pitch_class_val.div_floor(12i8),
+            octave: self.octave + pitch_class_val.div_floor(12),
             base_frequency: self.base_frequency,
         }
     }

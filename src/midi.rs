@@ -85,15 +85,11 @@ impl MIDI {
                 tracks.push(track);
             }
         }
-        let mut timed_tracks: Vec<Track> = Vec::new();
-        for mut track in tracks {
+        for track in &mut tracks {
             track.set_time_signature(time_signature);
             track.set_tempo(tempo);
-            timed_tracks.push(track);
         }
-        Ok(MIDI {
-            tracks: timed_tracks,
-        })
+        Ok(MIDI { tracks: tracks })
     }
 
     /// Exports a MIDI object to a MIDI file. The function returns a [`Result`] which can be an
@@ -104,7 +100,7 @@ impl MIDI {
     /// # Parameters
     ///
     /// - `file_path`: A string of the path to save the MIDI file to.
-    pub fn export_to_file(&self, file_path: &str) -> Result<(), InputError> {
+    pub fn export_to_file(&mut self, file_path: &str) -> Result<(), InputError> {
         let mut midi_object = Apres_MIDI::new();
         if self.tracks.is_empty() {
             return Err(InputError {
@@ -121,7 +117,7 @@ impl MIDI {
         midi_object.insert_event(0, 0, MIDIEvent::TimeSignature(midi_num, midi_denom, 24, 8));
         midi_object.insert_event(0, 0, MIDIEvent::SetTempo(us_per_quarter_note));
         let mut track_index = 1;
-        for mut track in self.tracks.clone() {
+        for track in &mut self.tracks {
             let mut current_tick = 0;
             while let Some(event) = track.get_next_event() {
                 let note_option = event.get_note().get_midi_index();
@@ -137,6 +133,7 @@ impl MIDI {
                 current_tick += event.get_delta_ticks() as usize;
                 midi_object.insert_event(track_index, current_tick, midi_event);
             }
+            track.reset_tracker();
             track_index += 1;
         }
         midi_object.save(file_path); // This function does not indicate if saving was successful!
