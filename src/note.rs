@@ -99,6 +99,42 @@ impl Note {
         })
     }
 
+    /// Returns a [`Note`] that is a certain offset away from the current note with the same base
+    /// frequency as the current note.
+    ///
+    /// # Parameters
+    ///
+    /// - `offset`: A signed integer representing the offset of the new note to return from the
+    /// current one.
+    pub fn at_offset(&self, offset: isize) -> Note {
+        let pitch_class_val = self.pitch_class.get_value() as isize + offset;
+        Note {
+            pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            octave: self.octave + pitch_class_val.div_floor(12isize) as i8,
+            base_frequency: self.base_frequency,
+        }
+    }
+
+    /// Returns the next [`Note`] after the current one.
+    pub fn next(&self) -> Note {
+        let pitch_class_val = self.pitch_class.get_value() as i8 + 1;
+        Note {
+            pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            octave: self.octave + pitch_class_val.div_floor(12i8),
+            base_frequency: self.base_frequency,
+        }
+    }
+
+    /// Returns the previous [`Note`] before the current one.
+    pub fn prev(&self) -> Note {
+        let pitch_class_val = self.pitch_class.get_value() as i8 - 1;
+        Note {
+            pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            octave: self.octave + pitch_class_val.div_floor(12i8),
+            base_frequency: self.base_frequency,
+        }
+    }
+
     /// Changes the reference frequency of A4 to a specific value for this note, which will affect
     /// the frequency of the pitch class and octave when calculated. The default value for this
     /// frequency is equal to 440 hertz.
