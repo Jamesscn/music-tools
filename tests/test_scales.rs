@@ -26,8 +26,8 @@ fn test_scale_notes() {
     ];
 
     for test_case in test_cases {
-        let output_vec: Vec<PitchClass> = test_case.0;
-        let expected_vec: Vec<PitchClass> = test_case
+        let output_vec: Vec<&'static PitchClass> = test_case.0;
+        let expected_vec: Vec<&'static PitchClass> = test_case
             .1
             .into_iter()
             .map(|x| PitchClass::from_name(x).unwrap())

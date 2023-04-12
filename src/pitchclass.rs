@@ -24,10 +24,10 @@ impl PitchClass {
     /// let a = PitchClass::from_name("A");
     /// let b_flat = PitchClass::from_name("Bb");
     /// ```
-    pub fn from_name(pitch_class_name: &str) -> Result<PitchClass, InputError> {
-        for pitch_class in PITCH_CLASSES {
+    pub fn from_name(pitch_class_name: &str) -> Result<&'static PitchClass, InputError> {
+        for pitch_class in &PITCH_CLASSES {
             for current_name in pitch_class.names {
-                if current_name == &pitch_class_name {
+                if *current_name == pitch_class_name {
                     return Ok(pitch_class);
                 }
             }
@@ -55,10 +55,10 @@ impl PitchClass {
     ///
     /// let g_flat = PitchClass::from_value(6);
     /// ```
-    pub fn from_value(value: u8) -> Result<PitchClass, InputError> {
+    pub fn from_value(value: u8) -> Result<&'static PitchClass, InputError> {
         let index = value as usize;
         if index < 12 {
-            return Ok(PITCH_CLASSES[index]);
+            return Ok(&PITCH_CLASSES[index]);
         }
         Err(InputError {
             message: "the value provided must be an integer between 0 and 11",
@@ -82,8 +82,8 @@ impl PitchClass {
     /// let c = PitchClasses::A.get_offset(2);
     /// let f = PitchClasses::A.get_offset(-2);
     /// ```
-    pub fn get_offset(&self, offset: i8) -> PitchClass {
-        PITCH_CLASSES[(self.value as i8 + (offset % 12)).rem_euclid(12) as usize]
+    pub fn get_offset(&self, offset: i8) -> &'static PitchClass {
+        &PITCH_CLASSES[(self.value as i8 + (offset % 12)).rem_euclid(12) as usize]
     }
 
     /// Obtains a numeric value from 0 to 11 representing the pitch class, where 0 corresponds to
@@ -112,50 +112,50 @@ impl PitchClasses {
     // Real pitch classes
 
     /// The pitch class for C.
-    pub const C: PitchClass = PITCH_CLASSES[0];
+    pub const C: &'static PitchClass = &PITCH_CLASSES[0];
     /// The pitch class for C sharp, which is equal to D flat.
-    pub const C_SHARP: PitchClass = PITCH_CLASSES[1];
+    pub const C_SHARP: &'static PitchClass = &PITCH_CLASSES[1];
     /// The pitch class for D flat, which is equal to C sharp.
-    pub const D_FLAT: PitchClass = PITCH_CLASSES[1];
+    pub const D_FLAT: &'static PitchClass = &PITCH_CLASSES[1];
     /// The pitch class for D.
-    pub const D: PitchClass = PITCH_CLASSES[2];
+    pub const D: &'static PitchClass = &PITCH_CLASSES[2];
     /// The pitch class for D sharp, which is equal to E flat.
-    pub const D_SHARP: PitchClass = PITCH_CLASSES[3];
+    pub const D_SHARP: &'static PitchClass = &PITCH_CLASSES[3];
     /// The pitch class for E flat, which is equal to D sharp.
-    pub const E_FLAT: PitchClass = PITCH_CLASSES[3];
+    pub const E_FLAT: &'static PitchClass = &PITCH_CLASSES[3];
     /// The pitch class for E.
-    pub const E: PitchClass = PITCH_CLASSES[4];
+    pub const E: &'static PitchClass = &PITCH_CLASSES[4];
     /// The pitch class for F.
-    pub const F: PitchClass = PITCH_CLASSES[5];
+    pub const F: &'static PitchClass = &PITCH_CLASSES[5];
     /// The pitch class for F sharp, which is equal to G flat.
-    pub const F_SHARP: PitchClass = PITCH_CLASSES[6];
+    pub const F_SHARP: &'static PitchClass = &PITCH_CLASSES[6];
     /// The pitch class for G flat, which is equal to F sharp.
-    pub const G_FLAT: PitchClass = PITCH_CLASSES[6];
+    pub const G_FLAT: &'static PitchClass = &PITCH_CLASSES[6];
     /// The pitch class for G.
-    pub const G: PitchClass = PITCH_CLASSES[7];
+    pub const G: &'static PitchClass = &PITCH_CLASSES[7];
     /// The pitch class for G sharp, which is equal to A flat.
-    pub const G_SHARP: PitchClass = PITCH_CLASSES[8];
+    pub const G_SHARP: &'static PitchClass = &PITCH_CLASSES[8];
     /// The pitch class for A flat, which is equal to G sharp.
-    pub const A_FLAT: PitchClass = PITCH_CLASSES[8];
+    pub const A_FLAT: &'static PitchClass = &PITCH_CLASSES[8];
     /// The pitch class for A.
-    pub const A: PitchClass = PITCH_CLASSES[9];
+    pub const A: &'static PitchClass = &PITCH_CLASSES[9];
     /// The pitch class for A sharp, which is equal to B flat.
-    pub const A_SHARP: PitchClass = PITCH_CLASSES[10];
+    pub const A_SHARP: &'static PitchClass = &PITCH_CLASSES[10];
     /// The pitch class for B flat, which is equal to A sharp.
-    pub const B_FLAT: PitchClass = PITCH_CLASSES[10];
+    pub const B_FLAT: &'static PitchClass = &PITCH_CLASSES[10];
     /// The pitch class for B.
-    pub const B: PitchClass = PITCH_CLASSES[11];
+    pub const B: &'static PitchClass = &PITCH_CLASSES[11];
 
     // Theoretical pitch classes
 
     /// The theoretical pitch class for B sharp, which is equal to C.
-    pub const B_SHARP: PitchClass = PITCH_CLASSES[0];
+    pub const B_SHARP: &'static PitchClass = &PITCH_CLASSES[0];
     /// The theoretical pitch class for F flat, which is equal to E.
-    pub const F_FLAT: PitchClass = PITCH_CLASSES[4];
+    pub const F_FLAT: &'static PitchClass = &PITCH_CLASSES[4];
     /// The theoretical pitch class for E sharp, which is equal to F.
-    pub const E_SHARP: PitchClass = PITCH_CLASSES[5];
+    pub const E_SHARP: &'static PitchClass = &PITCH_CLASSES[5];
     /// The theoretical pitch class for C flat, which is equal to B.
-    pub const C_FLAT: PitchClass = PITCH_CLASSES[11];
+    pub const C_FLAT: &'static PitchClass = &PITCH_CLASSES[11];
 }
 
 const PITCH_CLASSES: [PitchClass; 12] = [

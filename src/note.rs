@@ -5,7 +5,7 @@ use regex::Regex;
 /// A structure which is used to represent a note with a pitch class and an octave or frequency.
 #[derive(Copy, Clone, Debug)]
 pub struct Note {
-    pitch_class: PitchClass,
+    pitch_class: &'static PitchClass,
     octave: i8,
     base_frequency: f32,
 }
@@ -29,7 +29,7 @@ impl Note {
     /// let b = Note::from(PitchClasses::B_FLAT, 4);
     /// let c = Note::from(PitchClasses::C, 3);
     /// ```
-    pub fn from(pitch_class: PitchClass, octave: i8) -> Note {
+    pub fn from(pitch_class: &'static PitchClass, octave: i8) -> Note {
         Note {
             pitch_class,
             octave,
@@ -192,7 +192,7 @@ impl Note {
     }
 
     /// Returns a [`PitchClass`] representing the pitch class of the note.
-    pub fn get_pitch_class(&self) -> PitchClass {
+    pub fn get_pitch_class(&self) -> &'static PitchClass {
         self.pitch_class
     }
 

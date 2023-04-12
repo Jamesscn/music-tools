@@ -11,7 +11,7 @@ use regex::Regex;
 #[derive(Clone, Debug)]
 pub struct Chord {
     intervals: Vec<Interval>,
-    tonic: Option<PitchClass>,
+    tonic: Option<&'static PitchClass>,
     octave: Option<i8>,
     inversion: usize,
 }
@@ -38,7 +38,7 @@ impl Chord {
     /// let g_unison_chord = Chord::new(Some(PitchClasses::G), None);
     /// let g5_unison_chord = Chord::new(Some(PitchClasses::G), Some(5));
     /// ```
-    pub fn new(tonic: Option<PitchClass>, octave: Option<i8>) -> Chord {
+    pub fn new(tonic: Option<&'static PitchClass>, octave: Option<i8>) -> Chord {
         Chord {
             intervals: Vec::from([Intervals::PERFECT_UNISON]),
             tonic,
@@ -93,7 +93,7 @@ impl Chord {
     /// ```
     pub fn from_triad(
         triad_quality: TriadQuality,
-        tonic: Option<PitchClass>,
+        tonic: Option<&'static PitchClass>,
         octave: Option<i8>,
     ) -> Chord {
         let intervals: Vec<Interval> = match triad_quality {
@@ -196,7 +196,7 @@ impl Chord {
     /// ```
     pub fn from_numeral(
         input_numeral: &str,
-        tonic: PitchClass,
+        tonic: &'static PitchClass,
         octave: Option<i8>,
     ) -> Result<Chord, InputError> {
         let numeral_array = ["I", "II", "III", "IV", "V", "VI", "VII"];
@@ -330,6 +330,7 @@ impl Chord {
     /// Returns a vector of [`Interval`] objects representing the intervals of the current chord
     /// with the inversion of the chord applied.
     pub fn get_intervals(&self) -> Vec<Interval> {
+        let mut intervals: Vec<Interval> = Vec::new();
         let mut values: Vec<u8> = Vec::new();
         let first_half_octave_offset = self.intervals[self.inversion].get_value() as i8 / 12;
         for index in self.inversion..self.intervals.len() {
@@ -343,7 +344,6 @@ impl Chord {
                 (self.intervals[index].get_value() as i8 + 12 * second_half_octave_offset) as u8,
             );
         }
-        let mut intervals: Vec<Interval> = Vec::new();
         for value in values {
             intervals.push(Interval::from(value));
         }
@@ -396,13 +396,13 @@ impl Chord {
     ///
     /// - `tonic`: An [`Option<PitchClass>`] which will represent the new tonic of the current
     ///   chord.
-    pub fn set_tonic(&mut self, tonic: Option<PitchClass>) {
+    pub fn set_tonic(&mut self, tonic: Option<&'static PitchClass>) {
         self.tonic = tonic;
     }
 
     /// Returns an [`Option<PitchClass>`] which can be [`None`] if the chord has no tonic pitch
     /// class, or otherwise the pitch class of the tonic.
-    pub fn get_tonic(&self) -> Option<PitchClass> {
+    pub fn get_tonic(&self) -> Option<&'static PitchClass> {
         self.tonic
     }
 
@@ -449,8 +449,7 @@ impl Chord {
             });
         }
         let mut notes: Vec<Note> = Vec::new();
-        let intervals = self.get_intervals();
-        for interval in intervals {
+        for interval in self.get_intervals() {
             let current_octave = self.octave.unwrap()
                 + ((self.tonic.unwrap().get_value() + interval.get_value()) / 12) as i8;
             let current_semitone = interval.get_value() % 12;
@@ -466,7 +465,7 @@ impl Chord {
     /// the chord is [`None`]. Note that this representation of a chord is not optimal because it
     /// makes it impossible to tell the difference between an interval less than an octave and any
     /// interval larger than an octave.
-    pub fn to_pitch_classes(&self) -> Result<Vec<PitchClass>, IncompleteChordError> {
+    pub fn to_pitch_classes(&self) -> Result<Vec<&'static PitchClass>, IncompleteChordError> {
         if self.tonic.is_none() {
             return Err(IncompleteChordError {
                 needs_tonic: true,
@@ -475,7 +474,7 @@ impl Chord {
                 has_octave: self.octave.is_some(),
             });
         }
-        let mut pitch_classes: Vec<PitchClass> = Vec::new();
+        let mut pitch_classes: Vec<&'static PitchClass> = Vec::new();
         let intervals = self.get_intervals();
         for interval in intervals {
             let current_semitone = interval.get_value() % 12;
