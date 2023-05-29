@@ -14,4 +14,4 @@ keywords = ["music", "musictheory", "harmony", "audio", "sound"]
 [dependencies]
 apres = "0.3.4"
 rodio = "0.17.1"
-regex = "1.8.1"
+regex = "1.8.3"
