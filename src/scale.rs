@@ -61,7 +61,7 @@ impl Scale {
         };
         let mut intervals: Vec<Interval> = Vec::new();
         for interval_value in scale_intervals {
-            intervals.push(Interval::from(interval_value));
+            intervals.push(Interval::from_value(interval_value));
         }
         if pentatonic != PentatonicType::None && intervals.len() != 8 {
             return Err(InputError {

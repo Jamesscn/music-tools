@@ -1,4 +1,4 @@
-use music_tools::audio::{Waveforms, WavetableOscillator};
+use music_tools::audio::AudioPlayer;
 use music_tools::midi::MIDI;
 use std::io::{self, Write};
 
@@ -16,17 +16,7 @@ fn main() {
     if num_tracks == 0 {
         println!("The MIDI file has no tracks or notes in it!");
     } else {
-        //The oscillator that will play the midi file is created
-        let mut oscillator = WavetableOscillator::new();
-
-        //All notes of the midi file will be played as square waves
-        let square_wave_channel = oscillator.add_channel(Waveforms::SQUARE_WAVE, 1.0);
-        let mut channels: Vec<usize> = Vec::new();
-        channels.resize(num_tracks, square_wave_channel);
-
-        //The midi file is played if it is valid
-        oscillator
-            .play_midi(channels, midi)
-            .expect("Could not play the input midi!");
+        let player = AudioPlayer::new().unwrap();
+        player.play_midi(midi);
     }
 }

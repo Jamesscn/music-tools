@@ -1,10 +1,10 @@
-use music_tools::audio::{Waveforms, WavetableOscillator};
-use music_tools::common::{Beat, Fraction};
+use music_tools::audio::AudioPlayer;
+use music_tools::common::Beat;
 use music_tools::note::Note;
-use music_tools::track::Track;
 
 fn main() {
-    let mut track = Track::new(160.0, Fraction::new(5, 4));
+    let mut player = AudioPlayer::new().unwrap();
+    player.set_tempo(160.0);
     let beats = [
         Beat::QUARTER_DOTTED,
         Beat::QUARTER_DOTTED,
@@ -15,11 +15,6 @@ fn main() {
     for index in 0..16 {
         let note = Note::from_string(note_names[index % note_names.len()]).unwrap();
         let duration = beats[index % beats.len()];
-        track.add_note(note, duration);
+        player.play_note(note, duration);
     }
-    let mut oscillator = WavetableOscillator::new();
-    let square_wave_channel = oscillator.add_channel(Waveforms::SQUARE_WAVE, 1.0);
-    oscillator
-        .play_tracks(vec![square_wave_channel], vec![track])
-        .expect("Could not play the example melody!");
 }

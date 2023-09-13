@@ -47,6 +47,15 @@ impl Chord {
         }
     }
 
+    pub fn from_note(note: Note) -> Chord {
+        Chord {
+            intervals: Vec::from([Intervals::PERFECT_UNISON]),
+            tonic: Some(note.get_pitch_class()),
+            octave: Some(note.get_octave()),
+            inversion: 0,
+        }
+    }
+
     /// Constructs a chord from a triad with a specific quality.
     ///
     /// # Parameters
@@ -345,7 +354,7 @@ impl Chord {
             );
         }
         for value in values {
-            intervals.push(Interval::from(value));
+            intervals.push(Interval::from_value(value));
         }
         intervals
     }

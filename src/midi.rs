@@ -35,7 +35,7 @@ impl MIDI {
         let ticks_per_quarter_note = midi_object.get_ppqn();
         let midi_tracks = midi_object.get_tracks();
         let mut tracks: Vec<Track> = Vec::new();
-        let mut tempo: f32 = 0.0;
+        let mut tempo: f32 = 120.0;
         let mut time_signature: Fraction = Fraction::new(4, 4);
         for midi_track_info in midi_tracks {
             let mut track = Track::new_with_ticks(tempo, time_signature, ticks_per_quarter_note);
@@ -89,7 +89,7 @@ impl MIDI {
             track.set_time_signature(time_signature);
             track.set_tempo(tempo);
         }
-        Ok(MIDI { tracks: tracks })
+        Ok(MIDI { tracks })
     }
 
     /// Exports a MIDI object to a MIDI file. The function returns a [`Result`] which can be an

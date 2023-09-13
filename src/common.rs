@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt;
+use std::time::Duration;
 
 /// A structure which is used to hold the exact representation of a fraction. Fractions are used in
 /// this library to precisely represent time signatures and the durations of beats. These fractions
@@ -138,6 +139,24 @@ impl Beat {
     pub const SIXTEENTH_DOTTED: Beat = Beat::new(3, 32);
     /// The duration corresponding to a dotted thirty-second note.
     pub const THIRTYSECOND_DOTTED: Beat = Beat::new(3, 64);
+}
+
+/// A trait that defines a structure with a time duration for playing audio.
+pub trait AudioDuration {
+    /// A [`Duration`] representing the duration of time.
+    fn get_duration(&self, tempo: f32) -> Duration;
+}
+
+impl AudioDuration for Beat {
+    fn get_duration(&self, tempo: f32) -> Duration {
+        Duration::from_millis((60000.0 * 4.0 * self.get_as_float() / tempo) as u64)
+    }
+}
+
+impl AudioDuration for Duration {
+    fn get_duration(&self, tempo: f32) -> Duration {
+        *self
+    }
 }
 
 /// This enum contains representations for the different modes or types of musical scales that can
