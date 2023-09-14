@@ -1,8 +1,13 @@
 use crate::chord::Chord;
-use crate::common::{AudioDuration, AudioPlayError, IncompleteChordError};
+use crate::common::{ArpeggioDirection, AudioDuration, AudioPlayError};
+use crate::interval::Interval;
 use crate::midi::MIDI;
 use crate::note::Note;
+use crate::pitchclass::{PitchClass, PitchClasses};
+use crate::scale::Scale;
 use crate::track::Event;
+use rand::distributions::Uniform;
+use rand::prelude::Distribution;
 use rodio::{OutputStream, Sink, Source};
 use std::cmp::min;
 use std::time::Duration;
@@ -254,10 +259,24 @@ pub struct AudioPlayer {
     tempo: Option<f32>,
     sink: Sink,
     _stream: OutputStream,
+    oscillator: WavetableOscillator,
+    wavetable_index: usize,
 }
 
 impl AudioPlayer {
     pub fn new() -> Result<AudioPlayer, AudioPlayError> {
+        let mut oscillator = WavetableOscillator::empty();
+        let wavetable_index = oscillator.add_wavetable_from_function(
+            Waveforms::SINE_WAVE,
+            1.0,
+            DEFAULT_WAVETABLE_SIZE,
+        );
+        Self::new_from_wavetable(oscillator)
+    }
+
+    pub fn new_from_wavetable(
+        oscillator: WavetableOscillator,
+    ) -> Result<AudioPlayer, AudioPlayError> {
         let stream_result = OutputStream::try_default();
         if stream_result.is_err() {
             return Err(AudioPlayError {
@@ -275,7 +294,13 @@ impl AudioPlayer {
             tempo: None,
             sink: sink_result.unwrap(),
             _stream,
+            oscillator,
+            wavetable_index: 0,
         })
+    }
+
+    pub fn set_wavetable_index(&mut self, wavetable_index: usize) {
+        self.wavetable_index = wavetable_index;
     }
 
     pub fn set_tempo(&mut self, tempo: f32) {
@@ -286,70 +311,73 @@ impl AudioPlayer {
         self.tempo = None;
     }
 
-    pub fn play_note(&self, note: Note, duration: impl AudioDuration) {
-        let mut oscillator = WavetableOscillator::empty();
-        let wavetable_index = oscillator.add_wavetable_from_function(
-            Waveforms::SINE_WAVE,
-            1.0,
-            DEFAULT_WAVETABLE_SIZE,
-        );
-        let voice_index = oscillator.add_voice(wavetable_index, note.get_frequency());
-        oscillator.start_voice(voice_index);
-        self.sink.append(oscillator);
+    pub fn play(&mut self, playable: impl Playable, duration: impl AudioDuration) {
+        for frequency in playable.get_frequencies() {
+            let voice_index = self.oscillator.add_voice(self.wavetable_index, frequency);
+            self.oscillator.start_voice(voice_index);
+        }
+        self.sink.append(self.oscillator.clone());
         self.sink.play();
         std::thread::sleep(duration.get_duration(self.tempo.unwrap_or(120.0)));
         self.sink.clear();
+        self.oscillator.clear_voices();
     }
 
-    pub fn play_chord(
-        &self,
-        chord: Chord,
+    pub fn arpeggiate(
+        &mut self,
+        playable: impl Playable,
         duration: impl AudioDuration,
-    ) -> Result<(), IncompleteChordError> {
-        let notes = chord.to_notes()?;
-        let mut oscillator = WavetableOscillator::empty();
-        let wavetable_index = oscillator.add_wavetable_from_function(
-            Waveforms::SINE_WAVE,
-            1.0,
-            DEFAULT_WAVETABLE_SIZE,
-        );
-        for note in notes {
-            let voice_index = oscillator.add_voice(wavetable_index, note.get_frequency());
-            oscillator.start_voice(voice_index);
+        direction: ArpeggioDirection,
+        repetitions: usize,
+    ) {
+        let frequencies = playable.get_frequencies();
+        if frequencies.len() == 0 {
+            return;
         }
-        self.sink.append(oscillator);
-        self.sink.play();
-        std::thread::sleep(duration.get_duration(self.tempo.unwrap_or(120.0)));
-        self.sink.clear();
-        Ok(())
+        let mut rng = rand::thread_rng();
+        let distribution = Uniform::from(0..frequencies.len());
+        let mut updown_ascending: bool = true;
+        let mut current_index = match direction {
+            ArpeggioDirection::Up => 0,
+            ArpeggioDirection::Down => frequencies.len() - 1,
+            ArpeggioDirection::UpDown => 0,
+            ArpeggioDirection::Random => distribution.sample(&mut rng),
+        };
+        for _ in 0..repetitions {
+            let voice_index = self
+                .oscillator
+                .add_voice(self.wavetable_index, frequencies[current_index]);
+            self.oscillator.start_voice(voice_index);
+            self.sink.append(self.oscillator.clone());
+            self.sink.play();
+            std::thread::sleep(duration.get_duration(self.tempo.unwrap_or(120.0)));
+            self.sink.clear();
+            self.oscillator.clear_voices();
+            current_index = match direction {
+                ArpeggioDirection::Up => (current_index + 1).rem_euclid(frequencies.len()),
+                ArpeggioDirection::Down => {
+                    (current_index as isize - 1).rem_euclid(frequencies.len() as isize) as usize
+                }
+                ArpeggioDirection::UpDown => match updown_ascending {
+                    true => (current_index + 1).rem_euclid(frequencies.len()),
+                    false => {
+                        (current_index as isize - 1).rem_euclid(frequencies.len() as isize) as usize
+                    }
+                },
+                ArpeggioDirection::Random => distribution.sample(&mut rng),
+            };
+            if !updown_ascending && current_index == 0 {
+                updown_ascending = true;
+            }
+            if updown_ascending && current_index == frequencies.len() - 1 {
+                updown_ascending = false;
+            }
+        }
     }
 
-    pub fn play_frequencies(&self, frequencies: Vec<f32>, duration: impl AudioDuration) {
-        let mut oscillator = WavetableOscillator::empty();
-        let wavetable_index = oscillator.add_wavetable_from_function(
-            Waveforms::SINE_WAVE,
-            1.0,
-            DEFAULT_WAVETABLE_SIZE,
-        );
-        for frequency in frequencies {
-            let voice_index = oscillator.add_voice(wavetable_index, frequency);
-            oscillator.start_voice(voice_index);
-        }
-        self.sink.append(oscillator);
-        self.sink.play();
-        std::thread::sleep(duration.get_duration(self.tempo.unwrap_or(120.0)));
-        self.sink.clear();
-    }
-
-    pub fn play_midi(&self, midi: MIDI) {
+    pub fn play_midi(&mut self, midi: MIDI) {
         let tick_ms = midi.get_tracks()[0].get_tick_duration();
         let mut tracks = midi.get_tracks();
-        let mut oscillator = WavetableOscillator::empty();
-        let wavetable_index = oscillator.add_wavetable_from_function(
-            Waveforms::SINE_WAVE,
-            1.0,
-            DEFAULT_WAVETABLE_SIZE,
-        );
         let mut pending_event_tuples: Vec<(Event, u64, usize)> = Vec::new();
         for (track_index, track) in &mut tracks.iter_mut().enumerate() {
             let first_event_option = track.get_next_event();
@@ -368,15 +396,18 @@ impl AudioPlayer {
                 let track_index = event_tuple.2;
                 while wait_time == 0 {
                     if current_event.is_active() {
-                        let voice_index = oscillator
-                            .add_voice(wavetable_index, current_event.get_note().get_frequency());
-                        oscillator.start_voice(voice_index)
+                        let voice_index = self.oscillator.add_voice(
+                            self.wavetable_index,
+                            current_event.get_note().get_frequency(),
+                        );
+                        self.oscillator.start_voice(voice_index)
                     } else {
-                        oscillator.stop_frequency(current_event.get_note().get_frequency());
+                        self.oscillator
+                            .stop_frequency(current_event.get_note().get_frequency());
                     }
                     let next_event_option = &mut tracks[track_index].get_next_event();
                     if next_event_option.is_none() {
-                        oscillator.clear_voices();
+                        self.oscillator.clear_voices();
                         continue 'track;
                     }
                     let next_event = next_event_option.unwrap();
@@ -389,7 +420,7 @@ impl AudioPlayer {
             if next_event_tuples.is_empty() {
                 break;
             }
-            self.sink.append(oscillator.clone());
+            self.sink.append(self.oscillator.clone());
             self.sink.play();
             std::thread::sleep(Duration::from_millis(
                 (tick_ms * (min_wait_ticks as f32)) as u64,
@@ -407,6 +438,73 @@ impl AudioPlayer {
 
     pub fn rest(&self, duration: impl AudioDuration) {
         std::thread::sleep(duration.get_duration(self.tempo.unwrap_or(120.0)));
+    }
+}
+
+pub trait Playable {
+    fn get_frequencies(&self) -> Vec<f32>;
+}
+
+impl Playable for f32 {
+    fn get_frequencies(&self) -> Vec<f32> {
+        vec![*self]
+    }
+}
+
+impl Playable for Vec<f32> {
+    fn get_frequencies(&self) -> Vec<f32> {
+        self.clone()
+    }
+}
+
+impl Playable for Note {
+    fn get_frequencies(&self) -> Vec<f32> {
+        vec![self.get_frequency()]
+    }
+}
+
+impl Playable for Chord {
+    fn get_frequencies(&self) -> Vec<f32> {
+        let mut chord = self.clone();
+        //If the chord is missing data, middle C is chosen as the tonic
+        if chord.get_tonic().is_none() {
+            chord.set_tonic(Some(PitchClasses::C));
+        }
+        if chord.get_octave().is_none() {
+            chord.set_octave(Some(4));
+        }
+        let notes = chord.to_notes().unwrap();
+        let mut frequencies: Vec<f32> = Vec::new();
+        for note in notes {
+            frequencies.push(note.get_frequency());
+        }
+        frequencies
+    }
+}
+
+impl Playable for Interval {
+    fn get_frequencies(&self) -> Vec<f32> {
+        let tonic = Note::from(PitchClasses::C, 4);
+        let interval_note = tonic.at_offset(self.get_value() as isize);
+        vec![tonic.get_frequency(), interval_note.get_frequency()]
+    }
+}
+
+impl Playable for &'static PitchClass {
+    fn get_frequencies(&self) -> Vec<f32> {
+        let note = Note::from(self, 4);
+        vec![note.get_frequency()]
+    }
+}
+
+impl Playable for Scale {
+    fn get_frequencies(&self) -> Vec<f32> {
+        let notes = self.to_notes(PitchClasses::C, 4);
+        let mut frequencies: Vec<f32> = Vec::new();
+        for note in notes {
+            frequencies.push(note.get_frequency());
+        }
+        frequencies
     }
 }
 

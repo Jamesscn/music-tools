@@ -16,7 +16,7 @@ fn main() {
     if num_tracks == 0 {
         println!("The MIDI file has no tracks or notes in it!");
     } else {
-        let player = AudioPlayer::new().unwrap();
+        let mut player = AudioPlayer::new().unwrap();
         player.play_midi(midi);
     }
 }

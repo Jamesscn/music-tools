@@ -250,6 +250,14 @@ pub enum PentatonicType {
     Minor,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum ArpeggioDirection {
+    Up,
+    Down,
+    UpDown,
+    Random,
+}
+
 /// An error which is returned when a function receives an input that was not in the expected
 /// format.
 #[derive(Debug)]

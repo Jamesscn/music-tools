@@ -15,6 +15,6 @@ fn main() {
     for index in 0..16 {
         let note = Note::from_string(note_names[index % note_names.len()]).unwrap();
         let duration = beats[index % beats.len()];
-        player.play_note(note, duration);
+        player.play(note, duration);
     }
 }
