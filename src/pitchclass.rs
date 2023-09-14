@@ -44,9 +44,6 @@ impl PitchClass {
     /// # Parameters
     ///
     /// - `value`: An integer from 0 to 11 representing the [`PitchClass`] to return.
-    /// - `prefer_flats`: A boolean which indicates whether the function should return the flat
-    ///   version of the pitch class or the sharp version depending on the note. For example, if
-    ///   this is set to true then the function would prefer to return A flat instead of G sharp.
     ///
     /// # Examples
     ///
@@ -70,9 +67,6 @@ impl PitchClass {
     /// # Parameters
     ///
     /// - `offset`: The offset of the pitch class to return with respect to the current pitch class.
-    /// - `prefer_flats`: A boolean which indicates whether the function should return the flat
-    ///   version of the pitch class or the sharp version depending on the note. For example, if
-    ///   this is set to true then the function would prefer to return A flat instead of G sharp.
     ///
     /// # Examples
     ///

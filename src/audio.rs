@@ -15,8 +15,7 @@ use std::time::Duration;
 const DEFAULT_WAVETABLE_SIZE: usize = 128;
 
 /**
- * A structure used to play a specific wavetable at a specific frequency. These voices are meant
- * to play their frequency as long as they exist.
+ * A structure used to play a specific wavetable at a specific frequency.
  */
 #[derive(Copy, Clone)]
 struct WavetableVoice {
@@ -89,16 +88,14 @@ impl WavetableVoice {
 /// # Examples
 ///
 /// ```rust
+/// use music_tools::audio::{AudioPlayer, Waveforms, WavetableOscillator};
+/// use music_tools::common::Beat;
 /// use music_tools::note::Note;
-/// use music_tools::track::Track;
-/// use music_tools::common::{Fraction, Beat};
-/// use music_tools::audio::{WavetableOscillator, Waveforms};
 ///
-/// let mut oscillator = WavetableOscillator::new();
-/// let square_wave_channel = oscillator.add_channel(Waveforms::SQUARE_WAVE, 1.0);
-/// let mut track = Track::new(120.0, Fraction::new(4, 4));
-/// track.add_note(Note::from_string("A4").unwrap(), Beat::WHOLE);
-/// oscillator.play_single_track(square_wave_channel, track);
+/// let mut oscillator = WavetableOscillator::empty();
+/// let square_table = oscillator.add_wavetable_from_function(Waveforms::SQUARE_WAVE, 1.0, 128);
+/// let mut player = AudioPlayer::new_from_wavetable(oscillator).unwrap();
+/// player.play(Note::from_string("A4").unwrap(), Beat::WHOLE);
 /// ```
 #[derive(Clone)]
 pub struct WavetableOscillator {
@@ -128,7 +125,13 @@ impl WavetableOscillator {
     }
 
     /// Creates a new wavetable given a [`Vec<f32>`] containing the audio signal with values between
-    /// -1 and 1.
+    /// -1 and 1. All values outside this range are clamped. The function returns a [`usize`] which
+    /// is the index of the stored wavetable, it can be used to reference or play the wavetable
+    /// later.
+    ///
+    /// # Parameters
+    ///
+    /// - `wavetable`: The vector containing the audio signal to store as the wavetable.
     pub fn add_wavetable_from_vec(&mut self, wavetable: Vec<f32>) -> usize {
         let mut clamped_wavetable = Vec::with_capacity(wavetable.len());
         for value in wavetable {
@@ -139,17 +142,20 @@ impl WavetableOscillator {
     }
 
     /// Creates a new wavetable given a function of the height of the audio signal between -1 and 1
-    /// with respect to time, returning the index of this new wavetable.
+    /// with respect to time, returning the index of this new wavetable. All values outside this
+    /// range are clamped. The function returns a [`usize`] which is the index of the stored
+    /// wavetable, it can be used to reference or play the wavetable later.
     ///
     /// # Parameters
     ///
     /// - `wave_function`: The function used to generate the shape of the wave that will be played
-    ///   by the new wavetable. It must recieve a parameter of type [`f32`] representing the time
+    ///   by the new wavetable. It must receive a parameter of type [`f32`] representing the time
     ///   value of the wave between 0 and `max_time`, and it must return an [`f32`] representing the
     ///   height of the wave at that time between -1 and 1.
     /// - `max_time`: This parameter scales the time variable that is passed to `wave_function`.
     /// - `wavetable_size`: The amount of points to store in the wavetable. The higher this value,
-    /// the higher the quality of the signal.
+    /// the higher the quality of the signal at the cost of a higher memory consumption. A value of
+    /// 128 is recommended.
     pub fn add_wavetable_from_function(
         &mut self,
         wave_function: fn(f32) -> f32,
@@ -266,11 +272,7 @@ pub struct AudioPlayer {
 impl AudioPlayer {
     pub fn new() -> Result<AudioPlayer, AudioPlayError> {
         let mut oscillator = WavetableOscillator::empty();
-        let wavetable_index = oscillator.add_wavetable_from_function(
-            Waveforms::SINE_WAVE,
-            1.0,
-            DEFAULT_WAVETABLE_SIZE,
-        );
+        oscillator.add_wavetable_from_function(Waveforms::SINE_WAVE, 1.0, DEFAULT_WAVETABLE_SIZE);
         Self::new_from_wavetable(oscillator)
     }
 
@@ -331,7 +333,7 @@ impl AudioPlayer {
         repetitions: usize,
     ) {
         let frequencies = playable.get_frequencies();
-        if frequencies.len() == 0 {
+        if frequencies.is_empty() {
             return;
         }
         let mut rng = rand::thread_rng();

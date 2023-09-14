@@ -6,8 +6,8 @@ use regex::Regex;
 
 /// A structure which holds a chord, which is a group of consecutive intervals with a given
 /// inversion. A chord can optionally have a tonic which will define the pitch classes of each of
-/// the notes in the chord, and also an octave which will define the octaves of these pitch classes,
-/// or neither of these attributes.
+/// the notes in the chord, and optionally also an octave which will define the octaves of these
+/// pitch classes.
 #[derive(Clone, Debug)]
 pub struct Chord {
     intervals: Vec<Interval>,
@@ -312,7 +312,7 @@ impl Chord {
     /// # Examples
     ///
     /// The following example demonstrates adding a minor seventh to a major triad with no
-    /// particular pitch classes or octaves.
+    /// particular pitch classes or octaves assigned to the chord.
     ///
     /// ```rust
     /// use music_tools::chord::Chord;

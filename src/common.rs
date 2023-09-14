@@ -154,7 +154,7 @@ impl AudioDuration for Beat {
 }
 
 impl AudioDuration for Duration {
-    fn get_duration(&self, tempo: f32) -> Duration {
+    fn get_duration(&self, #[allow(unused_variables)] tempo: f32) -> Duration {
         *self
     }
 }
@@ -276,7 +276,7 @@ impl fmt::Display for InputError {
 /// An error which is returned when audio could not be played.
 #[derive(Debug)]
 pub struct AudioPlayError {
-    /// A more specific message that explains the reason why the audio could not be played.
+    /// A more specific message that explains why specific audio could not be played.
     pub message: &'static str,
 }
 
