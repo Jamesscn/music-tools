@@ -102,6 +102,7 @@ pub struct WavetableOscillator {
     wavetables: Vec<Vec<f32>>,
     voices: Vec<WavetableVoice>,
     sample_rate: u32,
+    volume: f32,
 }
 
 impl WavetableOscillator {
@@ -111,6 +112,7 @@ impl WavetableOscillator {
             wavetables: Vec::new(),
             voices: Vec::new(),
             sample_rate: 44100,
+            volume: 0.2,
         }
     }
 
@@ -122,6 +124,10 @@ impl WavetableOscillator {
     ///   hertz.
     pub fn set_sample_rate(&mut self, sample_rate: u32) {
         self.sample_rate = sample_rate;
+    }
+
+    pub fn set_volume(&mut self, volume: f32) {
+        self.volume = volume;
     }
 
     /// Creates a new wavetable given a [`Vec<f32>`] containing the audio signal with values between
@@ -224,6 +230,7 @@ impl Iterator for WavetableOscillator {
 
     fn next(&mut self) -> Option<f32> {
         let mut sample = 0.0;
+        let mut active_voices = 0;
         for voice in &mut self.voices {
             if !voice.is_playing() {
                 continue;
@@ -236,9 +243,11 @@ impl Iterator for WavetableOscillator {
             let current_value = self.wavetables[wavetable_index][current_index];
             let next_value = self.wavetables[wavetable_index][next_index];
             let lerp_value = current_value + lerp_frac * (next_value - current_value);
-            sample += lerp_value * 0.2;
+            sample += lerp_value;
+            active_voices += 1;
             voice.add_delta_time(table_size, self.sample_rate);
         }
+        sample = (sample * self.volume / (active_voices as f32).sqrt()).clamp(-1.0, 1.0);
         Some(sample)
     }
 }
