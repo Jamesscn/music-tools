@@ -127,7 +127,7 @@ impl WavetableOscillator {
     }
 
     pub fn set_volume(&mut self, volume: f32) {
-        self.volume = volume;
+        self.volume = volume.clamp(0.0, 1.0);
     }
 
     /// Creates a new wavetable given a [`Vec<f32>`] containing the audio signal with values between
@@ -312,6 +312,10 @@ impl AudioPlayer {
 
     pub fn set_wavetable_index(&mut self, wavetable_index: usize) {
         self.wavetable_index = wavetable_index;
+    }
+
+    pub fn set_volume(&mut self, volume: f32) {
+        self.oscillator.set_volume(volume.clamp(0.0, 1.0));
     }
 
     pub fn set_tempo(&mut self, tempo: f32) {
