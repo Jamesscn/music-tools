@@ -4,7 +4,7 @@ use std::io::{self, Write};
 
 fn main() {
     //The midi file is opened and read
-    println!("Enter the path to the midi file:");
+    println!("Enter the path to the MIDI file:");
     print!("> ");
     io::stdout().flush().expect("Could not flush output!");
     let mut file_path: String = String::new();
@@ -17,6 +17,18 @@ fn main() {
         println!("The MIDI file has no tracks or notes in it!");
     } else {
         let mut player = AudioPlayer::new().unwrap();
+        let tempo = midi.get_tracks()[0].get_tempo();
+        println!("Tempo detected: {tempo} BPM");
+        println!("Would you like to set a custom tempo (leave blank if not):");
+        print!("> ");
+        io::stdout().flush().expect("Could not flush output!");
+        let mut new_tempo_string: String = String::new();
+        io::stdin()
+            .read_line(&mut new_tempo_string)
+            .expect("Could not read input!");
+        let new_tempo = new_tempo_string.trim().parse::<f32>().unwrap_or(tempo);
+        println!("Playing MIDI at {new_tempo} BPM...");
+        player.set_tempo(new_tempo);
         player.play_midi(midi);
     }
 }

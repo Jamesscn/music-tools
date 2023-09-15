@@ -391,8 +391,14 @@ impl AudioPlayer {
     }
 
     pub fn play_midi(&mut self, midi: MIDI) {
-        let tick_ms = midi.get_tracks()[0].get_tick_duration();
         let mut tracks = midi.get_tracks();
+        if tracks.len() == 0 {
+            return;
+        }
+        if self.tempo.is_some() {
+            tracks[0].set_tempo(self.tempo.unwrap())
+        }
+        let tick_ms = tracks[0].get_tick_duration();
         let mut pending_event_tuples: Vec<(Event, u64, usize)> = Vec::new();
         for (track_index, track) in &mut tracks.iter_mut().enumerate() {
             let first_event_option = track.get_next_event();
