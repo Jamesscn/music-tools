@@ -139,10 +139,10 @@ impl WavetableOscillator {
     ///
     /// - `wavetable`: The vector containing the audio signal to store as the wavetable.
     pub fn add_wavetable_from_vec(&mut self, wavetable: Vec<f32>) -> usize {
-        let mut clamped_wavetable = Vec::with_capacity(wavetable.len());
-        for value in wavetable {
-            clamped_wavetable.push(value.clamp(-1.0, 1.0));
-        }
+        let clamped_wavetable = wavetable
+            .iter()
+            .map(|value| value.clamp(-1.0, 1.0))
+            .collect();
         self.wavetables.push(clamped_wavetable);
         self.wavetables.len() - 1
     }
@@ -495,11 +495,7 @@ impl Playable for Chord {
             chord.set_octave(Some(4));
         }
         let notes = chord.to_notes().unwrap();
-        let mut frequencies: Vec<f32> = Vec::new();
-        for note in notes {
-            frequencies.push(note.get_frequency());
-        }
-        frequencies
+        notes.iter().map(|note| note.get_frequency()).collect()
     }
 }
 
@@ -521,11 +517,7 @@ impl Playable for &'static PitchClass {
 impl Playable for Scale {
     fn get_frequencies(&self) -> Vec<f32> {
         let notes = self.to_notes(PitchClasses::C, 4);
-        let mut frequencies: Vec<f32> = Vec::new();
-        for note in notes {
-            frequencies.push(note.get_frequency());
-        }
-        frequencies
+        notes.iter().map(|note| note.get_frequency()).collect()
     }
 }
 

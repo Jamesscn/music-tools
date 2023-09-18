@@ -59,10 +59,10 @@ impl Scale {
             ScaleType::Whole => vec![0, 2, 4, 6, 8, 10, 12],
             ScaleType::Chromatic => vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         };
-        let mut intervals: Vec<Interval> = Vec::new();
-        for interval_value in scale_intervals {
-            intervals.push(Interval::from_value(interval_value));
-        }
+        let mut intervals: Vec<Interval> = scale_intervals
+            .iter()
+            .map(|value| Interval::from_value(*value))
+            .collect();
         if pentatonic != PentatonicType::None && intervals.len() != 8 {
             return Err(InputError {
                 message: "cannot create a pentatonic scale from a scale that is not diatonic",

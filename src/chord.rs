@@ -339,7 +339,6 @@ impl Chord {
     /// Returns a vector of [`Interval`] objects representing the intervals of the current chord
     /// with the inversion of the chord applied.
     pub fn get_intervals(&self) -> Vec<Interval> {
-        let mut intervals: Vec<Interval> = Vec::new();
         let mut values: Vec<u8> = Vec::new();
         let first_half_octave_offset = self.intervals[self.inversion].get_value() as i8 / 12;
         for index in self.inversion..self.intervals.len() {
@@ -353,10 +352,10 @@ impl Chord {
                 (self.intervals[index].get_value() as i8 + 12 * second_half_octave_offset) as u8,
             );
         }
-        for value in values {
-            intervals.push(Interval::from_value(value));
-        }
-        intervals
+        values
+            .iter()
+            .map(|value| Interval::from_value(*value))
+            .collect()
     }
 
     /// Sets the inversion of the current chord which changes the order of the intervals in the
