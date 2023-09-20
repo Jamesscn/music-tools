@@ -2,3 +2,4 @@
 /Cargo.lock
 examples/test*.rs
 *.mid
+.vscode/linenote

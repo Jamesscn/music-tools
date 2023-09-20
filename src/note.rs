@@ -1,4 +1,8 @@
+use std::cmp::Ordering;
+
+use crate::chord::ToChord;
 use crate::common::InputError;
+use crate::interval::{Interval, Intervals};
 use crate::pitchclass::PitchClass;
 use regex::Regex;
 
@@ -273,7 +277,74 @@ impl Note {
 
 impl PartialEq for Note {
     fn eq(&self, other: &Self) -> bool {
-        self.get_keyboard_index() == other.get_keyboard_index()
-            && self.base_frequency == other.base_frequency
+        self.get_value() == other.get_value()
+    }
+}
+
+impl Eq for Note {}
+
+impl PartialOrd for Note {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.get_value().partial_cmp(&other.get_value())
+    }
+}
+
+impl Ord for Note {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.get_value().cmp(&other.get_value())
+    }
+}
+
+impl ToChord for Note {
+    fn get_intervals(&self) -> Vec<Interval> {
+        vec![Intervals::PERFECT_UNISON]
+    }
+
+    fn get_inversion(&self) -> usize {
+        0
+    }
+
+    fn get_tonic(&self) -> Option<&'static PitchClass> {
+        Some(self.pitch_class)
+    }
+
+    fn get_octave(&self) -> Option<i8> {
+        Some(self.octave)
+    }
+}
+
+impl ToChord for Vec<Note> {
+    fn get_intervals(&self) -> Vec<Interval> {
+        if self.len() == 0 {
+            return vec![Intervals::PERFECT_UNISON];
+        }
+        let mut notes = self.clone();
+        notes.sort();
+        notes.dedup();
+        let smallest = notes[0];
+        notes
+            .iter()
+            .map(|note| Interval::from_notes(smallest, *note))
+            .collect()
+    }
+
+    fn get_inversion(&self) -> usize {
+        0
+    }
+
+    fn get_tonic(&self) -> Option<&'static PitchClass> {
+        if self.len() > 0 {
+            Some(self[0].get_pitch_class())
+        } else {
+            None
+        }
+    }
+
+    fn get_octave(&self) -> Option<i8> {
+        if self.len() > 0 {
+            Some(self[0].get_octave())
+        } else {
+            None
+        }
     }
 }

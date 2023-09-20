@@ -1,4 +1,4 @@
-use crate::chord::Chord;
+use crate::chord::{Chord, ToChord};
 use crate::common::{InputError, PentatonicType, ScaleType};
 use crate::interval::Interval;
 use crate::note::Note;
@@ -80,12 +80,6 @@ impl Scale {
             scale,
             pentatonic,
         })
-    }
-
-    /// Returns a vector of [`Interval`] representing the intervals of each of the notes in the
-    /// scale with respect to the tonic.
-    pub fn get_intervals(&self) -> Vec<Interval> {
-        self.intervals.clone()
     }
 
     /// Returns a [`ScaleType`] representing the type of the current scale.
@@ -186,7 +180,7 @@ impl Scale {
         };
         let chords = chord_numerals
             .iter()
-            .map(|x| Chord::from_numeral(x, tonic, octave).unwrap())
+            .map(|numeral| Chord::from_numeral(numeral, tonic, octave).unwrap())
             .collect();
         Ok(chords)
     }
@@ -201,12 +195,8 @@ impl Scale {
     /// - `octave`: An [`Option<i8>`] which will represent the octave the chord is based on if
     ///   defined. If [`None`] is provided then the chord will not assign the intervals it holds to
     ///   any octaves.
-    pub fn to_chord(&self, tonic: Option<&'static PitchClass>, octave: Option<i8>) -> Chord {
-        let mut chord = Chord::new(tonic, octave);
-        for index in 1..self.intervals.len() {
-            chord.add_interval(self.intervals[index]);
-        }
-        chord
+    pub fn to_chord(&self) -> Chord {
+        Chord::from(self.clone())
     }
 
     /// Converts the scale to a vector of [`Note`], given a pitch class as the tonic and the octave
@@ -217,9 +207,10 @@ impl Scale {
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic of the set of notes.
     /// - `starting_octave`: An integer representing the octave to place the tonic on.
     pub fn to_notes(&self, tonic: &'static PitchClass, starting_octave: i8) -> Vec<Note> {
-        self.to_chord(Some(tonic), Some(starting_octave))
-            .to_notes()
-            .unwrap()
+        let mut chord = self.to_chord();
+        chord.set_tonic(Some(tonic));
+        chord.set_octave(Some(starting_octave));
+        chord.to_notes().unwrap()
     }
 
     /// Converts the scale to a vector of [`PitchClass`], given a pitch class as the tonic.
@@ -229,12 +220,32 @@ impl Scale {
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic of the other pitch
     ///   classes.
     pub fn to_pitch_classes(&self, tonic: &'static PitchClass) -> Vec<&'static PitchClass> {
-        self.to_chord(Some(tonic), None).to_pitch_classes().unwrap()
+        let mut chord = self.to_chord();
+        chord.set_tonic(Some(tonic));
+        chord.to_pitch_classes().unwrap()
     }
 }
 
 impl PartialEq for Scale {
     fn eq(&self, other: &Self) -> bool {
         self.scale == other.scale && self.pentatonic == other.pentatonic
+    }
+}
+
+impl ToChord for Scale {
+    fn get_intervals(&self) -> Vec<Interval> {
+        self.intervals.clone()
+    }
+
+    fn get_inversion(&self) -> usize {
+        0
+    }
+
+    fn get_tonic(&self) -> Option<&'static PitchClass> {
+        None
+    }
+
+    fn get_octave(&self) -> Option<i8> {
+        None
     }
 }

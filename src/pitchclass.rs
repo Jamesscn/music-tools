@@ -1,4 +1,8 @@
-use crate::common::InputError;
+use crate::{
+    chord::ToChord,
+    common::InputError,
+    interval::{Interval, Intervals},
+};
 
 /// A structure used to define one of the pitch classes of the twelve tone equal temperament system.
 #[derive(Copy, Clone, Debug)]
@@ -92,9 +96,66 @@ impl PitchClass {
     }
 }
 
-impl PartialEq for PitchClass {
+impl PartialEq for &'static PitchClass {
     fn eq(&self, other: &Self) -> bool {
         self.value == other.value
+    }
+}
+
+impl ToChord for &'static PitchClass {
+    fn get_intervals(&self) -> Vec<Interval> {
+        vec![Intervals::PERFECT_UNISON]
+    }
+
+    fn get_inversion(&self) -> usize {
+        0
+    }
+
+    fn get_tonic(&self) -> Option<&'static PitchClass> {
+        Some(self)
+    }
+
+    fn get_octave(&self) -> Option<i8> {
+        None
+    }
+}
+
+impl ToChord for Vec<&'static PitchClass> {
+    fn get_intervals(&self) -> Vec<Interval> {
+        let mut intervals: Vec<Interval> = vec![Intervals::PERFECT_UNISON];
+        if self.len() == 0 {
+            return intervals;
+        }
+        let mut last_pitch_value = self[0].get_value();
+        let mut curr_interval_value = 0;
+        for pitch_class in &self[1..] {
+            let curr_pitch_value = pitch_class.get_value();
+            let diff = if curr_pitch_value > last_pitch_value {
+                curr_pitch_value - last_pitch_value
+            } else {
+                12 - (last_pitch_value - curr_pitch_value)
+            };
+            curr_interval_value += diff;
+            intervals.push(Interval::from_value(curr_interval_value));
+            last_pitch_value = curr_pitch_value;
+        }
+        intervals
+    }
+
+    fn get_inversion(&self) -> usize {
+        0
+    }
+
+    fn get_tonic(&self) -> Option<&'static PitchClass> {
+        if self.len() > 0 {
+            Some(&self[0])
+        } else {
+            None
+        }
+    }
+
+    fn get_octave(&self) -> Option<i8> {
+        None
     }
 }
 

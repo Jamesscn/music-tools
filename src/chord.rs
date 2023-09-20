@@ -40,19 +40,19 @@ impl Chord {
     /// ```
     pub fn new(tonic: Option<&'static PitchClass>, octave: Option<i8>) -> Chord {
         Chord {
-            intervals: Vec::from([Intervals::PERFECT_UNISON]),
+            intervals: vec![Intervals::PERFECT_UNISON],
             tonic,
             octave,
             inversion: 0,
         }
     }
 
-    pub fn from_note(note: Note) -> Chord {
+    pub fn from(item: impl ToChord) -> Chord {
         Chord {
-            intervals: Vec::from([Intervals::PERFECT_UNISON]),
-            tonic: Some(note.get_pitch_class()),
-            octave: Some(note.get_octave()),
-            inversion: 0,
+            intervals: item.get_intervals(),
+            tonic: item.get_tonic(),
+            octave: item.get_octave(),
+            inversion: item.get_inversion(),
         }
     }
 
@@ -490,5 +490,30 @@ impl Chord {
             pitch_classes.push(current_pitch_class);
         }
         Ok(pitch_classes)
+    }
+}
+
+pub trait ToChord {
+    fn get_intervals(&self) -> Vec<Interval>;
+    fn get_inversion(&self) -> usize;
+    fn get_tonic(&self) -> Option<&'static PitchClass>;
+    fn get_octave(&self) -> Option<i8>;
+}
+
+impl ToChord for Chord {
+    fn get_intervals(&self) -> Vec<Interval> {
+        self.intervals.clone()
+    }
+
+    fn get_inversion(&self) -> usize {
+        self.inversion
+    }
+
+    fn get_tonic(&self) -> Option<&'static PitchClass> {
+        self.tonic
+    }
+
+    fn get_octave(&self) -> Option<i8> {
+        self.octave
     }
 }
