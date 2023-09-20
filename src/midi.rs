@@ -13,8 +13,8 @@ pub struct MIDI {
 
 impl MIDI {
     /// Creates an empty MIDI class with no tracks
-    pub fn new() -> MIDI {
-        MIDI { tracks: Vec::new() }
+    pub fn new() -> Self {
+        Self { tracks: Vec::new() }
     }
 
     /// Imports a MIDI object from a MIDI file. The return value is a [`Result`] which can be either
@@ -23,7 +23,7 @@ impl MIDI {
     /// # Parameters
     ///
     /// - `file_path`: A string of the path to the MIDI file to import.
-    pub fn import_from_file(file_path: &str) -> Result<MIDI, InputError> {
+    pub fn import_from_file(file_path: &str) -> Result<Self, InputError> {
         let midi_object = match Apres_MIDI::from_path(file_path) {
             Ok(apres_midi_object) => apres_midi_object,
             Err(_) => {
@@ -89,7 +89,7 @@ impl MIDI {
             track.set_time_signature(time_signature);
             track.set_tempo(tempo);
         }
-        Ok(MIDI { tracks })
+        Ok(Self { tracks })
     }
 
     /// Exports a MIDI object to a MIDI file. The function returns a [`Result`] which can be an

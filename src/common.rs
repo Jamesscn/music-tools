@@ -26,11 +26,11 @@ impl Fraction {
     ///
     /// let one_half = Fraction::new(1, 2);
     /// ```
-    pub const fn new(numerator: u8, denominator: u8) -> Fraction {
+    pub const fn new(numerator: u8, denominator: u8) -> Self {
         if denominator == 0 {
             panic!("Cannot create a fraction with a denominator of zero!");
         }
-        Fraction {
+        Self {
             numerator,
             denominator,
         }
@@ -92,9 +92,9 @@ impl Fraction {
     /// let two_quarters = Fraction::new(2, 4);
     /// let one_half = two_quarters.get_simplified();
     /// ```
-    pub fn get_simplified(&self) -> Fraction {
+    pub fn get_simplified(&self) -> Self {
         let common_factor = gcd(self.numerator, self.denominator);
-        Fraction {
+        Self {
             numerator: self.numerator / common_factor,
             denominator: self.denominator / common_factor,
         }

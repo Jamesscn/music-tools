@@ -36,7 +36,7 @@ impl Scale {
     /// let some_pentatonic = Scale::from(ScaleType::Minor, PentatonicType::Major).unwrap();
     /// let chromatic_scale = Scale::from(ScaleType::Chromatic, PentatonicType::None).unwrap();
     /// ```
-    pub fn from(scale: ScaleType, pentatonic: PentatonicType) -> Result<Scale, InputError> {
+    pub fn from(scale: ScaleType, pentatonic: PentatonicType) -> Result<Self, InputError> {
         let scale_intervals: Vec<u8> = match scale {
             ScaleType::Major | ScaleType::Ionian => vec![0, 2, 4, 5, 7, 9, 11, 12],
             ScaleType::Minor
@@ -75,7 +75,7 @@ impl Scale {
             intervals.remove(5);
             intervals.remove(1);
         }
-        Ok(Scale {
+        Ok(Self {
             intervals,
             scale,
             pentatonic,

@@ -38,8 +38,8 @@ impl Chord {
     /// let g_unison_chord = Chord::new(Some(PitchClasses::G), None);
     /// let g5_unison_chord = Chord::new(Some(PitchClasses::G), Some(5));
     /// ```
-    pub fn new(tonic: Option<&'static PitchClass>, octave: Option<i8>) -> Chord {
-        Chord {
+    pub fn new(tonic: Option<&'static PitchClass>, octave: Option<i8>) -> Self {
+        Self {
             intervals: vec![Intervals::PERFECT_UNISON],
             tonic,
             octave,
@@ -47,8 +47,8 @@ impl Chord {
         }
     }
 
-    pub fn from(item: impl ToChord) -> Chord {
-        Chord {
+    pub fn from(item: impl ToChord) -> Self {
+        Self {
             intervals: item.get_intervals(),
             tonic: item.get_tonic(),
             octave: item.get_octave(),
@@ -104,7 +104,7 @@ impl Chord {
         triad_quality: TriadQuality,
         tonic: Option<&'static PitchClass>,
         octave: Option<i8>,
-    ) -> Chord {
+    ) -> Self {
         let intervals: Vec<Interval> = match triad_quality {
             TriadQuality::Major => vec![
                 Intervals::PERFECT_UNISON,
@@ -137,7 +137,7 @@ impl Chord {
                 Intervals::DIMINISHED_FIFTH,
             ],
         };
-        Chord {
+        Self {
             intervals,
             tonic,
             octave,
@@ -207,7 +207,7 @@ impl Chord {
         input_numeral: &str,
         tonic: &'static PitchClass,
         octave: Option<i8>,
-    ) -> Result<Chord, InputError> {
+    ) -> Result<Self, InputError> {
         let numeral_array = ["I", "II", "III", "IV", "V", "VI", "VII"];
         let numeral_regex =
             Regex::new(r"^(b|♭|\#|♯)?(I|II|III|IV|V|VI|VII|i|ii|iii|iv|v|vi|vii)(°|\+)?(maj7|7)?$")
@@ -294,7 +294,7 @@ impl Chord {
         let chord_tonic = tonic.get_offset(increment as i8);
         let chord_octave =
             octave.map(|octave_value| octave_value + ((tonic.get_value() + increment) / 12) as i8);
-        let mut chord = Chord::from_triad(triad_quality, Some(chord_tonic), chord_octave);
+        let mut chord = Self::from_triad(triad_quality, Some(chord_tonic), chord_octave);
         if seventh == "maj7" {
             chord.add_interval(Intervals::MAJOR_SEVENTH);
         } else if seventh == "7" {

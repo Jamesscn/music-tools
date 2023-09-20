@@ -28,7 +28,7 @@ impl PitchClass {
     /// let a = PitchClass::from_name("A");
     /// let b_flat = PitchClass::from_name("Bb");
     /// ```
-    pub fn from_name(pitch_class_name: &str) -> Result<&'static PitchClass, InputError> {
+    pub fn from_name(pitch_class_name: &str) -> Result<&'static Self, InputError> {
         for pitch_class in &PITCH_CLASSES {
             for current_name in pitch_class.names {
                 if *current_name == pitch_class_name {
@@ -56,7 +56,7 @@ impl PitchClass {
     ///
     /// let g_flat = PitchClass::from_value(6);
     /// ```
-    pub fn from_value(value: u8) -> Result<&'static PitchClass, InputError> {
+    pub fn from_value(value: u8) -> Result<&'static Self, InputError> {
         let index = value as usize;
         if index < 12 {
             return Ok(&PITCH_CLASSES[index]);
@@ -80,7 +80,7 @@ impl PitchClass {
     /// let c = PitchClasses::A.get_offset(2);
     /// let f = PitchClasses::A.get_offset(-2);
     /// ```
-    pub fn get_offset(&self, offset: i8) -> &'static PitchClass {
+    pub fn get_offset(&self, offset: i8) -> &'static Self {
         &PITCH_CLASSES[(self.value as i8 + (offset % 12)).rem_euclid(12) as usize]
     }
 

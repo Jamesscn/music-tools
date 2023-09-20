@@ -26,8 +26,8 @@ struct WavetableVoice {
 }
 
 impl WavetableVoice {
-    pub fn new(wavetable_index: usize, frequency: f32) -> WavetableVoice {
-        WavetableVoice {
+    pub fn new(wavetable_index: usize, frequency: f32) -> Self {
+        Self {
             wavetable_index,
             frequency,
             table_index: 0.0,
@@ -107,8 +107,8 @@ pub struct WavetableOscillator {
 
 impl WavetableOscillator {
     /// Creates and returns an empty wavetable oscillator which can be used as a [`rodio::Source`].
-    pub fn empty() -> WavetableOscillator {
-        WavetableOscillator {
+    pub fn empty() -> Self {
+        Self {
             wavetables: Vec::new(),
             voices: Vec::new(),
             sample_rate: 44100,
@@ -279,15 +279,13 @@ pub struct AudioPlayer {
 }
 
 impl AudioPlayer {
-    pub fn new() -> Result<AudioPlayer, AudioPlayError> {
+    pub fn new() -> Result<Self, AudioPlayError> {
         let mut oscillator = WavetableOscillator::empty();
         oscillator.add_wavetable_from_function(Waveforms::SINE_WAVE, 1.0, DEFAULT_WAVETABLE_SIZE);
         Self::new_from_wavetable(oscillator)
     }
 
-    pub fn new_from_wavetable(
-        oscillator: WavetableOscillator,
-    ) -> Result<AudioPlayer, AudioPlayError> {
+    pub fn new_from_wavetable(oscillator: WavetableOscillator) -> Result<Self, AudioPlayError> {
         let stream_result = OutputStream::try_default();
         if stream_result.is_err() {
             return Err(AudioPlayError {
@@ -301,7 +299,7 @@ impl AudioPlayer {
                 message: "sink could not be created",
             });
         }
-        Ok(AudioPlayer {
+        Ok(Self {
             tempo: None,
             sink: sink_result.unwrap(),
             _stream,

@@ -18,8 +18,8 @@ pub struct Track {
 impl Track {
     /// Creates an empty track with a given tempo and time signature, with a default value of 360
     /// MIDI ticks per quarter note.
-    pub fn new(tempo: f32, time_signature: Fraction) -> Track {
-        Track {
+    pub fn new(tempo: f32, time_signature: Fraction) -> Self {
+        Self {
             tempo,
             time_signature,
             ticks_per_quarter_note: 360,
@@ -35,8 +35,8 @@ impl Track {
         tempo: f32,
         time_signature: Fraction,
         ticks_per_quarter_note: u16,
-    ) -> Track {
-        Track {
+    ) -> Self {
+        Self {
             tempo,
             time_signature,
             ticks_per_quarter_note,

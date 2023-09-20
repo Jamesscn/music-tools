@@ -33,8 +33,8 @@ impl Note {
     /// let b = Note::from(PitchClasses::B_FLAT, 4);
     /// let c = Note::from(PitchClasses::C, 3);
     /// ```
-    pub fn from(pitch_class: &'static PitchClass, octave: i8) -> Note {
-        Note {
+    pub fn from(pitch_class: &'static PitchClass, octave: i8) -> Self {
+        Self {
             pitch_class,
             octave,
             base_frequency: 440.0,
@@ -60,7 +60,7 @@ impl Note {
     /// let b = Note::from_string("Bb4").unwrap();
     /// let c = Note::from_string("C3").unwrap();
     /// ```
-    pub fn from_string(string: &str) -> Result<Note, InputError> {
+    pub fn from_string(string: &str) -> Result<Self, InputError> {
         let regex = Regex::new(r"^([A-G])(♮|x|b{1,2}|♭{1,2}|\#{1,2}|♯{1,2})?(\-?\d+)$").unwrap();
         if !regex.is_match(string) {
             return Err(InputError {
@@ -75,7 +75,7 @@ impl Note {
             .map_or(0, |x| x.as_str().parse::<i8>().unwrap());
         let pitch_class =
             PitchClass::from_name(format!("{pitch_class_letter}{accidental}").as_str())?;
-        Ok(Note {
+        Ok(Self {
             pitch_class,
             octave,
             base_frequency: 440.0,
@@ -88,7 +88,7 @@ impl Note {
     /// # Parameters
     ///
     /// - `index`: The index of the midi note, which can be any number between 0 and 127 inclusive.
-    pub fn from_midi_index(index: u8) -> Result<Note, InputError> {
+    pub fn from_midi_index(index: u8) -> Result<Self, InputError> {
         if index > 127 {
             return Err(InputError {
                 message: "the midi index must be an integer between 0 and 127",
@@ -96,7 +96,7 @@ impl Note {
         }
         let pitch_class = PitchClass::from_value(index % 12).unwrap();
         let octave = (index / 12) as i8 - 1;
-        Ok(Note {
+        Ok(Self {
             pitch_class,
             octave,
             base_frequency: 440.0,
@@ -110,9 +110,9 @@ impl Note {
     ///
     /// - `offset`: A signed integer representing the offset of the new note to return from the
     /// current one.
-    pub fn at_offset(&self, offset: isize) -> Note {
+    pub fn at_offset(&self, offset: isize) -> Self {
         let pitch_class_val = self.pitch_class.get_value() as isize + offset;
-        Note {
+        Self {
             pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
             octave: self.octave + pitch_class_val.div_floor(12) as i8,
             base_frequency: self.base_frequency,
@@ -120,9 +120,9 @@ impl Note {
     }
 
     /// Returns the next [`Note`] after the current one.
-    pub fn next(&self) -> Note {
+    pub fn next(&self) -> Self {
         let pitch_class_val = self.pitch_class.get_value() as i8 + 1;
-        Note {
+        Self {
             pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
             octave: self.octave + pitch_class_val.div_floor(12),
             base_frequency: self.base_frequency,
@@ -130,9 +130,9 @@ impl Note {
     }
 
     /// Returns the previous [`Note`] before the current one.
-    pub fn prev(&self) -> Note {
+    pub fn prev(&self) -> Self {
         let pitch_class_val = self.pitch_class.get_value() as i8 - 1;
-        Note {
+        Self {
             pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
             octave: self.octave + pitch_class_val.div_floor(12),
             base_frequency: self.base_frequency,

@@ -12,12 +12,12 @@ pub struct Interval {
 impl Interval {
     /// Constructs an interval given a positive integer representing the value of the interval or
     /// the distance between two notes.
-    pub fn from_value(value: u8) -> Interval {
+    pub fn from_value(value: u8) -> Self {
         let index = value as usize;
         if index < INTERVALS.len() {
             return INTERVALS[index];
         }
-        Interval {
+        Self {
             value,
             full_name: None,
             short_name: None,
@@ -30,7 +30,7 @@ impl Interval {
     ///
     /// - `first`: A [`Note`] representing the first note.
     /// - `second`: A [`Note`] representing the second note.
-    pub fn from_notes(first: Note, second: Note) -> Interval {
+    pub fn from_notes(first: Note, second: Note) -> Self {
         let first_value = first.get_value();
         let second_value = second.get_value();
         let difference: u16 = if first_value <= second_value {
@@ -41,7 +41,7 @@ impl Interval {
         if difference > 255 {
             panic!("Interval between notes is greater than a u8");
         }
-        Interval::from_value(difference as u8)
+        Self::from_value(difference as u8)
     }
 
     /// Returns a positive integer representing the value of the interval.
