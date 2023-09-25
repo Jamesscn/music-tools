@@ -390,7 +390,7 @@ impl AudioPlayer {
 
     pub fn play_midi(&mut self, midi: MIDI) {
         let mut tracks = midi.get_tracks();
-        if tracks.len() == 0 {
+        if tracks.is_empty() {
             return;
         }
         if self.tempo.is_some() {

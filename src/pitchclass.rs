@@ -123,7 +123,7 @@ impl ToChord for &'static PitchClass {
 impl ToChord for Vec<&'static PitchClass> {
     fn get_intervals(&self) -> Vec<Interval> {
         let mut intervals: Vec<Interval> = vec![Intervals::PERFECT_UNISON];
-        if self.len() == 0 {
+        if self.is_empty() {
             return intervals;
         }
         let mut last_pitch_value = self[0].get_value();
@@ -147,8 +147,8 @@ impl ToChord for Vec<&'static PitchClass> {
     }
 
     fn get_tonic(&self) -> Option<&'static PitchClass> {
-        if self.len() > 0 {
-            Some(&self[0])
+        if self.is_empty() {
+            Some(self[0])
         } else {
             None
         }

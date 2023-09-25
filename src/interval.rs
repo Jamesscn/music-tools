@@ -71,7 +71,7 @@ impl Eq for Interval {}
 
 impl PartialOrd for Interval {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.value.partial_cmp(&other.value)
+        Some(self.cmp(other))
     }
 }
 
@@ -105,7 +105,7 @@ impl ToChord for Interval {
 
 impl ToChord for Vec<Interval> {
     fn get_intervals(&self) -> Vec<Interval> {
-        if self.len() == 0 {
+        if self.is_empty() {
             return vec![Intervals::PERFECT_UNISON];
         }
         let mut intervals = self.clone();

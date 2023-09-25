@@ -285,7 +285,7 @@ impl Eq for Note {}
 
 impl PartialOrd for Note {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.get_value().partial_cmp(&other.get_value())
+        Some(self.cmp(other))
     }
 }
 
@@ -315,7 +315,7 @@ impl ToChord for Note {
 
 impl ToChord for Vec<Note> {
     fn get_intervals(&self) -> Vec<Interval> {
-        if self.len() == 0 {
+        if self.is_empty() {
             return vec![Intervals::PERFECT_UNISON];
         }
         let mut notes = self.clone();
@@ -333,7 +333,7 @@ impl ToChord for Vec<Note> {
     }
 
     fn get_tonic(&self) -> Option<&'static PitchClass> {
-        if self.len() > 0 {
+        if self.is_empty() {
             Some(self[0].get_pitch_class())
         } else {
             None
@@ -341,7 +341,7 @@ impl ToChord for Vec<Note> {
     }
 
     fn get_octave(&self) -> Option<i8> {
-        if self.len() > 0 {
+        if self.is_empty() {
             Some(self[0].get_octave())
         } else {
             None
