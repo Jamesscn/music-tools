@@ -196,8 +196,28 @@ pub enum ScaleType {
     DescendingMelodicMinor,
     /// The ascending melodic minor scale, which is equal to the natural minor scale with a major
     /// sixth and major seventh, and is intended to be used when playing the melodic minor scale in
-    /// an ascending manner.
+    /// an ascending manner. Also known as just the melodic minor scale.
     AscendingMelodicMinor,
+    /// The melodic minor scale, which is the same as the ascending melodic minor scale.
+    MelodicMinor,
+    /// The Dorian ♭2 scale, which is the second mode of the melodic minor scale and the same as
+    /// the Dorian scale but with a flat second.
+    DorianFlatTwo,
+    /// The Lyidan augmented scale, which is the third mode of the melodic minor scale and the
+    /// same as the major scale with a raised fourth and fifth.
+    LydianAugmented,
+    /// The Lydian dominant scale, which is the fourth mode of the melodic minor scale and the same
+    /// as the mixolydian scale with a sharp fourth.
+    LydianDominant,
+    /// The Mixolydian ♭6 scale, which is the fifth mode of the melodic minor scale and the same as
+    /// the major scale with a flat sixth and seventh.
+    MixolydianFlatSix,
+    /// The Locrian ♯2 scale, which is the sixth mode of the melodic minor scale and the same as
+    /// the locrian scale with a natural second.
+    LocrianSharpTwo,
+    /// The altered scale, which is the seventh mode of the melodic minor scale and the same as the
+    /// major scale with all four altered extensions of the major mode
+    AlteredScale,
     /// The harmonic minor scale, which is equal to the natural minor scale with a major seventh
     /// instead of a minor seventh.
     HarmonicMinor,
@@ -218,6 +238,12 @@ pub enum ScaleType {
     Whole,
     /// The chromatic scale, which consists of all twelve pitch classes separated by a semitone.
     Chromatic,
+    /// The diminished scale, which contains an alternating pattern of whole tones followed by
+    /// semitones, starting with a whole tone.
+    Diminished,
+    /// The dominant diminished scale, which contains an alternating pattern of semitones followed
+    /// by whole tones, starting with a semitone.
+    DominantDiminished,
 }
 
 /// This enum contains representations for the different types of triads that can be distinguished

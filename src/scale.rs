@@ -51,13 +51,23 @@ impl Scale {
             ScaleType::Mixolydian => vec![0, 2, 4, 5, 7, 9, 10, 12],
             ScaleType::Locrian => vec![0, 1, 3, 5, 6, 8, 10, 12],
             ScaleType::HarmonicMinor => vec![0, 2, 3, 5, 7, 8, 11, 12],
-            ScaleType::AscendingMelodicMinor => vec![0, 2, 3, 5, 7, 9, 11, 12],
+            ScaleType::MelodicMinor | ScaleType::AscendingMelodicMinor => {
+                vec![0, 2, 3, 5, 7, 9, 11, 12]
+            }
+            ScaleType::DorianFlatTwo => vec![0, 1, 3, 5, 7, 9, 10, 12],
+            ScaleType::LydianAugmented => vec![0, 2, 4, 6, 8, 9, 11, 12],
+            ScaleType::LydianDominant => vec![0, 2, 4, 6, 7, 9, 10, 12],
+            ScaleType::MixolydianFlatSix => vec![0, 2, 4, 5, 7, 8, 10, 12],
+            ScaleType::LocrianSharpTwo => vec![0, 2, 3, 5, 6, 8, 10, 12],
+            ScaleType::AlteredScale => vec![0, 1, 3, 4, 6, 8, 10, 12],
             ScaleType::PhrygianDominant => vec![0, 1, 4, 5, 7, 8, 10, 12],
             ScaleType::NonatonicBlues => vec![0, 2, 3, 4, 5, 7, 9, 10, 11, 12],
             ScaleType::MajorBlues => vec![0, 2, 3, 4, 7, 9, 12],
             ScaleType::MinorBlues => vec![0, 3, 5, 6, 7, 10, 12],
             ScaleType::Whole => vec![0, 2, 4, 6, 8, 10, 12],
             ScaleType::Chromatic => vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            ScaleType::Diminished => vec![0, 2, 3, 5, 6, 8, 9, 11, 12],
+            ScaleType::DominantDiminished => vec![0, 1, 3, 4, 6, 7, 9, 10, 12],
         };
         let mut intervals: Vec<Interval> = scale_intervals
             .iter()
