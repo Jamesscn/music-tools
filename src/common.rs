@@ -154,7 +154,7 @@ impl AudioDuration for Beat {
 }
 
 impl AudioDuration for Duration {
-    fn get_duration(&self, #[allow(unused_variables)] tempo: f32) -> Duration {
+    fn get_duration(&self, _: f32) -> Duration {
         *self
     }
 }
