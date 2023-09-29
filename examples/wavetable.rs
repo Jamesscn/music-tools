@@ -6,7 +6,7 @@ fn main() {
     let mut oscillator = WavetableOscillator::empty();
     let sine_table = oscillator.add_wavetable_from_function(Waveforms::SINE_WAVE, 1.0, 128);
     let triangle_table = oscillator.add_wavetable_from_function(Waveforms::TRIANGLE_WAVE, 1.0, 128);
-    let saw_table = oscillator.add_wavetable_from_function(Waveforms::SAWTOOTH_WAVE, 1.0, 128);
+    let saw_table = oscillator.add_wavetable_from_function(|t| 2.0 * t - 1.0, 1.0, 128);
     let square_table = oscillator.add_wavetable_from_function(Waveforms::SQUARE_WAVE, 1.0, 128);
     let mut player = AudioPlayer::new_from_wavetable(oscillator).unwrap();
     player.set_tempo(160.0);

@@ -525,16 +525,18 @@ fn sine_wave(time: f32) -> f32 {
 
 fn square_wave(time: f32) -> f32 {
     if time < 0.5 {
-        return -1.0;
+        -1.0
+    } else {
+        1.0
     }
-    1.0
 }
 
 fn triangle_wave(time: f32) -> f32 {
     if time < 0.5 {
-        return -4.0 * time + 1.0;
+        -4.0 * time + 1.0
+    } else {
+        4.0 * time - 3.0
     }
-    4.0 * time - 3.0
 }
 
 fn sawtooth_wave(time: f32) -> f32 {
