@@ -17,10 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: sudo apt install libasound2-dev
+      - name: Install dependencies
+        run: |
+        sudo apt install libasound2-dev
+        cargo install cargo-audit
       - name: Check build status
-        run: cargo check --verbose
+        run: cargo build --verbose
       - name: Check test cases
-        run: cargo test
+        run: cargo test --verbose
       - name: Check linter
-        run: cargo clippy -- -Dwarnings
+        run: cargo clippy --verbose -- -Dwarnings
+      - name: Audit dependencies
+        run: cargo audit
