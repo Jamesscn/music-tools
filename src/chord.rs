@@ -2,6 +2,7 @@ use crate::common::{IncompleteChordError, InputError, TriadQuality};
 use crate::interval::{Interval, Intervals};
 use crate::note::Note;
 use crate::pitchclass::PitchClass;
+use crate::scale::Scale;
 use regex::Regex;
 
 /// A structure which holds a chord, which is a group of consecutive intervals with a given
@@ -44,15 +45,6 @@ impl Chord {
             tonic,
             octave,
             inversion: 0,
-        }
-    }
-
-    pub fn from(item: impl ToChord) -> Self {
-        Self {
-            intervals: item.get_intervals(),
-            tonic: item.get_tonic(),
-            octave: item.get_octave(),
-            inversion: item.get_inversion(),
         }
     }
 
@@ -504,27 +496,115 @@ impl Default for Chord {
     }
 }
 
-pub trait ToChord {
-    fn get_intervals(&self) -> Vec<Interval>;
-    fn get_inversion(&self) -> usize;
-    fn get_tonic(&self) -> Option<&'static PitchClass>;
-    fn get_octave(&self) -> Option<i8>;
+impl From<Interval> for Chord {
+    fn from(value: Interval) -> Self {
+        let intervals: Vec<Interval> = if value == Intervals::PERFECT_UNISON {
+            vec![Intervals::PERFECT_UNISON]
+        } else {
+            vec![Intervals::PERFECT_UNISON, value]
+        };
+        Chord {
+            intervals,
+            tonic: None,
+            octave: None,
+            inversion: 0,
+        }
+    }
 }
 
-impl ToChord for Chord {
-    fn get_intervals(&self) -> Vec<Interval> {
-        self.intervals.clone()
+impl From<Vec<Interval>> for Chord {
+    fn from(value: Vec<Interval>) -> Self {
+        let mut intervals = value.clone();
+        intervals.push(Intervals::PERFECT_UNISON);
+        intervals.sort();
+        intervals.dedup();
+        Chord {
+            intervals,
+            tonic: None,
+            octave: None,
+            inversion: 0,
+        }
     }
+}
 
-    fn get_inversion(&self) -> usize {
-        self.inversion
+impl From<Note> for Chord {
+    fn from(value: Note) -> Self {
+        Chord {
+            intervals: vec![Intervals::PERFECT_UNISON],
+            tonic: Some(value.get_pitch_class()),
+            octave: Some(value.get_octave()),
+            inversion: 0,
+        }
     }
+}
 
-    fn get_tonic(&self) -> Option<&'static PitchClass> {
-        self.tonic
+impl From<Vec<Note>> for Chord {
+    fn from(value: Vec<Note>) -> Self {
+        let intervals = if value.is_empty() {
+            vec![Intervals::PERFECT_UNISON]
+        } else {
+            let mut notes = value.clone();
+            notes.sort();
+            notes.dedup();
+            let smallest = notes[0];
+            notes
+                .iter()
+                .map(|note| Interval::from_notes(smallest, *note))
+                .collect()
+        };
+        let tonic = value.get(0).map(|note| note.get_pitch_class());
+        let octave = value.get(0).map(|note| note.get_octave());
+        Chord {
+            intervals,
+            tonic,
+            octave,
+            inversion: 0,
+        }
     }
+}
 
-    fn get_octave(&self) -> Option<i8> {
-        self.octave
+impl From<&'static PitchClass> for Chord {
+    fn from(value: &'static PitchClass) -> Self {
+        Chord {
+            intervals: vec![Intervals::PERFECT_UNISON],
+            tonic: Some(value),
+            octave: None,
+            inversion: 0,
+        }
+    }
+}
+
+impl From<Vec<&'static PitchClass>> for Chord {
+    fn from(value: Vec<&'static PitchClass>) -> Self {
+        let mut tonic_diff = 0;
+        let mut intervals: Vec<Interval> = value
+            .iter()
+            .map_windows(|&[prev, curr]| {
+                tonic_diff += if curr.get_value() > prev.get_value() {
+                    curr.get_value() - prev.get_value()
+                } else {
+                    12 - prev.get_value() + curr.get_value()
+                };
+                Interval::from_value(tonic_diff)
+            })
+            .collect();
+        intervals.insert(0, Intervals::PERFECT_UNISON);
+        Chord {
+            intervals,
+            tonic: value.get(0).copied(),
+            octave: None,
+            inversion: 0,
+        }
+    }
+}
+
+impl From<Scale> for Chord {
+    fn from(value: Scale) -> Self {
+        Chord {
+            intervals: value.get_intervals(),
+            tonic: None,
+            octave: None,
+            inversion: 0,
+        }
     }
 }

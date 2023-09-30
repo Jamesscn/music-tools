@@ -1,4 +1,4 @@
-use crate::{chord::ToChord, note::Note, pitchclass::PitchClass};
+use crate::note::Note;
 use std::cmp::Ordering;
 
 /// A structure which is used to represent the interval between two notes.
@@ -82,53 +82,6 @@ impl PartialOrd for Interval {
 impl Ord for Interval {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_value().cmp(&other.get_value())
-    }
-}
-
-impl ToChord for Interval {
-    fn get_intervals(&self) -> Vec<Interval> {
-        if self == &Intervals::PERFECT_UNISON {
-            vec![Intervals::PERFECT_UNISON]
-        } else {
-            vec![Intervals::PERFECT_UNISON, *self]
-        }
-    }
-
-    fn get_inversion(&self) -> usize {
-        0
-    }
-
-    fn get_tonic(&self) -> Option<&'static PitchClass> {
-        None
-    }
-
-    fn get_octave(&self) -> Option<i8> {
-        None
-    }
-}
-
-impl ToChord for Vec<Interval> {
-    fn get_intervals(&self) -> Vec<Interval> {
-        if self.is_empty() {
-            return vec![Intervals::PERFECT_UNISON];
-        }
-        let mut intervals = self.clone();
-        intervals.push(Intervals::PERFECT_UNISON);
-        intervals.sort();
-        intervals.dedup();
-        intervals
-    }
-
-    fn get_inversion(&self) -> usize {
-        0
-    }
-
-    fn get_tonic(&self) -> Option<&'static PitchClass> {
-        None
-    }
-
-    fn get_octave(&self) -> Option<i8> {
-        None
     }
 }
 

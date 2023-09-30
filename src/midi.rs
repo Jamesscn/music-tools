@@ -6,7 +6,7 @@ use apres::MIDI as Apres_MIDI;
 
 /// A structure which holds a MIDI object that can be imported from or exported to a MIDI file,
 /// containing a set of [`Track`] objects.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct MIDI {
     tracks: Vec<Track>,
 }
@@ -157,11 +157,5 @@ impl MIDI {
     /// Returns the number of valid tracks in the MIDI object.
     pub fn get_num_tracks(&self) -> usize {
         self.tracks.len()
-    }
-}
-
-impl Default for MIDI {
-    fn default() -> Self {
-        Self { tracks: Vec::new() }
     }
 }

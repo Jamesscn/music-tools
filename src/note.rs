@@ -1,8 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::chord::ToChord;
 use crate::common::InputError;
-use crate::interval::{Interval, Intervals};
 use crate::pitchclass::{PitchClass, PitchClasses};
 use regex::Regex;
 
@@ -302,59 +300,5 @@ impl PartialOrd for Note {
 impl Ord for Note {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_value().cmp(&other.get_value())
-    }
-}
-
-impl ToChord for Note {
-    fn get_intervals(&self) -> Vec<Interval> {
-        vec![Intervals::PERFECT_UNISON]
-    }
-
-    fn get_inversion(&self) -> usize {
-        0
-    }
-
-    fn get_tonic(&self) -> Option<&'static PitchClass> {
-        Some(self.pitch_class)
-    }
-
-    fn get_octave(&self) -> Option<i8> {
-        Some(self.octave)
-    }
-}
-
-impl ToChord for Vec<Note> {
-    fn get_intervals(&self) -> Vec<Interval> {
-        if self.is_empty() {
-            return vec![Intervals::PERFECT_UNISON];
-        }
-        let mut notes = self.clone();
-        notes.sort();
-        notes.dedup();
-        let smallest = notes[0];
-        notes
-            .iter()
-            .map(|note| Interval::from_notes(smallest, *note))
-            .collect()
-    }
-
-    fn get_inversion(&self) -> usize {
-        0
-    }
-
-    fn get_tonic(&self) -> Option<&'static PitchClass> {
-        if self.is_empty() {
-            Some(self[0].get_pitch_class())
-        } else {
-            None
-        }
-    }
-
-    fn get_octave(&self) -> Option<i8> {
-        if self.is_empty() {
-            Some(self[0].get_octave())
-        } else {
-            None
-        }
     }
 }

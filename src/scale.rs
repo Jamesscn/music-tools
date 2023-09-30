@@ -1,4 +1,4 @@
-use crate::chord::{Chord, ToChord};
+use crate::chord::Chord;
 use crate::common::{InputError, PentatonicType, ScaleType};
 use crate::interval::Interval;
 use crate::note::Note;
@@ -198,6 +198,10 @@ impl Scale {
         Ok(chords)
     }
 
+    pub fn get_intervals(&self) -> Vec<Interval> {
+        self.intervals.clone()
+    }
+
     /// Converts the scale into a [`Chord`].
     ///
     /// # Parameters
@@ -248,23 +252,5 @@ impl Default for Scale {
 impl PartialEq for Scale {
     fn eq(&self, other: &Self) -> bool {
         self.scale == other.scale && self.pentatonic == other.pentatonic
-    }
-}
-
-impl ToChord for Scale {
-    fn get_intervals(&self) -> Vec<Interval> {
-        self.intervals.clone()
-    }
-
-    fn get_inversion(&self) -> usize {
-        0
-    }
-
-    fn get_tonic(&self) -> Option<&'static PitchClass> {
-        None
-    }
-
-    fn get_octave(&self) -> Option<i8> {
-        None
     }
 }

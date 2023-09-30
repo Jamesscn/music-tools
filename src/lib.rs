@@ -1,5 +1,6 @@
 #![warn(missing_docs)]
 #![feature(int_roundings)]
+#![feature(iter_map_windows)]
 
 //! This library contains modules which can be used to create, analyze and reproduce musical
 //! structures such as chords, scales and rhythms.
