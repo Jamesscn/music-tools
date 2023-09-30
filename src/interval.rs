@@ -2,7 +2,7 @@ use crate::{chord::ToChord, note::Note, pitchclass::PitchClass};
 use std::cmp::Ordering;
 
 /// A structure which is used to represent the interval between two notes.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq)]
 pub struct Interval {
     value: u8,
     full_name: Option<&'static str>,
@@ -61,13 +61,17 @@ impl Interval {
     }
 }
 
+impl Default for Interval {
+    fn default() -> Self {
+        Intervals::PERFECT_OCTAVE
+    }
+}
+
 impl PartialEq for Interval {
     fn eq(&self, other: &Self) -> bool {
         self.value == other.value
     }
 }
-
-impl Eq for Interval {}
 
 impl PartialOrd for Interval {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -77,7 +81,7 @@ impl PartialOrd for Interval {
 
 impl Ord for Interval {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.value.cmp(&other.value)
+        self.get_value().cmp(&other.get_value())
     }
 }
 
@@ -128,6 +132,7 @@ impl ToChord for Vec<Interval> {
     }
 }
 
+#[non_exhaustive]
 /// A structure containing common intervals.
 pub struct Intervals;
 

@@ -6,7 +6,7 @@ use apres::MIDI as Apres_MIDI;
 
 /// A structure which holds a MIDI object that can be imported from or exported to a MIDI file,
 /// containing a set of [`Track`] objects.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MIDI {
     tracks: Vec<Track>,
 }
@@ -14,7 +14,7 @@ pub struct MIDI {
 impl MIDI {
     /// Creates an empty MIDI class with no tracks
     pub fn new() -> Self {
-        Self { tracks: Vec::new() }
+        Self::default()
     }
 
     /// Imports a MIDI object from a MIDI file. The return value is a [`Result`] which can be either
@@ -162,6 +162,6 @@ impl MIDI {
 
 impl Default for MIDI {
     fn default() -> Self {
-        Self::new()
+        Self { tracks: Vec::new() }
     }
 }

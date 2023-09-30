@@ -6,7 +6,7 @@ use crate::pitchclass::PitchClass;
 
 /// A structure used to represent a scale of notes, or a major or minor pentatonic variation of a
 /// scale.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq)]
 pub struct Scale {
     intervals: Vec<Interval>,
     scale: ScaleType,
@@ -37,58 +37,40 @@ impl Scale {
     /// let chromatic_scale = Scale::from(ScaleType::Chromatic, PentatonicType::None).unwrap();
     /// ```
     pub fn from(scale: ScaleType, pentatonic: PentatonicType) -> Result<Self, InputError> {
-        let scale_intervals: Vec<u8> = match scale {
-            ScaleType::Major | ScaleType::Ionian => vec![0, 2, 4, 5, 7, 9, 11, 12],
-            ScaleType::Minor
-            | ScaleType::Aeolian
-            | ScaleType::NaturalMinor
-            | ScaleType::DescendingMelodicMinor => vec![0, 2, 3, 5, 7, 8, 10, 12],
-            ScaleType::Dorian => vec![0, 2, 3, 5, 7, 9, 10, 12],
-            ScaleType::Phrygian => vec![0, 1, 3, 5, 7, 8, 10, 12],
-            ScaleType::Lydian => vec![0, 2, 4, 6, 7, 9, 11, 12],
-            ScaleType::Mixolydian => vec![0, 2, 4, 5, 7, 9, 10, 12],
-            ScaleType::Locrian => vec![0, 1, 3, 5, 6, 8, 10, 12],
-            ScaleType::HarmonicMinor | ScaleType::AeolianSharpSeven => {
-                vec![0, 2, 3, 5, 7, 8, 11, 12]
-            }
-            ScaleType::LocrianNaturalSix => vec![0, 1, 3, 5, 6, 9, 10, 12],
-            ScaleType::IonianSharpFive => vec![0, 2, 4, 5, 8, 9, 11, 12],
-            ScaleType::DorianSharpFour | ScaleType::RomanianMinor | ScaleType::UkranianDorian => {
-                vec![0, 2, 3, 6, 7, 9, 10, 12]
-            }
-            ScaleType::PhrygianDominant => vec![0, 1, 4, 5, 7, 8, 10, 12],
-            ScaleType::LydianSharpTwo => vec![0, 3, 4, 6, 7, 9, 11, 12],
-            ScaleType::AlteredDiminished | ScaleType::SuperLocrianDoubleFlatSeven => {
-                vec![0, 1, 3, 4, 6, 8, 9, 12]
-            }
-            ScaleType::MelodicMinor | ScaleType::AscendingMelodicMinor | ScaleType::JazzMinor => {
-                vec![0, 2, 3, 5, 7, 9, 11, 12]
-            }
-            ScaleType::DorianFlatTwo | ScaleType::PhrygianSharpSix => {
-                vec![0, 1, 3, 5, 7, 9, 10, 12]
-            }
-            ScaleType::LydianAugmented => vec![0, 2, 4, 6, 8, 9, 11, 12],
-            ScaleType::LydianDominant
-            | ScaleType::Overtone
-            | ScaleType::Acoustic
-            | ScaleType::MixolydianSharpFour => vec![0, 2, 4, 6, 7, 9, 10, 12],
-            ScaleType::AeolianDominant
-            | ScaleType::DescendingMelodicMajor
-            | ScaleType::Hindu
-            | ScaleType::MixolydianFlatSix => vec![0, 2, 4, 5, 7, 8, 10, 12],
-            ScaleType::HalfDiminished | ScaleType::LocrianSharpTwo | ScaleType::AeolianFlatFive => {
-                vec![0, 2, 3, 5, 6, 8, 10, 12]
-            }
-            ScaleType::Altered | ScaleType::AlteredDominant | ScaleType::SuperLocrian => {
-                vec![0, 1, 3, 4, 6, 8, 10, 12]
-            }
-            ScaleType::NonatonicBlues => vec![0, 2, 3, 4, 5, 7, 9, 10, 11, 12],
-            ScaleType::MajorBlues => vec![0, 2, 3, 4, 7, 9, 12],
-            ScaleType::MinorBlues => vec![0, 3, 5, 6, 7, 10, 12],
-            ScaleType::Whole => vec![0, 2, 4, 6, 8, 10, 12],
-            ScaleType::Chromatic => vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-            ScaleType::Diminished => vec![0, 2, 3, 5, 6, 8, 9, 11, 12],
-            ScaleType::DominantDiminished => vec![0, 1, 3, 4, 6, 7, 9, 10, 12],
+        let scale_intervals: Vec<u8> = match scale.get_id() {
+            //Major modes
+            1 => vec![0, 2, 4, 5, 7, 9, 11, 12],
+            2 => vec![0, 2, 3, 5, 7, 9, 10, 12],
+            3 => vec![0, 1, 3, 5, 7, 8, 10, 12],
+            4 => vec![0, 2, 4, 6, 7, 9, 11, 12],
+            5 => vec![0, 2, 4, 5, 7, 9, 10, 12],
+            6 => vec![0, 2, 3, 5, 7, 8, 10, 12],
+            7 => vec![0, 1, 3, 5, 6, 8, 10, 12],
+            //Harmonic minor modes
+            8 => vec![0, 2, 3, 5, 7, 8, 11, 12],
+            9 => vec![0, 1, 3, 5, 6, 9, 10, 12],
+            10 => vec![0, 2, 4, 5, 8, 9, 11, 12],
+            11 => vec![0, 2, 3, 6, 7, 9, 10, 12],
+            12 => vec![0, 1, 4, 5, 7, 8, 10, 12],
+            13 => vec![0, 3, 4, 6, 7, 9, 11, 12],
+            14 => vec![0, 1, 3, 4, 6, 8, 9, 12],
+            //Melodic minor modes
+            15 => vec![0, 2, 3, 5, 7, 9, 11, 12],
+            16 => vec![0, 1, 3, 5, 7, 9, 10, 12],
+            17 => vec![0, 2, 4, 6, 8, 9, 11, 12],
+            18 => vec![0, 2, 4, 6, 7, 9, 10, 12],
+            19 => vec![0, 2, 4, 5, 7, 8, 10, 12],
+            20 => vec![0, 2, 3, 5, 6, 8, 10, 12],
+            21 => vec![0, 1, 3, 4, 6, 8, 10, 12],
+            //Other scales
+            22 => vec![0, 2, 3, 5, 6, 8, 9, 11, 12],
+            23 => vec![0, 1, 3, 4, 6, 7, 9, 10, 12],
+            24 => vec![0, 2, 3, 4, 5, 7, 9, 10, 11, 12],
+            25 => vec![0, 2, 3, 4, 7, 9, 12],
+            26 => vec![0, 3, 5, 6, 7, 10, 12],
+            27 => vec![0, 2, 4, 6, 8, 10, 12],
+            28 => vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            _ => unimplemented!(),
         };
         let mut intervals: Vec<Interval> = scale_intervals
             .iter()
@@ -254,6 +236,12 @@ impl Scale {
         let mut chord = self.to_chord();
         chord.set_tonic(Some(tonic));
         chord.to_pitch_classes().unwrap()
+    }
+}
+
+impl Default for Scale {
+    fn default() -> Self {
+        Self::from(ScaleType::default(), PentatonicType::default()).unwrap()
     }
 }
 

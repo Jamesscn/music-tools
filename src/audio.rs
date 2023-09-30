@@ -3,7 +3,7 @@ use crate::common::{ArpeggioDirection, AudioDuration, AudioPlayError};
 use crate::interval::Interval;
 use crate::midi::MIDI;
 use crate::note::Note;
-use crate::pitchclass::{PitchClass, PitchClasses};
+use crate::pitchclass::PitchClass;
 use crate::scale::Scale;
 use crate::track::Event;
 use rand::distributions::Uniform;
@@ -17,7 +17,7 @@ const DEFAULT_WAVETABLE_SIZE: usize = 128;
 /**
  * A structure used to play a specific wavetable at a specific frequency.
  */
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 struct WavetableVoice {
     wavetable_index: usize,
     frequency: f32,
@@ -97,7 +97,7 @@ impl WavetableVoice {
 /// let mut player = AudioPlayer::new_from_wavetable(oscillator).unwrap();
 /// player.play(Note::from_string("A4").unwrap(), Beat::WHOLE);
 /// ```
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct WavetableOscillator {
     wavetables: Vec<Vec<f32>>,
     voices: Vec<WavetableVoice>,
@@ -108,12 +108,7 @@ pub struct WavetableOscillator {
 impl WavetableOscillator {
     /// Creates and returns an empty wavetable oscillator which can be used as a [`rodio::Source`].
     pub fn empty() -> Self {
-        Self {
-            wavetables: Vec::new(),
-            voices: Vec::new(),
-            sample_rate: 44100,
-            volume: 0.2,
-        }
+        Self::default()
     }
 
     /// Changes the sample rate of the wavetable oscillator.
@@ -221,7 +216,12 @@ impl WavetableOscillator {
 
 impl Default for WavetableOscillator {
     fn default() -> Self {
-        Self::empty()
+        Self {
+            wavetables: Vec::new(),
+            voices: Vec::new(),
+            sample_rate: 44100,
+            volume: 0.2,
+        }
     }
 }
 
@@ -484,13 +484,14 @@ impl Playable for Note {
 
 impl Playable for Chord {
     fn get_frequencies(&self) -> Vec<f32> {
+        let default_note = Note::default();
         let mut chord = self.clone();
         //If the chord is missing data, middle C is chosen as the tonic
         if chord.get_tonic().is_none() {
-            chord.set_tonic(Some(PitchClasses::C));
+            chord.set_tonic(Some(default_note.get_pitch_class()));
         }
         if chord.get_octave().is_none() {
-            chord.set_octave(Some(4));
+            chord.set_octave(Some(default_note.get_octave()));
         }
         let notes = chord.to_notes().unwrap();
         notes.iter().map(|note| note.get_frequency()).collect()
@@ -499,7 +500,7 @@ impl Playable for Chord {
 
 impl Playable for Interval {
     fn get_frequencies(&self) -> Vec<f32> {
-        let tonic = Note::from(PitchClasses::C, 4);
+        let tonic = Note::default();
         let interval_note = tonic.at_offset(self.get_value() as isize);
         vec![tonic.get_frequency(), interval_note.get_frequency()]
     }
@@ -507,14 +508,16 @@ impl Playable for Interval {
 
 impl Playable for &'static PitchClass {
     fn get_frequencies(&self) -> Vec<f32> {
-        let note = Note::from(self, 4);
+        let default_note = Note::default();
+        let note = Note::from(self, default_note.get_octave());
         vec![note.get_frequency()]
     }
 }
 
 impl Playable for Scale {
     fn get_frequencies(&self) -> Vec<f32> {
-        let notes = self.to_notes(PitchClasses::C, 4);
+        let default_note = Note::default();
+        let notes = self.to_notes(default_note.get_pitch_class(), default_note.get_octave());
         notes.iter().map(|note| note.get_frequency()).collect()
     }
 }
@@ -543,6 +546,7 @@ fn sawtooth_wave(time: f32) -> f32 {
     2.0 * time - 1.0
 }
 
+#[non_exhaustive]
 /// A structure containing common waveforms.
 pub struct Waveforms;
 

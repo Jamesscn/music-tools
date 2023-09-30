@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use crate::chord::ToChord;
 use crate::common::InputError;
 use crate::interval::{Interval, Intervals};
-use crate::pitchclass::PitchClass;
+use crate::pitchclass::{PitchClass, PitchClasses};
 use regex::Regex;
 
 /// A structure which is used to represent a note with a pitch class and an octave or frequency.
@@ -272,6 +272,16 @@ impl Note {
             return None;
         }
         Some(midi_index as u8)
+    }
+}
+
+impl Default for Note {
+    fn default() -> Self {
+        Self {
+            pitch_class: PitchClasses::C,
+            octave: 4,
+            base_frequency: 440.0,
+        }
     }
 }
 

@@ -5,7 +5,7 @@ use crate::{
 };
 
 /// A structure used to define one of the pitch classes of the twelve tone equal temperament system.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq)]
 pub struct PitchClass {
     value: u8,
     names: &'static [&'static str],
@@ -96,7 +96,13 @@ impl PitchClass {
     }
 }
 
-impl PartialEq for &'static PitchClass {
+impl Default for &'static PitchClass {
+    fn default() -> Self {
+        PitchClasses::C
+    }
+}
+
+impl PartialEq for PitchClass {
     fn eq(&self, other: &Self) -> bool {
         self.value == other.value
     }
@@ -159,6 +165,7 @@ impl ToChord for Vec<&'static PitchClass> {
     }
 }
 
+#[non_exhaustive]
 /// A structure which can be used to obtain a reference to one of the twelve equal temperament pitch
 /// classes.
 pub struct PitchClasses;

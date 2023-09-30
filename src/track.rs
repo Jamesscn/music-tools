@@ -4,7 +4,7 @@ use crate::note::Note;
 
 /// This structure is used to store a track with a sequence of events with the same structure as a
 /// MIDI event, however holding [`Note`] structures instead.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Track {
     tempo: f32,
     time_signature: Fraction,
@@ -237,8 +237,24 @@ impl Track {
     }
 }
 
+impl Default for Track {
+    fn default() -> Self {
+        Self {
+            tempo: 120.0,
+            time_signature: Fraction::new(4, 4),
+            ticks_per_quarter_note: 360,
+            duration: 0,
+            current_delta_ticks: 0,
+            current_event: 0,
+            events: Vec::new(),
+        }
+    }
+}
+
+impl Eq for Track {}
+
 /// A struct representing a MIDI or track event.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub struct Event {
     note: Note,
     active: bool,

@@ -8,7 +8,7 @@ use regex::Regex;
 /// inversion. A chord can optionally have a tonic which will define the pitch classes of each of
 /// the notes in the chord, and optionally also an octave which will define the octaves of these
 /// pitch classes.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Chord {
     intervals: Vec<Interval>,
     tonic: Option<&'static PitchClass>,
@@ -490,6 +490,17 @@ impl Chord {
             pitch_classes.push(current_pitch_class);
         }
         Ok(pitch_classes)
+    }
+}
+
+impl Default for Chord {
+    fn default() -> Self {
+        Self {
+            intervals: vec![Intervals::PERFECT_UNISON],
+            tonic: None,
+            octave: None,
+            inversion: 0,
+        }
     }
 }
 
