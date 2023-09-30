@@ -200,30 +200,77 @@ pub enum ScaleType {
     AscendingMelodicMinor,
     /// The melodic minor scale, which is the same as the ascending melodic minor scale.
     MelodicMinor,
+    /// The jazz minor scale, which is the same as the ascending melodic minor scale.
+    JazzMinor,
     /// The Dorian ♭2 scale, which is the second mode of the melodic minor scale and the same as
     /// the Dorian scale but with a flat second.
     DorianFlatTwo,
+    /// The Phrygian ♯6 scale, which is the same as the Dorian ♭2 scale.
+    PhrygianSharpSix,
     /// The Lyidan augmented scale, which is the third mode of the melodic minor scale and the
     /// same as the major scale with a raised fourth and fifth.
     LydianAugmented,
     /// The Lydian dominant scale, which is the fourth mode of the melodic minor scale and the same
     /// as the mixolydian scale with a sharp fourth.
     LydianDominant,
+    /// The overtone scale, which is the same as the Lydian dominant scale.
+    Overtone,
+    /// The acoustic scale, which is the same as the Lydian dominant scale.
+    Acoustic,
+    /// The Mixolydian ♯4 scale, which is the same as the Lydian dominant scale.
+    MixolydianSharpFour,
     /// The Mixolydian ♭6 scale, which is the fifth mode of the melodic minor scale and the same as
     /// the major scale with a flat sixth and seventh.
     MixolydianFlatSix,
+    /// The Aeolian dominant scale, which is the same as the Mixolydian ♭6 scale.
+    AeolianDominant,
+    /// The descending melodic major scale, which is the same as the Mixolydian ♭6 scale.
+    DescendingMelodicMajor,
+    /// The hindu scale, which is the same as the Mixolydian ♭6 scale.
+    Hindu,
     /// The Locrian ♯2 scale, which is the sixth mode of the melodic minor scale and the same as
     /// the locrian scale with a natural second.
     LocrianSharpTwo,
+    /// The Aeolian ♭5 scale, which is the same as the Locrian ♯2 scale.
+    AeolianFlatFive,
+    /// The half diminished scale, which is the same as the Locrian ♯2 scale.
+    HalfDiminished,
     /// The altered scale, which is the seventh mode of the melodic minor scale and the same as the
     /// major scale with all four altered extensions of the major mode
-    AlteredScale,
+    Altered,
+    /// The altered dominant scale, which is the same as the altered scale.
+    AlteredDominant,
+    /// The super locrian scale, which is the same as the altered scale.
+    SuperLocrian,
     /// The harmonic minor scale, which is equal to the natural minor scale with a major seventh
     /// instead of a minor seventh.
     HarmonicMinor,
-    /// The Phrygian Dominant scale, which is the equal to the Phrygian scale with a major third
-    /// instead of a minor third.
+    /// The Aeolian ♯7 scale, which is the same as the harmonic minor scale.
+    AeolianSharpSeven,
+    /// The Locrian ♮6 scale, which is the second mode of the harmonic minor scale and the same as
+    /// the Locrian scale with a natural sixth.
+    LocrianNaturalSix,
+    /// The Ionian ♯5 scale, which is the third mode of the harmonic minor scale and the same as
+    /// the Ionian scale with a sharp fifth.
+    IonianSharpFive,
+    /// The Dorian ♯4 scale, which is the fourth mode of the harmonic minor scale and the same as
+    /// the Dorian scale with a sharp fourth.
+    DorianSharpFour,
+    /// The Romanian minor scale, which is the same as the Dorian ♯4 scale.
+    RomanianMinor,
+    /// The Ukranian Dorian scale, which is the same as the Dorian ♯4 scale.
+    UkranianDorian,
+    /// The Phrygian Dominant scale, which is the fifth mode of the harmonic minor scale and is the
+    /// equal to the Phrygian scale with a major third instead of a minor third.
     PhrygianDominant,
+    /// The Lydian ♯2 scale, which is the sixth mode of the harmonic minor scale and the same as
+    /// the Lydian scale with a sharp second.
+    LydianSharpTwo,
+    /// The altered diminished scale, which is the seventh mode of the harmonic minor scale and the
+    /// same as the Locrian scale with a flat fourth and a double flat seventh.
+    AlteredDiminished,
+    /// The Super Locrian ♭♭7 scale, which is the same as the altered diminished scale.
+    SuperLocrianDoubleFlatSeven,
     /// A nonatonic blues scale, which is derived from the major scale with an added flat third and
     /// an added flat seventh of the key.
     NonatonicBlues,
