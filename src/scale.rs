@@ -32,11 +32,11 @@ impl Scale {
     /// use music_tools::scale::Scale;
     /// use music_tools::common::{ScaleType, PentatonicType};
     ///
-    /// let locrian = Scale::from(ScaleType::Locrian, PentatonicType::None).unwrap();
-    /// let some_pentatonic = Scale::from(ScaleType::Minor, PentatonicType::Major).unwrap();
-    /// let chromatic_scale = Scale::from(ScaleType::Chromatic, PentatonicType::None).unwrap();
+    /// let locrian = Scale::new(ScaleType::Locrian, PentatonicType::None).unwrap();
+    /// let some_pentatonic = Scale::new(ScaleType::Minor, PentatonicType::Major).unwrap();
+    /// let chromatic_scale = Scale::new(ScaleType::Chromatic, PentatonicType::None).unwrap();
     /// ```
-    pub fn from(scale: ScaleType, pentatonic: PentatonicType) -> Result<Self, InputError> {
+    pub fn new(scale: ScaleType, pentatonic: PentatonicType) -> Result<Self, InputError> {
         let scale_intervals: Vec<u8> = match scale.get_id() {
             //Major modes
             1 => vec![0, 2, 4, 5, 7, 9, 11, 12],
@@ -154,7 +154,7 @@ impl Scale {
     /// ```
     pub fn get_diatonic_chords(
         &self,
-        tonic: &'static PitchClass,
+        tonic: PitchClass,
         octave: Option<i8>,
         with_seventh: bool,
     ) -> Result<Vec<Chord>, InputError> {
@@ -209,7 +209,7 @@ impl Scale {
     ///
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic of the set of notes.
     /// - `starting_octave`: An integer representing the octave to place the tonic on.
-    pub fn to_notes(&self, tonic: &'static PitchClass, starting_octave: i8) -> Vec<Note> {
+    pub fn to_notes(&self, tonic: PitchClass, starting_octave: i8) -> Vec<Note> {
         let mut chord = Chord::from(self.clone());
         chord.set_tonic(Some(tonic));
         chord.set_octave(Some(starting_octave));
@@ -222,7 +222,7 @@ impl Scale {
     ///
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic of the other pitch
     ///   classes.
-    pub fn to_pitch_classes(&self, tonic: &'static PitchClass) -> Vec<&'static PitchClass> {
+    pub fn to_pitch_classes(&self, tonic: PitchClass) -> Vec<PitchClass> {
         let mut chord = Chord::from(self.clone());
         chord.set_tonic(Some(tonic));
         Vec::try_from(chord).unwrap()
@@ -231,7 +231,7 @@ impl Scale {
 
 impl Default for Scale {
     fn default() -> Self {
-        Self::from(ScaleType::default(), PentatonicType::default()).unwrap()
+        Self::new(ScaleType::default(), PentatonicType::default()).unwrap()
     }
 }
 

@@ -1,6 +1,7 @@
 use music_tools::audio::{AudioPlayer, Waveforms, WavetableOscillator};
 use music_tools::common::Beat;
 use music_tools::note::Note;
+use std::str::FromStr;
 
 fn main() {
     let mut oscillator = WavetableOscillator::empty();
@@ -17,6 +18,6 @@ fn main() {
             2 => player.set_wavetable_index(saw_table),
             _ => player.set_wavetable_index(square_table),
         }
-        player.play(Note::from_string("A4").unwrap(), Beat::QUARTER);
+        player.play(Note::from_str("A4").unwrap(), Beat::QUARTER);
     }
 }

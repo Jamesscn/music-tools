@@ -7,7 +7,7 @@ use music_tools::scale::Scale;
 fn main() {
     let mut player = AudioPlayer::new().unwrap();
     player.arpeggiate(
-        Scale::from(ScaleType::Major, PentatonicType::None).unwrap(),
+        Scale::new(ScaleType::Major, PentatonicType::None).unwrap(),
         Beat::QUARTER,
         ArpeggioDirection::UpDown,
         15,

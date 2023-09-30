@@ -12,7 +12,7 @@ use regex::Regex;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Chord {
     intervals: Vec<Interval>,
-    tonic: Option<&'static PitchClass>,
+    tonic: Option<PitchClass>,
     octave: Option<i8>,
     inversion: usize,
 }
@@ -39,7 +39,7 @@ impl Chord {
     /// let g_unison_chord = Chord::new(Some(PitchClasses::G), None);
     /// let g5_unison_chord = Chord::new(Some(PitchClasses::G), Some(5));
     /// ```
-    pub fn new(tonic: Option<&'static PitchClass>, octave: Option<i8>) -> Self {
+    pub fn new(tonic: Option<PitchClass>, octave: Option<i8>) -> Self {
         Self {
             intervals: vec![Intervals::PERFECT_UNISON],
             tonic,
@@ -94,7 +94,7 @@ impl Chord {
     /// ```
     pub fn from_triad(
         triad_quality: TriadQuality,
-        tonic: Option<&'static PitchClass>,
+        tonic: Option<PitchClass>,
         octave: Option<i8>,
     ) -> Self {
         let intervals: Vec<Interval> = match triad_quality {
@@ -197,7 +197,7 @@ impl Chord {
     /// ```
     pub fn from_numeral(
         input_numeral: &str,
-        tonic: &'static PitchClass,
+        tonic: PitchClass,
         octave: Option<i8>,
     ) -> Result<Self, InputError> {
         let numeral_array = ["I", "II", "III", "IV", "V", "VI", "VII"];
@@ -393,13 +393,13 @@ impl Chord {
     ///
     /// - `tonic`: An [`Option<PitchClass>`] which will represent the new tonic of the current
     ///   chord.
-    pub fn set_tonic(&mut self, tonic: Option<&'static PitchClass>) {
+    pub fn set_tonic(&mut self, tonic: Option<PitchClass>) {
         self.tonic = tonic;
     }
 
     /// Returns an [`Option<PitchClass>`] which can be [`None`] if the chord has no tonic pitch
     /// class, or otherwise the pitch class of the tonic.
-    pub fn get_tonic(&self) -> Option<&'static PitchClass> {
+    pub fn get_tonic(&self) -> Option<PitchClass> {
         self.tonic
     }
 
@@ -498,8 +498,8 @@ impl From<Vec<Note>> for Chord {
     }
 }
 
-impl From<&'static PitchClass> for Chord {
-    fn from(value: &'static PitchClass) -> Self {
+impl From<PitchClass> for Chord {
+    fn from(value: PitchClass) -> Self {
         Chord {
             intervals: vec![Intervals::PERFECT_UNISON],
             tonic: Some(value),
@@ -509,8 +509,8 @@ impl From<&'static PitchClass> for Chord {
     }
 }
 
-impl From<Vec<&'static PitchClass>> for Chord {
-    fn from(value: Vec<&'static PitchClass>) -> Self {
+impl From<Vec<PitchClass>> for Chord {
+    fn from(value: Vec<PitchClass>) -> Self {
         let mut tonic_diff = 0;
         let mut intervals: Vec<Interval> = value
             .iter()

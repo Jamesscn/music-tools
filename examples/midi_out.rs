@@ -5,6 +5,7 @@ use music_tools::note::Note;
 use music_tools::pitchclass::PitchClasses;
 use music_tools::scale::Scale;
 use music_tools::track::Track;
+use std::str::FromStr;
 
 fn main() {
     //The tempo and time signature of the song is set
@@ -14,8 +15,8 @@ fn main() {
     let mut melody_track = Track::new(tempo, waltz);
 
     //The melody is obtained from the C minor and harmonic minor scales
-    let minor_scale = Scale::from(ScaleType::Minor, PentatonicType::None).unwrap();
-    let harmonic_minor_scale = Scale::from(ScaleType::HarmonicMinor, PentatonicType::None).unwrap();
+    let minor_scale = Scale::new(ScaleType::Minor, PentatonicType::None).unwrap();
+    let harmonic_minor_scale = Scale::new(ScaleType::HarmonicMinor, PentatonicType::None).unwrap();
     let c_minor_scale = minor_scale.to_notes(PitchClasses::C, 5);
     let c_harmonic_double_scale = [
         &harmonic_minor_scale.to_notes(PitchClasses::C, 4)[0..7],
@@ -31,8 +32,8 @@ fn main() {
     for function in c_harmonic_minor_functions {
         melody_notes.push(c_harmonic_double_scale[function - 1]);
     }
-    melody_notes.push(Note::from_string("Gb5").unwrap());
-    melody_notes.push(Note::from_string("G5").unwrap());
+    melody_notes.push(Note::from_str("Gb5").unwrap());
+    melody_notes.push(Note::from_str("G5").unwrap());
 
     //The beats for each of the notes are predefined
     let melody_beats = [

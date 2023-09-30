@@ -1,14 +1,14 @@
-use std::cmp::Ordering;
-
 use crate::chord::Chord;
 use crate::common::{IncompleteChordError, InputError};
-use crate::pitchclass::{PitchClass, PitchClasses};
+use crate::pitchclass::PitchClass;
 use regex::Regex;
+use std::cmp::Ordering;
+use std::str::FromStr;
 
 /// A structure which is used to represent a note with a pitch class and an octave or frequency.
 #[derive(Copy, Clone, Debug)]
 pub struct Note {
-    pitch_class: &'static PitchClass,
+    pitch_class: PitchClass,
     octave: i8,
     base_frequency: f32,
 }
@@ -32,53 +32,12 @@ impl Note {
     /// let b = Note::new(PitchClasses::B_FLAT, 4);
     /// let c = Note::new(PitchClasses::C, 3);
     /// ```
-    pub fn new(pitch_class: &'static PitchClass, octave: i8) -> Self {
+    pub fn new(pitch_class: PitchClass, octave: i8) -> Self {
         Self {
             pitch_class,
             octave,
             base_frequency: 440.0,
         }
-    }
-
-    /// Constructs a [`Note`] from a string containing the pitch class and the octave of the note.
-    /// The function returns a [`Result`] which can contain the note or an [`InputError`] if the
-    /// input string was not valid.
-    ///
-    /// # Parameters
-    ///
-    /// - `string`: A string with the uppercase letter of the pitch class, which can be followed by
-    ///   a `#` or `♯` to indicate it is a sharp pitch class or a `b` or `♭` to indicate that it is
-    ///   a flat note, and which is then followed by a number representing the octave of the note.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use music_tools::note::Note;
-    ///
-    /// let a = Note::from_string("A#5").unwrap();
-    /// let b = Note::from_string("Bb4").unwrap();
-    /// let c = Note::from_string("C3").unwrap();
-    /// ```
-    pub fn from_string(string: &str) -> Result<Self, InputError> {
-        let regex = Regex::new(r"^([A-G])(♮|x|b{1,2}|♭{1,2}|\#{1,2}|♯{1,2})?(\-?\d+)$").unwrap();
-        if !regex.is_match(string) {
-            return Err(InputError {
-                message: "string does not conform to expected note format",
-            });
-        }
-        let regex_capture_groups = regex.captures(string).unwrap();
-        let pitch_class_letter = regex_capture_groups.get(1).map_or("", |x| x.as_str());
-        let accidental = regex_capture_groups.get(2).map_or("", |x| x.as_str());
-        let octave: i8 = regex_capture_groups
-            .get(3)
-            .map_or(0, |x| x.as_str().parse::<i8>().unwrap());
-        let pitch_class =
-            PitchClass::from_name(format!("{pitch_class_letter}{accidental}").as_str())?;
-        Ok(Self {
-            pitch_class,
-            octave,
-            base_frequency: 440.0,
-        })
     }
 
     /// Constructs a [`Note`] from a midi index between 0 and 127. The function returns a [`Result`]
@@ -195,7 +154,7 @@ impl Note {
     }
 
     /// Returns a [`PitchClass`] representing the pitch class of the note.
-    pub fn get_pitch_class(&self) -> &'static PitchClass {
+    pub fn get_pitch_class(&self) -> PitchClass {
         self.pitch_class
     }
 
@@ -277,7 +236,7 @@ impl Note {
 impl Default for Note {
     fn default() -> Self {
         Self {
-            pitch_class: PitchClasses::C,
+            pitch_class: PitchClass::default(),
             octave: 4,
             base_frequency: 440.0,
         }
@@ -301,6 +260,32 @@ impl PartialOrd for Note {
 impl Ord for Note {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_value().cmp(&other.get_value())
+    }
+}
+
+impl FromStr for Note {
+    type Err = InputError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let regex = Regex::new(r"^([A-G])(♮|x|b{1,2}|♭{1,2}|\#{1,2}|♯{1,2})?(\-?\d+)$").unwrap();
+        if !regex.is_match(s) {
+            return Err(InputError {
+                message: "string does not conform to expected note format",
+            });
+        }
+        let regex_capture_groups = regex.captures(s).unwrap();
+        let pitch_class_letter = regex_capture_groups.get(1).map_or("", |x| x.as_str());
+        let accidental = regex_capture_groups.get(2).map_or("", |x| x.as_str());
+        let octave: i8 = regex_capture_groups
+            .get(3)
+            .map_or(0, |x| x.as_str().parse::<i8>().unwrap());
+        let pitch_class =
+            PitchClass::from_str(format!("{pitch_class_letter}{accidental}").as_str())?;
+        Ok(Self {
+            pitch_class,
+            octave,
+            base_frequency: 440.0,
+        })
     }
 }
 
