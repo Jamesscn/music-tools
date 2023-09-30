@@ -1,4 +1,4 @@
-use crate::note::Note;
+use crate::{chord::Chord, note::Note};
 use std::cmp::Ordering;
 
 /// A structure which is used to represent the interval between two notes.
@@ -82,6 +82,12 @@ impl PartialOrd for Interval {
 impl Ord for Interval {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_value().cmp(&other.get_value())
+    }
+}
+
+impl From<Chord> for Vec<Interval> {
+    fn from(value: Chord) -> Self {
+        value.get_intervals()
     }
 }
 

@@ -227,7 +227,7 @@ impl Scale {
         let mut chord = self.to_chord();
         chord.set_tonic(Some(tonic));
         chord.set_octave(Some(starting_octave));
-        chord.to_notes().unwrap()
+        Vec::<Note>::try_from(chord).unwrap()
     }
 
     /// Converts the scale to a vector of [`PitchClass`], given a pitch class as the tonic.
@@ -239,7 +239,7 @@ impl Scale {
     pub fn to_pitch_classes(&self, tonic: &'static PitchClass) -> Vec<&'static PitchClass> {
         let mut chord = self.to_chord();
         chord.set_tonic(Some(tonic));
-        chord.to_pitch_classes().unwrap()
+        Vec::try_from(chord).unwrap()
     }
 }
 

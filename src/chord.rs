@@ -1,4 +1,4 @@
-use crate::common::{IncompleteChordError, InputError, TriadQuality};
+use crate::common::{InputError, TriadQuality};
 use crate::interval::{Interval, Intervals};
 use crate::note::Note;
 use crate::pitchclass::PitchClass;
@@ -420,68 +420,6 @@ impl Chord {
     /// it does have one.
     pub fn get_octave(&self) -> Option<i8> {
         self.octave
-    }
-
-    /// Returns a [`Result`] which can contain a [`Vec<Note>`] with consecutive [`Note`] objects for
-    /// each of the pitch classes and octaves of each note in the chord, or an
-    /// [`IncompleteChordError`] if either the tonic or the octave of the chord are [`None`].
-    ///
-    /// # Examples
-    ///
-    /// The following example will create a G major chord on the fourth octave whose notes will be
-    /// G4, B4 and D5.
-    ///
-    /// ```rust
-    /// use music_tools::chord::Chord;
-    /// use music_tools::common::TriadQuality;
-    /// use music_tools::pitchclass::PitchClasses;
-    ///
-    /// let mut chord = Chord::from_triad(TriadQuality::Major, Some(PitchClasses::G), Some(4));
-    /// let notes = chord.to_notes().unwrap();
-    /// ```
-    pub fn to_notes(&self) -> Result<Vec<Note>, IncompleteChordError> {
-        if self.tonic.is_none() || self.octave.is_none() {
-            return Err(IncompleteChordError {
-                needs_tonic: true,
-                needs_octave: true,
-                has_tonic: self.tonic.is_some(),
-                has_octave: self.octave.is_some(),
-            });
-        }
-        let mut notes: Vec<Note> = Vec::new();
-        for interval in self.get_intervals() {
-            let current_octave = self.octave.unwrap()
-                + ((self.tonic.unwrap().get_value() + interval.get_value()) / 12) as i8;
-            let current_semitone = interval.get_value() % 12;
-            let current_pitch_class = self.tonic.unwrap().get_offset(current_semitone as i8);
-            let current_note = Note::from(current_pitch_class, current_octave);
-            notes.push(current_note);
-        }
-        Ok(notes)
-    }
-
-    /// Returns a [`Result`] which can contain a [`Vec<PitchClass>`] corresponding to the pitch
-    /// classes of the notes in the current chord, or an [`IncompleteChordError`] if the tonic of
-    /// the chord is [`None`]. Note that this representation of a chord is not optimal because it
-    /// makes it impossible to tell the difference between an interval less than an octave and any
-    /// interval larger than an octave.
-    pub fn to_pitch_classes(&self) -> Result<Vec<&'static PitchClass>, IncompleteChordError> {
-        if self.tonic.is_none() {
-            return Err(IncompleteChordError {
-                needs_tonic: true,
-                needs_octave: false,
-                has_tonic: self.tonic.is_some(),
-                has_octave: self.octave.is_some(),
-            });
-        }
-        let mut pitch_classes: Vec<&'static PitchClass> = Vec::new();
-        let intervals = self.get_intervals();
-        for interval in intervals {
-            let current_semitone = interval.get_value() % 12;
-            let current_pitch_class = self.tonic.unwrap().get_offset(current_semitone as i8);
-            pitch_classes.push(current_pitch_class);
-        }
-        Ok(pitch_classes)
     }
 }
 

@@ -99,7 +99,7 @@ impl Track {
     /// - `duration`: A [`Beat`] representing the duration to play the chord for.
     pub fn add_chord(&mut self, chord: Chord, duration: Beat) -> Result<(), IncompleteChordError> {
         let delta_ticks = self.beat_to_ticks(duration);
-        let notes = chord.to_notes()?;
+        let notes = Vec::<Note>::try_from(chord)?;
         for note in notes.clone() {
             self.add_event(note, true, 0);
         }

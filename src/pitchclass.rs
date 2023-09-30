@@ -1,4 +1,7 @@
-use crate::common::InputError;
+use crate::{
+    chord::Chord,
+    common::{IncompleteChordError, InputError},
+};
 
 /// A structure used to define one of the pitch classes of the twelve tone equal temperament system.
 #[derive(Copy, Clone, Debug, Eq)]
@@ -101,6 +104,26 @@ impl Default for &'static PitchClass {
 impl PartialEq for PitchClass {
     fn eq(&self, other: &Self) -> bool {
         self.value == other.value
+    }
+}
+
+impl TryFrom<Chord> for Vec<&'static PitchClass> {
+    type Error = IncompleteChordError;
+
+    fn try_from(value: Chord) -> Result<Self, Self::Error> {
+        match value.get_tonic() {
+            Some(tonic) => Ok(value
+                .get_intervals()
+                .iter()
+                .map(|interval| tonic.get_offset((interval.get_value() % 12) as i8))
+                .collect()),
+            None => Err(IncompleteChordError {
+                needs_tonic: true,
+                needs_octave: false,
+                has_tonic: value.get_tonic().is_some(),
+                has_octave: value.get_octave().is_some(),
+            }),
+        }
     }
 }
 

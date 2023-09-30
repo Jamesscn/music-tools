@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 
-use crate::common::InputError;
+use crate::chord::Chord;
+use crate::common::{IncompleteChordError, InputError};
 use crate::pitchclass::{PitchClass, PitchClasses};
 use regex::Regex;
 
@@ -300,5 +301,33 @@ impl PartialOrd for Note {
 impl Ord for Note {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_value().cmp(&other.get_value())
+    }
+}
+
+impl TryFrom<Chord> for Vec<Note> {
+    type Error = IncompleteChordError;
+
+    fn try_from(value: Chord) -> Result<Self, Self::Error> {
+        if value.get_tonic().is_none() || value.get_octave().is_none() {
+            return Err(IncompleteChordError {
+                needs_tonic: true,
+                needs_octave: true,
+                has_tonic: value.get_tonic().is_some(),
+                has_octave: value.get_octave().is_some(),
+            });
+        }
+        let mut notes: Vec<Note> = Vec::new();
+        for interval in value.get_intervals() {
+            let current_octave = value.get_octave().unwrap()
+                + ((value.get_tonic().unwrap().get_value() + interval.get_value()) / 12) as i8;
+            let current_semitone = interval.get_value() % 12;
+            let current_pitch_class = value
+                .get_tonic()
+                .unwrap()
+                .get_offset(current_semitone as i8);
+            let current_note = Note::from(current_pitch_class, current_octave);
+            notes.push(current_note);
+        }
+        Ok(notes)
     }
 }

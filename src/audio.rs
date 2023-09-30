@@ -493,7 +493,7 @@ impl Playable for Chord {
         if chord.get_octave().is_none() {
             chord.set_octave(Some(default_note.get_octave()));
         }
-        let notes = chord.to_notes().unwrap();
+        let notes = Vec::<Note>::try_from(chord).unwrap();
         notes.iter().map(|note| note.get_frequency()).collect()
     }
 }
