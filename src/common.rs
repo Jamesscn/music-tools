@@ -460,6 +460,7 @@ pub struct IncompleteChordError {
 }
 
 impl Error for IncompleteChordError {}
+
 impl fmt::Display for IncompleteChordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let requirements = if self.needs_tonic && self.needs_octave {

@@ -28,11 +28,11 @@ impl Note {
     /// use music_tools::note::Note;
     /// use music_tools::pitchclass::PitchClasses;
     ///
-    /// let a = Note::from(PitchClasses::A_SHARP, 5);
-    /// let b = Note::from(PitchClasses::B_FLAT, 4);
-    /// let c = Note::from(PitchClasses::C, 3);
+    /// let a = Note::new(PitchClasses::A_SHARP, 5);
+    /// let b = Note::new(PitchClasses::B_FLAT, 4);
+    /// let c = Note::new(PitchClasses::C, 3);
     /// ```
-    pub fn from(pitch_class: &'static PitchClass, octave: i8) -> Self {
+    pub fn new(pitch_class: &'static PitchClass, octave: i8) -> Self {
         Self {
             pitch_class,
             octave,
@@ -93,7 +93,7 @@ impl Note {
                 message: "the midi index must be an integer between 0 and 127",
             });
         }
-        let pitch_class = PitchClass::from_value(index % 12).unwrap();
+        let pitch_class = PitchClass::try_from(index % 12).unwrap();
         let octave = (index / 12) as i8 - 1;
         Ok(Self {
             pitch_class,
@@ -112,7 +112,7 @@ impl Note {
     pub fn at_offset(&self, offset: isize) -> Self {
         let pitch_class_val = self.pitch_class.get_value() as isize + offset;
         Self {
-            pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            pitch_class: PitchClass::try_from(pitch_class_val.rem_euclid(12) as u8).unwrap(),
             octave: self.octave + pitch_class_val.div_floor(12) as i8,
             base_frequency: self.base_frequency,
         }
@@ -122,7 +122,7 @@ impl Note {
     pub fn next(&self) -> Self {
         let pitch_class_val = self.pitch_class.get_value() as i8 + 1;
         Self {
-            pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            pitch_class: PitchClass::try_from(pitch_class_val.rem_euclid(12) as u8).unwrap(),
             octave: self.octave + pitch_class_val.div_floor(12),
             base_frequency: self.base_frequency,
         }
@@ -132,7 +132,7 @@ impl Note {
     pub fn prev(&self) -> Self {
         let pitch_class_val = self.pitch_class.get_value() as i8 - 1;
         Self {
-            pitch_class: PitchClass::from_value(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            pitch_class: PitchClass::try_from(pitch_class_val.rem_euclid(12) as u8).unwrap(),
             octave: self.octave + pitch_class_val.div_floor(12),
             base_frequency: self.base_frequency,
         }
@@ -319,13 +319,14 @@ impl TryFrom<Chord> for Vec<Note> {
         let mut notes: Vec<Note> = Vec::new();
         for interval in value.get_intervals() {
             let current_octave = value.get_octave().unwrap()
-                + ((value.get_tonic().unwrap().get_value() + interval.get_value()) / 12) as i8;
+                + ((value.get_tonic().unwrap().get_value() as u64 + interval.get_value()) / 12)
+                    as i8;
             let current_semitone = interval.get_value() % 12;
             let current_pitch_class = value
                 .get_tonic()
                 .unwrap()
                 .get_offset(current_semitone as i8);
-            let current_note = Note::from(current_pitch_class, current_octave);
+            let current_note = Note::new(current_pitch_class, current_octave);
             notes.push(current_note);
         }
         Ok(notes)

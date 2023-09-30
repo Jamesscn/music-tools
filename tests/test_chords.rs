@@ -60,7 +60,7 @@ fn test_triads() {
     ];
 
     for test_case in test_cases {
-        let output_vec: Vec<Note> = test_case.0.to_notes().unwrap();
+        let output_vec: Vec<Note> = Vec::try_from(test_case.0).unwrap();
         let expected_vec: Vec<Note> = test_case
             .1
             .into_iter()

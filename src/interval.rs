@@ -4,33 +4,19 @@ use std::cmp::Ordering;
 /// A structure which is used to represent the interval between two notes.
 #[derive(Copy, Clone, Debug, Eq)]
 pub struct Interval {
-    value: u8,
+    value: u64,
     full_name: Option<&'static str>,
     short_name: Option<&'static str>,
 }
 
 impl Interval {
-    /// Constructs an interval given a positive integer representing the value of the interval or
-    /// the distance between two notes.
-    pub fn from_value(value: u8) -> Self {
-        let index = value as usize;
-        if index < INTERVALS.len() {
-            return INTERVALS[index];
-        }
-        Self {
-            value,
-            full_name: None,
-            short_name: None,
-        }
-    }
-
     /// Returns the interval between two notes.
     ///
     /// # Parameters
     ///
     /// - `first`: A [`Note`] representing the first note.
     /// - `second`: A [`Note`] representing the second note.
-    pub fn from_notes(first: Note, second: Note) -> Self {
+    pub fn between_notes(first: Note, second: Note) -> Self {
         let first_value = first.get_value();
         let second_value = second.get_value();
         let difference: u16 = if first_value <= second_value {
@@ -38,14 +24,11 @@ impl Interval {
         } else {
             (first_value - second_value) as u16
         };
-        if difference > 255 {
-            panic!("Interval between notes is greater than a u8");
-        }
-        Self::from_value(difference as u8)
+        Self::from(difference)
     }
 
     /// Returns a positive integer representing the value of the interval.
-    pub fn get_value(&self) -> u8 {
+    pub fn get_value(&self) -> u64 {
         self.value
     }
 
@@ -82,6 +65,21 @@ impl PartialOrd for Interval {
 impl Ord for Interval {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_value().cmp(&other.get_value())
+    }
+}
+
+impl<T: Into<u64>> From<T> for Interval {
+    fn from(value: T) -> Self {
+        let numeric_value = value.into();
+        let index = numeric_value as usize;
+        if index < INTERVALS.len() {
+            return INTERVALS[index];
+        }
+        Self {
+            value: numeric_value,
+            full_name: None,
+            short_name: None,
+        }
     }
 }
 

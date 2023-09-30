@@ -53,10 +53,11 @@ impl PitchClass {
     /// ```rust
     /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let g_flat = PitchClass::from_value(6);
+    /// let g_flat = PitchClass::try_from(6).unwrap();
     /// ```
-    pub fn from_value(value: u8) -> Result<&'static Self, InputError> {
-        let index = value as usize;
+    pub fn try_from(value: impl Into<u64>) -> Result<&'static Self, InputError> {
+        let numeric_value = value.into();
+        let index = numeric_value as usize;
         if index < 12 {
             return Ok(&PITCH_CLASSES[index]);
         }

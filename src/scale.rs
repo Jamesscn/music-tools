@@ -74,7 +74,7 @@ impl Scale {
         };
         let mut intervals: Vec<Interval> = scale_intervals
             .iter()
-            .map(|value| Interval::from_value(*value))
+            .map(|value| Interval::from(*value))
             .collect();
         if pentatonic != PentatonicType::None && intervals.len() != 8 {
             return Err(InputError {
@@ -202,20 +202,6 @@ impl Scale {
         self.intervals.clone()
     }
 
-    /// Converts the scale into a [`Chord`].
-    ///
-    /// # Parameters
-    ///
-    /// - `tonic`: An [`Option<PitchClass>`] which will serve as the pitch class of the tonic note
-    ///   if defined. If [`None`] is provided then the chord will not assign the intervals it holds
-    ///   to any pitch classes.
-    /// - `octave`: An [`Option<i8>`] which will represent the octave the chord is based on if
-    ///   defined. If [`None`] is provided then the chord will not assign the intervals it holds to
-    ///   any octaves.
-    pub fn to_chord(&self) -> Chord {
-        Chord::from(self.clone())
-    }
-
     /// Converts the scale to a vector of [`Note`], given a pitch class as the tonic and the octave
     /// to place the notes of the chord over.
     ///
@@ -224,7 +210,7 @@ impl Scale {
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic of the set of notes.
     /// - `starting_octave`: An integer representing the octave to place the tonic on.
     pub fn to_notes(&self, tonic: &'static PitchClass, starting_octave: i8) -> Vec<Note> {
-        let mut chord = self.to_chord();
+        let mut chord = Chord::from(self.clone());
         chord.set_tonic(Some(tonic));
         chord.set_octave(Some(starting_octave));
         Vec::<Note>::try_from(chord).unwrap()
@@ -237,7 +223,7 @@ impl Scale {
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic of the other pitch
     ///   classes.
     pub fn to_pitch_classes(&self, tonic: &'static PitchClass) -> Vec<&'static PitchClass> {
-        let mut chord = self.to_chord();
+        let mut chord = Chord::from(self.clone());
         chord.set_tonic(Some(tonic));
         Vec::try_from(chord).unwrap()
     }

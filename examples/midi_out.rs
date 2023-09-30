@@ -70,12 +70,12 @@ fn main() {
         if index % 3 == 0 {
             if index % 6 == 0 {
                 if !(30..54).contains(&index) {
-                    beat_track.add_note(Note::from(PitchClasses::C, 3), Beat::QUARTER);
+                    beat_track.add_note(Note::new(PitchClasses::C, 3), Beat::QUARTER);
                 } else {
-                    beat_track.add_note(Note::from(PitchClasses::D, 3), Beat::QUARTER);
+                    beat_track.add_note(Note::new(PitchClasses::D, 3), Beat::QUARTER);
                 }
             } else {
-                beat_track.add_note(Note::from(PitchClasses::G, 2), Beat::QUARTER);
+                beat_track.add_note(Note::new(PitchClasses::G, 2), Beat::QUARTER);
             }
         } else if !(30..54).contains(&index) {
             beat_track

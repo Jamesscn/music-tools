@@ -509,7 +509,7 @@ impl Playable for Interval {
 impl Playable for &'static PitchClass {
     fn get_frequencies(&self) -> Vec<f32> {
         let default_note = Note::default();
-        let note = Note::from(self, default_note.get_octave());
+        let note = Note::new(self, default_note.get_octave());
         vec![note.get_frequency()]
     }
 }

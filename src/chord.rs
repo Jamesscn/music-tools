@@ -331,23 +331,20 @@ impl Chord {
     /// Returns a vector of [`Interval`] objects representing the intervals of the current chord
     /// with the inversion of the chord applied.
     pub fn get_intervals(&self) -> Vec<Interval> {
-        let mut values: Vec<u8> = Vec::new();
-        let first_half_octave_offset = self.intervals[self.inversion].get_value() as i8 / 12;
+        let mut values: Vec<u64> = Vec::new();
+        let first_half_octave_offset = self.intervals[self.inversion].get_value() as i64 / 12;
         for index in self.inversion..self.intervals.len() {
             values.push(
-                (self.intervals[index].get_value() as i8 - 12 * first_half_octave_offset) as u8,
+                (self.intervals[index].get_value() as i64 - 12 * first_half_octave_offset) as u64,
             );
         }
-        let second_half_octave_offset = values[values.len() - 1] as i8 / 12 + 1;
+        let second_half_octave_offset = values[values.len() - 1] as i64 / 12 + 1;
         for index in 0..self.inversion {
             values.push(
-                (self.intervals[index].get_value() as i8 + 12 * second_half_octave_offset) as u8,
+                (self.intervals[index].get_value() as i64 + 12 * second_half_octave_offset) as u64,
             );
         }
-        values
-            .iter()
-            .map(|value| Interval::from_value(*value))
-            .collect()
+        values.iter().map(|value| Interval::from(*value)).collect()
     }
 
     /// Sets the inversion of the current chord which changes the order of the intervals in the
@@ -487,7 +484,7 @@ impl From<Vec<Note>> for Chord {
             let smallest = notes[0];
             notes
                 .iter()
-                .map(|note| Interval::from_notes(smallest, *note))
+                .map(|note| Interval::between_notes(smallest, *note))
                 .collect()
         };
         let tonic = value.get(0).map(|note| note.get_pitch_class());
@@ -523,7 +520,7 @@ impl From<Vec<&'static PitchClass>> for Chord {
                 } else {
                     12 - prev.get_value() + curr.get_value()
                 };
-                Interval::from_value(tonic_diff)
+                Interval::from(tonic_diff)
             })
             .collect();
         intervals.insert(0, Intervals::PERFECT_UNISON);
