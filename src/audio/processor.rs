@@ -51,6 +51,10 @@ impl AudioProcessor {
         self.sample_rate = sample_rate;
     }
 
+    pub fn get_sample_rate(&self) -> u32 {
+        self.sample_rate
+    }
+
     pub fn register_synth(&mut self, synth: Box<dyn Synth>) -> SynthRc {
         let reference = Rc::new(RefCell::new(synth));
         self.frequencies.push((reference, HashSet::new()));

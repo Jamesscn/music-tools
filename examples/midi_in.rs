@@ -31,6 +31,7 @@ fn main() {
             .expect("Could not read input!");
         let new_tempo = new_tempo_string.trim().parse::<f32>().unwrap_or(tempo);
         println!("Playing MIDI at {new_tempo} BPM...");
-        player.play_midi(&midi, synth, Some(new_tempo));
+        player.push_midi(&midi, synth, Some(new_tempo));
+        player.play();
     }
 }

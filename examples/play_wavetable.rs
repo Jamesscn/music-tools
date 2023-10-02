@@ -27,6 +27,7 @@ fn main() {
                 player.set_synth(square_table);
             }
         }
-        player.play(&Note::from_str("A4").unwrap(), &Beat::QUARTER);
+        player.push(&Note::from_str("A4").unwrap(), &Beat::QUARTER);
     }
+    player.play();
 }

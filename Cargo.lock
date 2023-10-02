@@ -405,6 +405,7 @@ name = "music-tools"
 version = "0.1.0"
 dependencies = [
  "apres",
+ "byteorder",
  "ordered-float",
  "rand",
  "regex",
