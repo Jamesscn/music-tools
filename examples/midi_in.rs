@@ -1,4 +1,6 @@
-use music_tools::audio::{AudioPlayer, Waveforms, WavetableOscillator};
+use music_tools::audio::common::Waveforms;
+use music_tools::audio::player::AudioPlayer;
+use music_tools::audio::wavetable::WavetableOscillator;
 use music_tools::midi::MIDI;
 use std::io::{self, Write};
 
@@ -16,9 +18,8 @@ fn main() {
     if num_tracks == 0 {
         println!("The MIDI file has no tracks or notes in it!");
     } else {
-        let mut oscillator = WavetableOscillator::empty();
-        oscillator.add_wavetable_from_function(Waveforms::SAWTOOTH_WAVE, 1.0, 128);
-        let mut player = AudioPlayer::new_from_wavetable(oscillator).unwrap();
+        let synth = WavetableOscillator::new(Waveforms::SAWTOOTH_WAVE, 1.0, 128);
+        let mut player = AudioPlayer::new().unwrap();
         let tempo = midi.get_tracks()[0].get_tempo();
         println!("Tempo detected: {tempo} BPM");
         println!("Would you like to set a custom tempo (leave blank if not):");
@@ -30,7 +31,6 @@ fn main() {
             .expect("Could not read input!");
         let new_tempo = new_tempo_string.trim().parse::<f32>().unwrap_or(tempo);
         println!("Playing MIDI at {new_tempo} BPM...");
-        player.set_tempo(new_tempo);
-        player.play_midi(midi);
+        player.play_midi(&midi, synth, Some(new_tempo));
     }
 }

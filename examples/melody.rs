@@ -1,4 +1,4 @@
-use music_tools::audio::AudioPlayer;
+use music_tools::audio::player::AudioPlayer;
 use music_tools::common::Beat;
 use music_tools::note::Note;
 use std::str::FromStr;
@@ -16,6 +16,6 @@ fn main() {
     for index in 0..16 {
         let note = Note::from_str(note_names[index % note_names.len()]).unwrap();
         let duration = beats[index % beats.len()];
-        player.play(note, duration);
+        player.play(&note, &duration);
     }
 }

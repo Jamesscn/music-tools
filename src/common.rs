@@ -405,15 +405,6 @@ pub enum PentatonicType {
     Minor,
 }
 
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash)]
-pub enum ArpeggioDirection {
-    #[default]
-    Up,
-    Down,
-    UpDown,
-    Random,
-}
-
 /// An error which is returned when a function receives an input that was not in the expected
 /// format.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -427,21 +418,6 @@ impl Error for InputError {}
 impl fmt::Display for InputError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid input provided - {}", self.message)
-    }
-}
-
-/// An error which is returned when audio could not be played.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct AudioPlayError {
-    /// A more specific message that explains why specific audio could not be played.
-    pub message: &'static str,
-}
-
-impl Error for AudioPlayError {}
-
-impl fmt::Display for AudioPlayError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "audio could not be played - {}", self.message)
     }
 }
 

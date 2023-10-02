@@ -1,23 +1,32 @@
-use music_tools::audio::{AudioPlayer, Waveforms, WavetableOscillator};
+use music_tools::audio::common::Waveforms;
+use music_tools::audio::player::AudioPlayer;
+use music_tools::audio::wavetable::WavetableOscillator;
 use music_tools::common::Beat;
 use music_tools::note::Note;
 use std::str::FromStr;
 
 fn main() {
-    let mut oscillator = WavetableOscillator::empty();
-    let sine_table = oscillator.add_wavetable_from_function(Waveforms::SINE_WAVE, 1.0, 128);
-    let triangle_table = oscillator.add_wavetable_from_function(Waveforms::TRIANGLE_WAVE, 1.0, 128);
-    let saw_table = oscillator.add_wavetable_from_function(|t| 2.0 * t - 1.0, 1.0, 128);
-    let square_table = oscillator.add_wavetable_from_function(Waveforms::SQUARE_WAVE, 1.0, 128);
-    let mut player = AudioPlayer::new_from_wavetable(oscillator).unwrap();
+    let mut player = AudioPlayer::new().unwrap();
     player.set_tempo(160.0);
     for index in 0..32 {
         match index % 4 {
-            0 => player.set_wavetable_index(sine_table),
-            1 => player.set_wavetable_index(triangle_table),
-            2 => player.set_wavetable_index(saw_table),
-            _ => player.set_wavetable_index(square_table),
+            0 => {
+                let sine_table = WavetableOscillator::new(Waveforms::SINE_WAVE, 1.0, 128);
+                player.set_synth(sine_table);
+            }
+            1 => {
+                let triangle_table = WavetableOscillator::new(Waveforms::TRIANGLE_WAVE, 1.0, 128);
+                player.set_synth(triangle_table);
+            }
+            2 => {
+                let saw_table = WavetableOscillator::new(|t| 2.0 * t - 1.0, 1.0, 128);
+                player.set_synth(saw_table);
+            }
+            _ => {
+                let square_table = WavetableOscillator::new(Waveforms::SQUARE_WAVE, 1.0, 128);
+                player.set_synth(square_table);
+            }
         }
-        player.play(Note::from_str("A4").unwrap(), Beat::QUARTER);
+        player.play(&Note::from_str("A4").unwrap(), &Beat::QUARTER);
     }
 }
