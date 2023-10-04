@@ -15,8 +15,9 @@ fn main() {
     let mut melody_track = Track::new(tempo, waltz);
 
     //The melody is obtained from the C minor and harmonic minor scales
-    let minor_scale = Scale::new(ScaleType::Minor, PentatonicType::None).unwrap();
-    let harmonic_minor_scale = Scale::new(ScaleType::HarmonicMinor, PentatonicType::None).unwrap();
+    let minor_scale = Scale::try_new(ScaleType::Minor, PentatonicType::None).unwrap();
+    let harmonic_minor_scale =
+        Scale::try_new(ScaleType::HarmonicMinor, PentatonicType::None).unwrap();
     let c_minor_scale = minor_scale.to_notes(PitchClasses::C, 5);
     let c_harmonic_double_scale = [
         &harmonic_minor_scale.to_notes(PitchClasses::C, 4)[0..7],

@@ -6,9 +6,9 @@ use music_tools::interval::Intervals;
 use music_tools::scale::Scale;
 
 fn main() {
-    let mut player = AudioPlayer::new().unwrap();
+    let mut player = AudioPlayer::try_new().unwrap();
     player.push_arpeggiate(
-        &Scale::new(ScaleType::Major, PentatonicType::None).unwrap(),
+        &Scale::try_new(ScaleType::Major, PentatonicType::None).unwrap(),
         &Beat::QUARTER,
         ArpeggioDirection::UpDown,
         15,

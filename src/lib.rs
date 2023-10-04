@@ -13,7 +13,7 @@ pub mod common;
 /// a value.
 pub mod note;
 
-/// The audio module contains structures for playing frequencies and music.
+/// The audio module contains structures for playing frequencies and processing audio waves.
 pub mod audio;
 
 /// The chord module contains a structure which can be used to represent a chord.

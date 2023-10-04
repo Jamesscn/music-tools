@@ -322,6 +322,7 @@ pub enum ScaleType {
 }
 
 impl ScaleType {
+    /// Returns an ID which can be used to compare scale types between each other.
     pub fn get_id(&self) -> u8 {
         match self {
             ScaleType::Major | ScaleType::Ionian => 1,

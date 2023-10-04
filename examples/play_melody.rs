@@ -4,7 +4,7 @@ use music_tools::note::Note;
 use std::str::FromStr;
 
 fn main() {
-    let mut player = AudioPlayer::new().unwrap();
+    let mut player = AudioPlayer::try_new().unwrap();
     player.set_tempo(160.0);
     let beats = [
         Beat::QUARTER_DOTTED,

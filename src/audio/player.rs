@@ -14,15 +14,20 @@ use std::fs::File;
 use std::io::Write;
 use std::time::Duration;
 
-#[derive(Copy, Clone, Debug)]
+/// An enum representing the amount of bits per sample to use while exporting a WAV file.
+#[derive(Copy, Clone, Debug, Default)]
 pub enum BitsPerSample {
+    /// Represents 8 bits per sample
     EIGHT = 8,
+    /// Represents 16 bits per sample
     SIXTEEN = 16,
+    /// Represents 32 bits per sample
+    #[default]
     TWENTYFOUR = 24,
 }
 
 #[derive(Clone, Debug)]
-pub struct PlayableAudio {
+struct PlayableAudio {
     audio: Vec<f32>,
     index: usize,
 }
@@ -30,10 +35,6 @@ pub struct PlayableAudio {
 impl PlayableAudio {
     pub fn new(audio: Vec<f32>) -> Self {
         Self { audio, index: 0 }
-    }
-
-    pub fn reset(&mut self) {
-        self.index = 0;
     }
 }
 
@@ -43,7 +44,7 @@ impl Iterator for PlayableAudio {
     fn next(&mut self) -> Option<Self::Item> {
         let sample = self.audio.get(self.index);
         self.index += 1;
-        sample.map(|x| *x)
+        sample.copied()
     }
 }
 
@@ -65,6 +66,8 @@ impl Source for PlayableAudio {
     }
 }
 
+/// A structure which can be used to play audio through the speakers of the current machine or to
+/// export audio into a WAV file.
 pub struct AudioPlayer {
     tempo: f32,
     sink: Sink,
@@ -75,7 +78,9 @@ pub struct AudioPlayer {
 }
 
 impl AudioPlayer {
-    pub fn new() -> Result<Self, AudioPlayError> {
+    /// Attempts to create a new audio player. A [`Result`] is returned which can be an error if
+    /// there are no audio devices that can be captured.
+    pub fn try_new() -> Result<Self, AudioPlayError> {
         let stream_result = OutputStream::try_default();
         if stream_result.is_err() {
             return Err(AudioPlayError {
@@ -102,24 +107,49 @@ impl AudioPlayer {
         })
     }
 
+    /// Sets the synthesizer that will be used to play the audio. If this function is never called a
+    /// default synthesizer is used.
+    ///
+    /// # Parameters
+    ///
+    /// - `synth`: A synthesizer that implements the [`Synth`] trait.
     pub fn set_synth(&mut self, synth: impl Synth + 'static) {
         self.processor.unregister_synth(&self.synth_ref);
         let synth_ref = self.processor.register_synth(Box::new(synth));
         self.synth_ref = synth_ref;
     }
 
+    /// Sets the volume of the audio player.
+    ///
+    /// # Parameters
+    ///
+    /// - `volume`: An [`f32`] that represents the volume of the audio player, which must be between
+    ///   0.0 and 1.0. Volumes outside of this range are clamped.
     pub fn set_volume(&mut self, volume: f32) {
         self.processor.set_volume(volume.clamp(0.0, 1.0));
     }
 
+    /// Sets the tempo of the audio player.
+    ///
+    /// # Parameters
+    ///
+    /// - `tempo`: An [`f32`] representing the new tempo of the audio player in beats per minute.
     pub fn set_tempo(&mut self, tempo: f32) {
         self.tempo = tempo;
     }
 
+    /// Returns a reference to the [`AudioProcessor`] used by the audio player.
     pub fn get_processor(&self) -> &AudioProcessor {
         &self.processor
     }
 
+    /// Pushes playable audio to the queue of audio to be played.
+    ///
+    /// # Parameters
+    ///
+    /// - `playable`: The audio to be played which must implement the [`Playable`] trait.
+    /// - `duration`: A duration representing how long the audio will be played for. This duration
+    ///   must implement the [`AudioDuration`] trait.
     pub fn push(&mut self, playable: &impl Playable, duration: &impl AudioDuration) {
         for frequency in playable.get_frequencies() {
             self.processor.start_frequency(frequency, &self.synth_ref);
@@ -129,11 +159,28 @@ impl AudioPlayer {
         self.buffer.append(&mut audio_vec);
     }
 
+    /// Pushes a rest note to the queue of audio to be played.
+    ///
+    /// # Parameters
+    ///
+    /// - `duration`: A duration representing how long the rest will last for. This duration must
+    ///   implement the [`AudioDuration`] trait.
     pub fn push_rest(&mut self, duration: &impl AudioDuration) {
         let mut audio_vec = self.processor.render(duration.get_duration(self.tempo));
         self.buffer.append(&mut audio_vec);
     }
 
+    /// Pushes an arpeggiation of playable audio to the queue of audio to be played.
+    ///
+    /// # Parameters
+    ///
+    /// - `playable`: The audio to be arpeggiated which must implement the [`Playable`] trait.
+    /// - `duration`: A duration representing how long each individual repetition of the audio will
+    ///   be played for. This duration must implement the [`AudioDuration`] trait.
+    /// - `direction`: An [`ArpeggioDirection`] enum representing the direction that the audio will
+    ///   be arpeggiated in.
+    /// - `repetitions`: A [`usize`] representing the total amount of individual notes that will be
+    ///   played while the arpeggio is happening.
     pub fn push_arpeggiate(
         &mut self,
         playable: &impl Playable,
@@ -176,6 +223,15 @@ impl AudioPlayer {
         }
     }
 
+    /// Pushes a MIDI item onto the queue of audio to be played.
+    ///
+    /// # Parameters
+    ///
+    /// - `midi`: A reference to the [`MIDI`] to be played.
+    /// - `synth`: The synthesizer that will be used to play all the tracks of the MIDI item, which
+    ///   must implement the [`Synth`] trait.
+    /// - `custom_tempo`: An [`Option<f32>`] which if defined changes the tempo of the MIDI item. If
+    ///   it is not defined then the original tempo of the MIDI item is used.
     pub fn push_midi(
         &mut self,
         midi: &MIDI,
@@ -251,6 +307,7 @@ impl AudioPlayer {
         }
     }
 
+    /// Starts playing all the audio in the queue through the current speaker.
     pub fn play(&self) {
         let audio = PlayableAudio::new(self.buffer.clone());
         self.sink.append(audio);
@@ -258,14 +315,23 @@ impl AudioPlayer {
         self.sink.sleep_until_end();
     }
 
+    /// Clears all the audio that has been queued.
     pub fn clear(&mut self) {
         self.buffer.clear();
     }
 
+    /// Renders the audio that has been queued into a [`Vec<f32>`].
     pub fn render(&self) -> Vec<f32> {
         self.buffer.clone()
     }
 
+    /// Exports the audio that has been queued to a WAV file.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: A string representing the path of the WAV file to generate.
+    /// - `bits_per_sample`: A [`BitsPerSample`] enum representing the amount of bits per sample to
+    ///   be stored in the WAV file.
     pub fn export_wav(
         &self,
         path: &str,

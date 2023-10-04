@@ -36,7 +36,7 @@ impl Scale {
     /// let some_pentatonic = Scale::new(ScaleType::Minor, PentatonicType::Major).unwrap();
     /// let chromatic_scale = Scale::new(ScaleType::Chromatic, PentatonicType::None).unwrap();
     /// ```
-    pub fn new(scale: ScaleType, pentatonic: PentatonicType) -> Result<Self, InputError> {
+    pub fn try_new(scale: ScaleType, pentatonic: PentatonicType) -> Result<Self, InputError> {
         let scale_intervals: Vec<u8> = match scale.get_id() {
             //Major modes
             1 => vec![0, 2, 4, 5, 7, 9, 11, 12],
@@ -198,6 +198,7 @@ impl Scale {
         Ok(chords)
     }
 
+    /// Returns a vector with each of the intervals of the scale.
     pub fn get_intervals(&self) -> Vec<Interval> {
         self.intervals.clone()
     }
@@ -231,7 +232,7 @@ impl Scale {
 
 impl Default for Scale {
     fn default() -> Self {
-        Self::new(ScaleType::default(), PentatonicType::default()).unwrap()
+        Self::try_new(ScaleType::default(), PentatonicType::default()).unwrap()
     }
 }
 

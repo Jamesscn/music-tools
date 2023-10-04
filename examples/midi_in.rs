@@ -19,7 +19,7 @@ fn main() {
         println!("The MIDI file has no tracks or notes in it!");
     } else {
         let synth = WavetableOscillator::new(Waveforms::SAWTOOTH_WAVE, 1.0, 128);
-        let mut player = AudioPlayer::new().unwrap();
+        let mut player = AudioPlayer::try_new().unwrap();
         let tempo = midi.get_tracks()[0].get_tempo();
         println!("Tempo detected: {tempo} BPM");
         println!("Would you like to set a custom tempo (leave blank if not):");
