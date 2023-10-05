@@ -33,11 +33,17 @@ impl Chord {
     ///
     /// ```rust
     /// use music_tools::chord::Chord;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
+    /// use music_tools::note::Note;
+    /// use std::str::FromStr;
     ///
     /// let unison_chord = Chord::new(None, None);
-    /// let g_unison_chord = Chord::new(Some(PitchClasses::G), None);
-    /// let g5_unison_chord = Chord::new(Some(PitchClasses::G), Some(5));
+    /// let g_unison_chord = Chord::new(Some(PitchClass::G), None);
+    /// let g5_unison_chord = Chord::new(Some(PitchClass::G), Some(5));
+    /// assert_eq!(Vec::<PitchClass>::try_from(g_unison_chord).unwrap(), vec![PitchClass::G]);
+    /// assert_eq!(
+    ///     Vec::<Note>::try_from(g5_unison_chord).unwrap(), vec![Note::from_str("G5").unwrap()]
+    /// );
     /// ```
     pub fn new(tonic: Option<PitchClass>, octave: Option<i8>) -> Self {
         Self {
@@ -78,9 +84,13 @@ impl Chord {
     /// ```rust
     /// use music_tools::chord::Chord;
     /// use music_tools::common::TriadQuality;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let chord = Chord::from_triad(TriadQuality::Sus2, Some(PitchClasses::G), None);
+    /// let chord = Chord::from_triad(TriadQuality::Sus2, Some(PitchClass::G), None);
+    /// assert_eq!(
+    ///     Vec::<PitchClass>::try_from(chord).unwrap(),
+    ///     vec![PitchClass::G, PitchClass::A, PitchClass::D],
+    /// )
     /// ```
     ///
     /// The following example demonstrates the creation of a C5 augmented triad:
@@ -88,9 +98,19 @@ impl Chord {
     /// ```rust
     /// use music_tools::chord::Chord;
     /// use music_tools::common::TriadQuality;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
+    /// use music_tools::note::Note;
+    /// use std::str::FromStr;
     ///
-    /// let chord = Chord::from_triad(TriadQuality::Augmented, Some(PitchClasses::C), Some(5));
+    /// let chord = Chord::from_triad(TriadQuality::Augmented, Some(PitchClass::C), Some(5));
+    /// assert_eq!(
+    ///     Vec::<Note>::try_from(chord).unwrap(),
+    ///     vec![
+    ///         Note::from_str("C5").unwrap(),
+    ///         Note::from_str("E5").unwrap(),
+    ///         Note::from_str("G#5").unwrap(),
+    ///     ],
+    /// )
     /// ```
     pub fn from_triad(
         triad_quality: TriadQuality,
@@ -168,10 +188,11 @@ impl Chord {
     ///
     /// ```rust
     /// use music_tools::chord::Chord;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let chord1 = Chord::from_numeral("bVII+7", PitchClasses::C, Some(4)).unwrap();
-    /// let chord2 = Chord::from_numeral("♭VII+7", PitchClasses::C, Some(4)).unwrap();
+    /// let chord1 = Chord::from_numeral("bVII+7", PitchClass::C, Some(4)).unwrap();
+    /// let chord2 = Chord::from_numeral("♭VII+7", PitchClass::C, Some(4)).unwrap();
+    /// assert_eq!(chord1, chord2);
     /// ```
     ///
     /// The following example demonstrates the creation of two copies of a minor tetrad two scale
@@ -180,10 +201,11 @@ impl Chord {
     ///
     /// ```rust
     /// use music_tools::chord::Chord;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let chord1 = Chord::from_numeral("#ii°maj7", PitchClasses::G_SHARP, Some(5)).unwrap();
-    /// let chord2 = Chord::from_numeral("♯ii°maj7", PitchClasses::G_SHARP, Some(5)).unwrap();
+    /// let chord1 = Chord::from_numeral("#ii°maj7", PitchClass::G_SHARP, Some(5)).unwrap();
+    /// let chord2 = Chord::from_numeral("♯ii°maj7", PitchClass::G_SHARP, Some(5)).unwrap();
+    /// assert_eq!(chord1, chord2);
     /// ```
     ///
     /// The following example demonstrates the creation of a minor triad three scale degrees above A
@@ -191,9 +213,11 @@ impl Chord {
     ///
     /// ```rust
     /// use music_tools::chord::Chord;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
+    /// use music_tools::common::TriadQuality;
     ///
-    /// let chord = Chord::from_numeral("iii", PitchClasses::A, None).unwrap();
+    /// let chord = Chord::from_numeral("iii", PitchClass::A, None).unwrap();
+    /// assert_eq!(chord, Chord::from_triad(TriadQuality::Minor, Some(PitchClass::C_SHARP), None));
     /// ```
     pub fn from_numeral(
         input_numeral: &str,
@@ -372,10 +396,14 @@ impl Chord {
     /// ```rust
     /// use music_tools::chord::Chord;
     /// use music_tools::common::TriadQuality;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let mut chord = Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::C), None);
+    /// let mut chord = Chord::from_triad(TriadQuality::Minor, Some(PitchClass::C), None);
     /// chord.set_inversion(2);
+    /// assert_eq!(
+    ///     Vec::<PitchClass>::try_from(chord).unwrap(),
+    ///     vec![PitchClass::G, PitchClass::C, PitchClass::E_FLAT]
+    /// );
     /// ```
     pub fn set_inversion(&mut self, inversion: u8) {
         self.inversion = inversion as usize % self.intervals.len();

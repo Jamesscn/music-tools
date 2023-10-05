@@ -49,14 +49,18 @@ impl WavetableVoice {
 /// # Examples
 ///
 /// ```rust
-/// use music_tools::audio::{AudioPlayer, Waveforms, WavetableOscillator};
+/// use music_tools::audio::player::AudioPlayer;
+/// use music_tools::audio::common::Waveforms;
+/// use music_tools::audio::wavetable::WavetableOscillator;
 /// use music_tools::common::Beat;
 /// use music_tools::note::Note;
+/// use std::str::FromStr;
 ///
-/// let mut oscillator = WavetableOscillator::empty();
-/// let square_table = oscillator.add_wavetable_from_function(Waveforms::SQUARE_WAVE, 1.0, 128);
-/// let mut player = AudioPlayer::new_from_wavetable(oscillator).unwrap();
-/// player.play(Note::from_string("A4").unwrap(), Beat::WHOLE);
+/// let mut square_oscillator = WavetableOscillator::new(Waveforms::SQUARE_WAVE, 1.0, 128);
+/// let mut player = AudioPlayer::try_new().unwrap();
+/// player.set_synth(square_oscillator);
+/// player.push(&Note::from_str("A4").unwrap(), &Beat::WHOLE);
+/// player.play();
 /// ```
 #[derive(Clone, Debug)]
 pub struct WavetableOscillator {

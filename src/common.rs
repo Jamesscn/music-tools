@@ -25,6 +25,7 @@ impl Fraction {
     /// use music_tools::common::Fraction;
     ///
     /// let one_half = Fraction::new(1, 2);
+    /// assert_eq!(one_half.get_as_float(), 0.5);
     /// ```
     ///
     /// # Panics
@@ -48,8 +49,8 @@ impl Fraction {
     /// use music_tools::common::Fraction;
     ///
     /// let five_sevenths = Fraction::new(5, 7);
-    /// let five = five_sevenths.get_numerator();
-    /// println!("{five}");
+    /// let numerator = five_sevenths.get_numerator();
+    /// assert_eq!(5, numerator);
     /// ```
     pub fn get_numerator(&self) -> u8 {
         self.numerator
@@ -63,8 +64,8 @@ impl Fraction {
     /// use music_tools::common::Fraction;
     ///
     /// let five_sevenths = Fraction::new(5, 7);
-    /// let seven = five_sevenths.get_denominator();
-    /// println!("{seven}");
+    /// let denominator = five_sevenths.get_denominator();
+    /// assert_eq!(7, denominator);
     /// ```
     pub fn get_denominator(&self) -> u8 {
         self.denominator
@@ -80,7 +81,7 @@ impl Fraction {
     ///
     /// let two_and_a_half = Fraction::new(5, 2);
     /// let float_value = two_and_a_half.get_as_float();
-    /// println!("{float_value}");
+    /// assert_eq!(2.5, float_value);
     /// ```
     pub fn get_as_float(&self) -> f32 {
         self.numerator as f32 / self.denominator as f32
@@ -94,7 +95,15 @@ impl Fraction {
     /// use music_tools::common::Fraction;
     ///
     /// let two_quarters = Fraction::new(2, 4);
-    /// let one_half = two_quarters.get_simplified();
+    /// let one_half = Fraction::new(1, 2);
+    /// assert_ne!(two_quarters.get_numerator(), one_half.get_numerator());
+    /// assert_ne!(two_quarters.get_denominator(), one_half.get_denominator());
+    /// assert_eq!(two_quarters.get_as_float(), one_half.get_as_float());
+    /// 
+    /// let two_quarters_simplified = two_quarters.get_simplified();
+    /// assert_eq!(two_quarters_simplified.get_numerator(), one_half.get_numerator());
+    /// assert_eq!(two_quarters_simplified.get_denominator(), one_half.get_denominator());
+    /// assert_eq!(two_quarters_simplified.get_as_float(), one_half.get_as_float());
     /// ```
     pub fn get_simplified(&self) -> Self {
         let common_factor = gcd(self.numerator, self.denominator);

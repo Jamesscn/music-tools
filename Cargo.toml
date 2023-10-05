@@ -41,20 +41,20 @@ required-features = ["audio"]
 
 [[example]]
 name = "play_generic"
-path = "examples/wasm/play_generic.rs"
+path = "examples/play_generic.rs"
 required-features = ["audio"]
 
 [[example]]
 name = "play_melody"
-path = "examples/wasm/play_melody.rs"
+path = "examples/play_melody.rs"
 required-features = ["audio"]
 
 [[example]]
 name = "play_progression"
-path = "examples/wasm/play_progression.rs"
+path = "examples/play_progression.rs"
 required-features = ["audio"]
 
 [[example]]
 name = "play_wavetable"
-path = "examples/wasm/play_wavetable.rs"
+path = "examples/play_wavetable.rs"
 required-features = ["audio"]

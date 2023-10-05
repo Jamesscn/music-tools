@@ -26,11 +26,14 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let a = Note::new(PitchClasses::A_SHARP, 5);
-    /// let b = Note::new(PitchClasses::B_FLAT, 4);
-    /// let c = Note::new(PitchClasses::C, 3);
+    /// let a = Note::new(PitchClass::A_SHARP, 5);
+    /// let b = Note::new(PitchClass::B_FLAT, 4);
+    /// let c = Note::new(PitchClass::C, 3);
+    /// assert_eq!(a.get_frequency(), 932.3277);
+    /// assert_eq!(b.get_frequency(), 466.16385);
+    /// assert_eq!(c.get_frequency(), 130.81277);
     /// ```
     pub fn new(pitch_class: PitchClass, octave: i8) -> Self {
         Self {
@@ -110,12 +113,12 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let mut note = Note::from(PitchClasses::C, 5);
-    /// println!("{}", note.get_frequency());
+    /// let mut note = Note::new(PitchClass::A, 5);
+    /// assert_eq!(note.get_frequency(), 880.0);
     /// note.set_base_frequency(432.0);
-    /// println!("{}", note.get_frequency());
+    /// assert_eq!(note.get_frequency(), 864.0);
     /// ```
     pub fn set_base_frequency(&mut self, base_frequency: f32) {
         self.base_frequency = base_frequency;
@@ -128,12 +131,12 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let mut note = Note::from(PitchClasses::C, 5);
-    /// println!("{}", note.get_base_frequency());
+    /// let mut note = Note::new(PitchClass::C, 5);
+    /// assert_eq!(440.0, note.get_base_frequency());
     /// note.set_base_frequency(432.0);
-    /// println!("{}", note.get_base_frequency());
+    /// assert_eq!(432.0, note.get_base_frequency());
     /// ```
     pub fn get_base_frequency(&self) -> f32 {
         self.base_frequency
@@ -178,14 +181,14 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let c_minus_one = Note::from(PitchClasses::C, -1);
-    /// let zero = Note::from(PitchClasses::C, 0);
-    /// let middle_c = Note::from(PitchClasses::C, 4);
-    /// println!("{}", c_minus_one.get_value());
-    /// println!("{}", zero.get_value());
-    /// println!("{}", middle_c.get_value());
+    /// let c_minus_one = Note::new(PitchClass::C, -1);
+    /// let zero = Note::new(PitchClass::C, 0);
+    /// let middle_c = Note::new(PitchClass::C, 4);
+    /// assert_eq!(-12, c_minus_one.get_value());
+    /// assert_eq!(0, zero.get_value());
+    /// assert_eq!(48, middle_c.get_value());
     /// ```
     pub fn get_value(&self) -> i16 {
         self.octave as i16 * 12 + self.pitch_class.get_value() as i16
@@ -199,10 +202,10 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let middle_c = Note::from(PitchClasses::C, 4);
-    /// println!("{}", middle_c.get_keyboard_index().unwrap());
+    /// let middle_c = Note::new(PitchClass::C, 4);
+    /// assert_eq!(40, middle_c.get_keyboard_index().unwrap());
     /// ```
     pub fn get_keyboard_index(&self) -> Option<u8> {
         let keyboard_index = self.get_value() - 8;
@@ -219,10 +222,10 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let middle_c = Note::from(PitchClasses::C, 4);
-    /// println!("{}", middle_c.get_keyboard_index().unwrap());
+    /// let middle_c = Note::new(PitchClass::C, 4);
+    /// assert_eq!(60, middle_c.get_midi_index().unwrap());
     /// ```
     pub fn get_midi_index(&self) -> Option<u8> {
         let midi_index = self.get_value() + 12;

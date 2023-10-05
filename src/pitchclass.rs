@@ -25,7 +25,8 @@ impl PitchClass {
     /// ```rust
     /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let g_flat = PitchClass::try_from(6).unwrap();
+    /// let g_flat = PitchClass::try_from(6u32).unwrap();
+    /// assert_eq!(PitchClass::G_FLAT, g_flat);
     /// ```
     pub fn try_from(value: impl Into<u64>) -> Result<PitchClass, InputError> {
         let numeric_value = value.into();
@@ -51,10 +52,12 @@ impl PitchClass {
     /// # Examples
     ///
     /// ```rust
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let c = PitchClasses::A.get_offset(2);
-    /// let f = PitchClasses::A.get_offset(-2);
+    /// let c = PitchClass::A.get_offset(3);
+    /// let f_sharp = PitchClass::A.get_offset(-3);
+    /// assert_eq!(PitchClass::C, c);
+    /// assert_eq!(PitchClass::F_SHARP, f_sharp);
     /// ```
     pub fn get_offset(&self, offset: i8) -> Self {
         Self {

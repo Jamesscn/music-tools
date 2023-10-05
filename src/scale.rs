@@ -32,9 +32,9 @@ impl Scale {
     /// use music_tools::scale::Scale;
     /// use music_tools::common::{ScaleType, PentatonicType};
     ///
-    /// let locrian = Scale::new(ScaleType::Locrian, PentatonicType::None).unwrap();
-    /// let some_pentatonic = Scale::new(ScaleType::Minor, PentatonicType::Major).unwrap();
-    /// let chromatic_scale = Scale::new(ScaleType::Chromatic, PentatonicType::None).unwrap();
+    /// let locrian = Scale::try_new(ScaleType::Locrian, PentatonicType::None).unwrap();
+    /// let some_pentatonic = Scale::try_new(ScaleType::Minor, PentatonicType::Major).unwrap();
+    /// let chromatic_scale = Scale::try_new(ScaleType::Chromatic, PentatonicType::None).unwrap();
     /// ```
     pub fn try_new(scale: ScaleType, pentatonic: PentatonicType) -> Result<Self, InputError> {
         let scale_intervals: Vec<u8> = match scale.get_id() {
@@ -137,20 +137,40 @@ impl Scale {
     ///
     /// ```rust
     /// use music_tools::scale::Scale;
-    /// use music_tools::pitchclass::PitchClasses;
-    /// use music_tools::common::{ScaleType, PentatonicType};
+    /// use music_tools::chord::Chord;
+    /// use music_tools::pitchclass::PitchClass;
+    /// use music_tools::common::{ScaleType, PentatonicType, TriadQuality};
     ///
-    /// let locrian = Scale::from(ScaleType::Locrian, PentatonicType::None).unwrap();
-    /// let g_locrian_chords = locrian.get_diatonic_chords(PitchClasses::G, Some(5), true).unwrap();
-    /// let mut index = 1;
-    /// for chord in g_locrian_chords {
-    ///     let chord_notes = chord.to_notes().unwrap();
-    ///     println!("Diatonic chord #{} of the G locrian scale has the following notes:", index);
-    ///     for note in chord_notes {
-    ///         println!("{}{}", note.get_pitch_class().get_names()[0], note.get_octave());
-    ///     }
-    ///     index += 1;
-    /// }
+    /// let locrian = Scale::try_new(ScaleType::Locrian, PentatonicType::None).unwrap();
+    /// let g_locrian_chords = locrian.get_diatonic_chords(PitchClass::G, Some(5), false).unwrap();
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Diminished, Some(PitchClass::G), Some(5)),
+    ///     g_locrian_chords[0]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::A_FLAT), Some(5)),
+    ///     g_locrian_chords[1]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Minor, Some(PitchClass::B_FLAT), Some(5)),
+    ///     g_locrian_chords[2]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Minor, Some(PitchClass::C), Some(6)),
+    ///     g_locrian_chords[3]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::D_FLAT), Some(6)),
+    ///     g_locrian_chords[4]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::E_FLAT), Some(6)),
+    ///     g_locrian_chords[5]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Minor, Some(PitchClass::F), Some(6)),
+    ///     g_locrian_chords[6]
+    /// );
     /// ```
     pub fn get_diatonic_chords(
         &self,
