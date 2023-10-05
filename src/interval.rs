@@ -1,4 +1,4 @@
-use crate::{chord::Chord, note::Note};
+use crate::{chord::Chord, note::Note, scale::Scale};
 use std::cmp::Ordering;
 
 /// A structure which is used to represent the interval between two notes.
@@ -267,6 +267,12 @@ impl<T: Into<u64>> From<T> for Interval {
 
 impl From<Chord> for Vec<Interval> {
     fn from(value: Chord) -> Self {
+        value.get_intervals()
+    }
+}
+
+impl From<Scale> for Vec<Interval> {
+    fn from(value: Scale) -> Self {
         value.get_intervals()
     }
 }
