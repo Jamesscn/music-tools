@@ -1,6 +1,6 @@
 /target
 /Cargo.lock
-examples/test*.rs
+examples/hidden*.rs
 *.mid
 *.wav
 .vscode/linenote
