@@ -154,8 +154,8 @@ impl Default for WavetableOscillator {
     }
 }
 
-impl From<Vec<f32>> for WavetableOscillator {
-    fn from(value: Vec<f32>) -> Self {
+impl From<&[f32]> for WavetableOscillator {
+    fn from(value: &[f32]) -> Self {
         Self {
             wavetable: value.iter().map(|value| value.clamp(-1.0, 1.0)).collect(),
             voices: Vec::new(),

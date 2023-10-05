@@ -33,8 +33,11 @@ struct PlayableAudio {
 }
 
 impl PlayableAudio {
-    pub fn new(audio: Vec<f32>) -> Self {
-        Self { audio, index: 0 }
+    pub fn new(audio: &[f32]) -> Self {
+        Self {
+            audio: Vec::from(audio),
+            index: 0,
+        }
     }
 }
 
@@ -309,7 +312,7 @@ impl AudioPlayer {
 
     /// Starts playing all the audio in the queue through the current speaker.
     pub fn play(&self) {
-        let audio = PlayableAudio::new(self.buffer.clone());
+        let audio = PlayableAudio::new(&self.buffer);
         self.sink.append(audio);
         self.sink.play();
         self.sink.sleep_until_end();

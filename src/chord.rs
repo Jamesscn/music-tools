@@ -447,9 +447,9 @@ impl From<Interval> for Chord {
     }
 }
 
-impl From<Vec<Interval>> for Chord {
-    fn from(value: Vec<Interval>) -> Self {
-        let mut intervals = value.clone();
+impl From<&[Interval]> for Chord {
+    fn from(value: &[Interval]) -> Self {
+        let mut intervals = Vec::from(value);
         intervals.push(Interval::PERFECT_UNISON);
         intervals.sort();
         intervals.dedup();
@@ -473,12 +473,12 @@ impl From<Note> for Chord {
     }
 }
 
-impl From<Vec<Note>> for Chord {
-    fn from(value: Vec<Note>) -> Self {
+impl From<&[Note]> for Chord {
+    fn from(value: &[Note]) -> Self {
         let intervals = if value.is_empty() {
             vec![Interval::PERFECT_UNISON]
         } else {
-            let mut notes = value.clone();
+            let mut notes = Vec::from(value);
             notes.sort();
             notes.dedup();
             let smallest = notes[0];
@@ -509,8 +509,8 @@ impl From<PitchClass> for Chord {
     }
 }
 
-impl From<Vec<PitchClass>> for Chord {
-    fn from(value: Vec<PitchClass>) -> Self {
+impl From<&[PitchClass]> for Chord {
+    fn from(value: &[PitchClass]) -> Self {
         let mut tonic_diff = 0;
         let mut intervals: Vec<Interval> = value
             .iter()
