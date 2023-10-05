@@ -5,8 +5,6 @@ use crate::common::AudioDuration;
 use crate::midi::MIDI;
 use crate::track::Event;
 use byteorder::{BigEndian, LittleEndian, WriteBytesExt};
-use rand::distributions::Uniform;
-use rand::prelude::Distribution;
 use rodio::{OutputStream, Sink, Source};
 use std::cmp::min;
 use std::error::Error;
@@ -192,14 +190,11 @@ impl AudioPlayer {
         repetitions: usize,
     ) {
         let frequencies = playable.get_frequencies();
-        let mut rng = rand::thread_rng();
-        let distribution = Uniform::from(0..frequencies.len());
         let mut updown_ascending: bool = true;
         let mut current_index = match direction {
             ArpeggioDirection::Up => 0,
             ArpeggioDirection::Down => frequencies.len() - 1,
             ArpeggioDirection::UpDown => 0,
-            ArpeggioDirection::Random => distribution.sample(&mut rng),
         };
         for _ in 0..repetitions {
             let curr_frequency = frequencies[current_index];
@@ -215,7 +210,6 @@ impl AudioPlayer {
                         (current_index as isize - 1).rem_euclid(frequencies.len() as isize) as usize
                     }
                 },
-                ArpeggioDirection::Random => distribution.sample(&mut rng),
             };
             if !updown_ascending && current_index == 0 {
                 updown_ascending = true;

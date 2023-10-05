@@ -118,8 +118,6 @@ pub enum ArpeggioDirection {
     /// The arpeggio ascends from lowest to highest frequency, and once it reaches its peak
     /// descends from highest to lowest frequency, essentially forming a cycle.
     UpDown,
-    /// The arpeggio selects the next frequency to be played uniformly at random.
-    Random,
 }
 
 /// An error which is returned when audio could not be played.

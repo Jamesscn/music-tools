@@ -13,12 +13,11 @@ keywords = ["music", "musictheory", "harmony", "audio", "sound"]
 apres = "0.3.4"
 rodio = { version = "0.17.1", optional = true}
 regex = "1.7.3"
-rand = { version = "0.8.5", optional = true}
 ordered-float = { version = "4.1.0", optional = true}
 byteorder = { version = "1.4.3", optional = true}
 
 [features]
-audio = ["dep:rodio", "dep:rand", "dep:ordered-float", "dep:byteorder"]
+audio = ["dep:rodio", "dep:ordered-float", "dep:byteorder"]
 
 [[example]]
 name = "midi_in"
