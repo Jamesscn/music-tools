@@ -2,7 +2,7 @@ use music_tools::audio::common::ArpeggioDirection;
 use music_tools::audio::player::AudioPlayer;
 use music_tools::chord::Chord;
 use music_tools::common::{Beat, PentatonicType, ScaleType, TriadQuality};
-use music_tools::interval::Intervals;
+use music_tools::interval::Interval;
 use music_tools::scale::Scale;
 
 fn main() {
@@ -25,7 +25,7 @@ fn main() {
         &Chord::from_triad(TriadQuality::Minor, None, None),
         &Beat::HALF,
     );
-    player.push(&Intervals::TRITONE, &Beat::WHOLE);
-    player.push(&Intervals::PERFECT_FIFTH, &Beat::WHOLE);
+    player.push(&Interval::TRITONE, &Beat::WHOLE);
+    player.push(&Interval::PERFECT_FIFTH, &Beat::WHOLE);
     player.play();
 }

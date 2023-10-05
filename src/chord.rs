@@ -1,5 +1,5 @@
 use crate::common::{InputError, TriadQuality};
-use crate::interval::{Interval, Intervals};
+use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::PitchClass;
 use crate::scale::Scale;
@@ -41,7 +41,7 @@ impl Chord {
     /// ```
     pub fn new(tonic: Option<PitchClass>, octave: Option<i8>) -> Self {
         Self {
-            intervals: vec![Intervals::PERFECT_UNISON],
+            intervals: vec![Interval::PERFECT_UNISON],
             tonic,
             octave,
             inversion: 0,
@@ -99,34 +99,34 @@ impl Chord {
     ) -> Self {
         let intervals: Vec<Interval> = match triad_quality {
             TriadQuality::Major => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::MAJOR_THIRD,
-                Intervals::PERFECT_FIFTH,
+                Interval::PERFECT_UNISON,
+                Interval::MAJOR_THIRD,
+                Interval::PERFECT_FIFTH,
             ],
             TriadQuality::Minor => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::MINOR_THIRD,
-                Intervals::PERFECT_FIFTH,
+                Interval::PERFECT_UNISON,
+                Interval::MINOR_THIRD,
+                Interval::PERFECT_FIFTH,
             ],
             TriadQuality::Sus2 => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::MAJOR_SECOND,
-                Intervals::PERFECT_FIFTH,
+                Interval::PERFECT_UNISON,
+                Interval::MAJOR_SECOND,
+                Interval::PERFECT_FIFTH,
             ],
             TriadQuality::Sus4 => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::PERFECT_FOURTH,
-                Intervals::PERFECT_FIFTH,
+                Interval::PERFECT_UNISON,
+                Interval::PERFECT_FOURTH,
+                Interval::PERFECT_FIFTH,
             ],
             TriadQuality::Augmented => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::MAJOR_THIRD,
-                Intervals::MINOR_SIXTH,
+                Interval::PERFECT_UNISON,
+                Interval::MAJOR_THIRD,
+                Interval::MINOR_SIXTH,
             ],
             TriadQuality::Diminished => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::MINOR_THIRD,
-                Intervals::DIMINISHED_FIFTH,
+                Interval::PERFECT_UNISON,
+                Interval::MINOR_THIRD,
+                Interval::DIMINISHED_FIFTH,
             ],
         };
         Self {
@@ -288,9 +288,9 @@ impl Chord {
             octave.map(|octave_value| octave_value + ((tonic.get_value() + increment) / 12) as i8);
         let mut chord = Self::from_triad(triad_quality, Some(chord_tonic), chord_octave);
         if seventh == "maj7" {
-            chord.add_interval(Intervals::MAJOR_SEVENTH);
+            chord.add_interval(Interval::MAJOR_SEVENTH);
         } else if seventh == "7" {
-            chord.add_interval(Intervals::MINOR_SEVENTH);
+            chord.add_interval(Interval::MINOR_SEVENTH);
         }
         Ok(chord)
     }
@@ -309,10 +309,10 @@ impl Chord {
     /// ```rust
     /// use music_tools::chord::Chord;
     /// use music_tools::common::TriadQuality;
-    /// use music_tools::interval::Intervals;
+    /// use music_tools::interval::Interval;
     ///
     /// let mut chord = Chord::from_triad(TriadQuality::Major, None, None);
-    /// chord.add_interval(Intervals::MINOR_SEVENTH);
+    /// chord.add_interval(Interval::MINOR_SEVENTH);
     /// ```
     pub fn add_interval(&mut self, interval: Interval) {
         let mut insert_index = 0;
@@ -423,7 +423,7 @@ impl Chord {
 impl Default for Chord {
     fn default() -> Self {
         Self {
-            intervals: vec![Intervals::PERFECT_UNISON],
+            intervals: vec![Interval::PERFECT_UNISON],
             tonic: None,
             octave: None,
             inversion: 0,
@@ -433,10 +433,10 @@ impl Default for Chord {
 
 impl From<Interval> for Chord {
     fn from(value: Interval) -> Self {
-        let intervals: Vec<Interval> = if value == Intervals::PERFECT_UNISON {
-            vec![Intervals::PERFECT_UNISON]
+        let intervals: Vec<Interval> = if value == Interval::PERFECT_UNISON {
+            vec![Interval::PERFECT_UNISON]
         } else {
-            vec![Intervals::PERFECT_UNISON, value]
+            vec![Interval::PERFECT_UNISON, value]
         };
         Chord {
             intervals,
@@ -450,7 +450,7 @@ impl From<Interval> for Chord {
 impl From<Vec<Interval>> for Chord {
     fn from(value: Vec<Interval>) -> Self {
         let mut intervals = value.clone();
-        intervals.push(Intervals::PERFECT_UNISON);
+        intervals.push(Interval::PERFECT_UNISON);
         intervals.sort();
         intervals.dedup();
         Chord {
@@ -465,7 +465,7 @@ impl From<Vec<Interval>> for Chord {
 impl From<Note> for Chord {
     fn from(value: Note) -> Self {
         Chord {
-            intervals: vec![Intervals::PERFECT_UNISON],
+            intervals: vec![Interval::PERFECT_UNISON],
             tonic: Some(value.get_pitch_class()),
             octave: Some(value.get_octave()),
             inversion: 0,
@@ -476,7 +476,7 @@ impl From<Note> for Chord {
 impl From<Vec<Note>> for Chord {
     fn from(value: Vec<Note>) -> Self {
         let intervals = if value.is_empty() {
-            vec![Intervals::PERFECT_UNISON]
+            vec![Interval::PERFECT_UNISON]
         } else {
             let mut notes = value.clone();
             notes.sort();
@@ -501,7 +501,7 @@ impl From<Vec<Note>> for Chord {
 impl From<PitchClass> for Chord {
     fn from(value: PitchClass) -> Self {
         Chord {
-            intervals: vec![Intervals::PERFECT_UNISON],
+            intervals: vec![Interval::PERFECT_UNISON],
             tonic: Some(value),
             octave: None,
             inversion: 0,
@@ -523,7 +523,7 @@ impl From<Vec<PitchClass>> for Chord {
                 Interval::from(tonic_diff)
             })
             .collect();
-        intervals.insert(0, Intervals::PERFECT_UNISON);
+        intervals.insert(0, Interval::PERFECT_UNISON);
         Chord {
             intervals,
             tonic: value.get(0).copied(),

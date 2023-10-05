@@ -143,29 +143,29 @@ pub type Beat = Fraction;
 
 impl Beat {
     /// The duration corresponding to a whole note.
-    pub const WHOLE: Beat = Beat::new(1, 1);
+    pub const WHOLE: Self = Self::new(1, 1);
     /// The duration corresponding to a half note.
-    pub const HALF: Beat = Beat::new(1, 2);
+    pub const HALF: Self = Self::new(1, 2);
     /// The duration corresponding to a quarter note.
-    pub const QUARTER: Beat = Beat::new(1, 4);
+    pub const QUARTER: Self = Self::new(1, 4);
     /// The duration corresponding to an eighth note.
-    pub const EIGHTH: Beat = Beat::new(1, 8);
+    pub const EIGHTH: Self = Self::new(1, 8);
     /// The duration corresponding to a sixteenth note.
-    pub const SIXTEENTH: Beat = Beat::new(1, 16);
+    pub const SIXTEENTH: Self = Self::new(1, 16);
     /// The duration corresponding to a thirty-second note.
-    pub const THIRTYSECOND: Beat = Beat::new(1, 32);
+    pub const THIRTYSECOND: Self = Self::new(1, 32);
     /// The duration corresponding to a dotted whole note.
-    pub const WHOLE_DOTTED: Beat = Beat::new(3, 2);
+    pub const WHOLE_DOTTED: Self = Self::new(3, 2);
     /// The duration corresponding to a dotted half note.
-    pub const HALF_DOTTED: Beat = Beat::new(3, 4);
+    pub const HALF_DOTTED: Self = Self::new(3, 4);
     /// The duration corresponding to a dotted quarter note.
-    pub const QUARTER_DOTTED: Beat = Beat::new(3, 8);
+    pub const QUARTER_DOTTED: Self = Self::new(3, 8);
     /// The duration corresponding to a dotted eighth note.
-    pub const EIGHTH_DOTTED: Beat = Beat::new(3, 16);
+    pub const EIGHTH_DOTTED: Self = Self::new(3, 16);
     /// The duration corresponding to a dotted sixteenth note.
-    pub const SIXTEENTH_DOTTED: Beat = Beat::new(3, 32);
+    pub const SIXTEENTH_DOTTED: Self = Self::new(3, 32);
     /// The duration corresponding to a dotted thirty-second note.
-    pub const THIRTYSECOND_DOTTED: Beat = Beat::new(3, 64);
+    pub const THIRTYSECOND_DOTTED: Self = Self::new(3, 64);
 }
 
 /// A trait that defines a structure with a time duration for playing audio.

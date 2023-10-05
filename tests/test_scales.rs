@@ -1,5 +1,5 @@
 use music_tools::common::{PentatonicType, ScaleType};
-use music_tools::pitchclass::{PitchClass, PitchClasses};
+use music_tools::pitchclass::PitchClass;
 use music_tools::scale::Scale;
 use std::cmp;
 use std::str::FromStr;
@@ -7,15 +7,15 @@ use std::str::FromStr;
 #[test]
 fn test_scale_notes() {
     //Blues Scales
-    let c_major_blues = Scale::new(ScaleType::MajorBlues, PentatonicType::None)
+    let c_major_blues = Scale::try_new(ScaleType::MajorBlues, PentatonicType::None)
         .unwrap()
-        .to_pitch_classes(PitchClasses::C);
-    let a_minor_blues = Scale::new(ScaleType::MinorBlues, PentatonicType::None)
+        .to_pitch_classes(PitchClass::C);
+    let a_minor_blues = Scale::try_new(ScaleType::MinorBlues, PentatonicType::None)
         .unwrap()
-        .to_pitch_classes(PitchClasses::A);
-    let a_nonatonic_blues = Scale::new(ScaleType::NonatonicBlues, PentatonicType::None)
+        .to_pitch_classes(PitchClass::A);
+    let a_nonatonic_blues = Scale::try_new(ScaleType::NonatonicBlues, PentatonicType::None)
         .unwrap()
-        .to_pitch_classes(PitchClasses::A);
+        .to_pitch_classes(PitchClass::A);
 
     let test_cases = [
         (c_major_blues, vec!["C", "D", "E♭", "E", "G", "A", "C"]),

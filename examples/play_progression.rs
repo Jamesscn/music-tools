@@ -2,11 +2,11 @@ use music_tools::audio::common::ArpeggioDirection;
 use music_tools::audio::player::{AudioPlayer, BitsPerSample};
 use music_tools::chord::Chord;
 use music_tools::common::Beat;
-use music_tools::pitchclass::PitchClasses;
+use music_tools::pitchclass::PitchClass;
 
 fn main() {
     let mut player = AudioPlayer::try_new().unwrap();
-    let tonic = PitchClasses::C;
+    let tonic = PitchClass::C;
     let progression = ["IV", "V", "iii", "vi", "I", "bVI", "bVII", "I"];
     let octaves = [4, 4, 4, 4, 4, 4, 4, 5];
     for (index, numeral) in progression.iter().enumerate() {

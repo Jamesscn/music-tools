@@ -73,6 +73,96 @@ impl PitchClass {
     pub fn get_names(&self) -> &'static [&'static str] {
         self.reference.names
     }
+
+    // Real pitch classes
+
+    /// The pitch class for C.
+    pub const C: Self = Self {
+        reference: &PITCH_CLASSES[0],
+    };
+    /// The pitch class for C sharp, which is equal to D flat.
+    pub const C_SHARP: Self = Self {
+        reference: &PITCH_CLASSES[1],
+    };
+    /// The pitch class for D flat, which is equal to C sharp.
+    pub const D_FLAT: Self = Self {
+        reference: &PITCH_CLASSES[1],
+    };
+    /// The pitch class for D.
+    pub const D: Self = Self {
+        reference: &PITCH_CLASSES[2],
+    };
+    /// The pitch class for D sharp, which is equal to E flat.
+    pub const D_SHARP: Self = Self {
+        reference: &PITCH_CLASSES[3],
+    };
+    /// The pitch class for E flat, which is equal to D sharp.
+    pub const E_FLAT: Self = Self {
+        reference: &PITCH_CLASSES[3],
+    };
+    /// The pitch class for E.
+    pub const E: Self = Self {
+        reference: &PITCH_CLASSES[4],
+    };
+    /// The pitch class for F.
+    pub const F: Self = Self {
+        reference: &PITCH_CLASSES[5],
+    };
+    /// The pitch class for F sharp, which is equal to G flat.
+    pub const F_SHARP: Self = Self {
+        reference: &PITCH_CLASSES[6],
+    };
+    /// The pitch class for G flat, which is equal to F sharp.
+    pub const G_FLAT: Self = Self {
+        reference: &PITCH_CLASSES[6],
+    };
+    /// The pitch class for G.
+    pub const G: Self = Self {
+        reference: &PITCH_CLASSES[7],
+    };
+    /// The pitch class for G sharp, which is equal to A flat.
+    pub const G_SHARP: Self = Self {
+        reference: &PITCH_CLASSES[8],
+    };
+    /// The pitch class for A flat, which is equal to G sharp.
+    pub const A_FLAT: Self = Self {
+        reference: &PITCH_CLASSES[8],
+    };
+    /// The pitch class for A.
+    pub const A: Self = Self {
+        reference: &PITCH_CLASSES[9],
+    };
+    /// The pitch class for A sharp, which is equal to B flat.
+    pub const A_SHARP: Self = Self {
+        reference: &PITCH_CLASSES[10],
+    };
+    /// The pitch class for B flat, which is equal to A sharp.
+    pub const B_FLAT: Self = Self {
+        reference: &PITCH_CLASSES[10],
+    };
+    /// The pitch class for B.
+    pub const B: Self = Self {
+        reference: &PITCH_CLASSES[11],
+    };
+
+    // Theoretical pitch classes
+
+    /// The theoretical pitch class for B sharp, which is equal to C.
+    pub const B_SHARP: Self = Self {
+        reference: &PITCH_CLASSES[0],
+    };
+    /// The theoretical pitch class for F flat, which is equal to E.
+    pub const F_FLAT: Self = Self {
+        reference: &PITCH_CLASSES[4],
+    };
+    /// The theoretical pitch class for E sharp, which is equal to F.
+    pub const E_SHARP: Self = Self {
+        reference: &PITCH_CLASSES[5],
+    };
+    /// The theoretical pitch class for C flat, which is equal to B.
+    pub const C_FLAT: Self = Self {
+        reference: &PITCH_CLASSES[11],
+    };
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -87,7 +177,7 @@ trait TryFromStaticPitchClass {
 
 impl Default for PitchClass {
     fn default() -> Self {
-        PitchClasses::C
+        PitchClass::C
     }
 }
 
@@ -136,103 +226,6 @@ impl TryFrom<Chord> for Vec<PitchClass> {
             }),
         }
     }
-}
-
-#[non_exhaustive]
-/// A structure which can be used to obtain a reference to one of the twelve equal temperament pitch
-/// classes.
-pub struct PitchClasses;
-
-impl PitchClasses {
-    // Real pitch classes
-
-    /// The pitch class for C.
-    pub const C: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[0],
-    };
-    /// The pitch class for C sharp, which is equal to D flat.
-    pub const C_SHARP: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[1],
-    };
-    /// The pitch class for D flat, which is equal to C sharp.
-    pub const D_FLAT: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[1],
-    };
-    /// The pitch class for D.
-    pub const D: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[2],
-    };
-    /// The pitch class for D sharp, which is equal to E flat.
-    pub const D_SHARP: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[3],
-    };
-    /// The pitch class for E flat, which is equal to D sharp.
-    pub const E_FLAT: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[3],
-    };
-    /// The pitch class for E.
-    pub const E: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[4],
-    };
-    /// The pitch class for F.
-    pub const F: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[5],
-    };
-    /// The pitch class for F sharp, which is equal to G flat.
-    pub const F_SHARP: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[6],
-    };
-    /// The pitch class for G flat, which is equal to F sharp.
-    pub const G_FLAT: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[6],
-    };
-    /// The pitch class for G.
-    pub const G: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[7],
-    };
-    /// The pitch class for G sharp, which is equal to A flat.
-    pub const G_SHARP: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[8],
-    };
-    /// The pitch class for A flat, which is equal to G sharp.
-    pub const A_FLAT: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[8],
-    };
-    /// The pitch class for A.
-    pub const A: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[9],
-    };
-    /// The pitch class for A sharp, which is equal to B flat.
-    pub const A_SHARP: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[10],
-    };
-    /// The pitch class for B flat, which is equal to A sharp.
-    pub const B_FLAT: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[10],
-    };
-    /// The pitch class for B.
-    pub const B: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[11],
-    };
-
-    // Theoretical pitch classes
-
-    /// The theoretical pitch class for B sharp, which is equal to C.
-    pub const B_SHARP: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[0],
-    };
-    /// The theoretical pitch class for F flat, which is equal to E.
-    pub const F_FLAT: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[4],
-    };
-    /// The theoretical pitch class for E sharp, which is equal to F.
-    pub const E_SHARP: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[5],
-    };
-    /// The theoretical pitch class for C flat, which is equal to B.
-    pub const C_FLAT: PitchClass = PitchClass {
-        reference: &PITCH_CLASSES[11],
-    };
 }
 
 const PITCH_CLASSES: [StaticPitchClass; 12] = [
