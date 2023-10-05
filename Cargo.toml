@@ -9,9 +9,52 @@ repository = "https://github.com/Jamesscn/music-tools"
 license = "MIT"
 keywords = ["music", "musictheory", "harmony", "audio", "sound"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 apres = "0.3.4"
-rodio = "0.17.1"
+rodio = { version = "0.17.1", optional = true}
 regex = "1.9.6"
+ordered-float = { version = "4.1.0", optional = true}
+byteorder = { version = "1.4.3", optional = true}
+
+[features]
+audio = ["dep:rodio", "dep:ordered-float", "dep:byteorder"]
+
+[[example]]
+name = "midi_in"
+path = "examples/midi_in.rs"
+required-features = ["audio"]
+
+[[example]]
+name = "midi_out"
+path = "examples/midi_out.rs"
+required-features = []
+
+[[example]]
+name = "midi_to_grub"
+path = "examples/midi_to_grub.rs"
+required-features = []
+
+[[example]]
+name = "play_frequencies"
+path = "examples/play_frequencies.rs"
+required-features = ["audio"]
+
+[[example]]
+name = "play_generic"
+path = "examples/play_generic.rs"
+required-features = ["audio"]
+
+[[example]]
+name = "play_melody"
+path = "examples/play_melody.rs"
+required-features = ["audio"]
+
+[[example]]
+name = "play_progression"
+path = "examples/play_progression.rs"
+required-features = ["audio"]
+
+[[example]]
+name = "play_wavetable"
+path = "examples/play_wavetable.rs"
+required-features = ["audio"]

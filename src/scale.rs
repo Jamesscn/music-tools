@@ -1,12 +1,12 @@
 use crate::chord::Chord;
-use crate::common::{PentatonicType, ScaleType};
+use crate::common::{InputError, PentatonicType, ScaleType};
 use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::PitchClass;
 
 /// A structure used to represent a scale of notes, or a major or minor pentatonic variation of a
 /// scale.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq)]
 pub struct Scale {
     intervals: Vec<Interval>,
     scale: ScaleType,
@@ -14,7 +14,9 @@ pub struct Scale {
 }
 
 impl Scale {
-    /// Constructs a scale of notes given the type of scale, and optionally a pentatonic.
+    /// Constructs a scale of notes given the type of scale, and optionally a pentatonic. This
+    /// function returns a [`Result`] which can contain the [`Scale`] or an [`InputError`] if the
+    /// input parameters were invalid.
     ///
     /// # Parameters
     ///
@@ -30,39 +32,54 @@ impl Scale {
     /// use music_tools::scale::Scale;
     /// use music_tools::common::{ScaleType, PentatonicType};
     ///
-    /// let locrian = Scale::from(ScaleType::Locrian, PentatonicType::None).unwrap();
-    /// let some_pentatonic = Scale::from(ScaleType::Minor, PentatonicType::Major).unwrap();
-    /// let chromatic_scale = Scale::from(ScaleType::Chromatic, PentatonicType::None).unwrap();
+    /// let locrian = Scale::try_new(ScaleType::Locrian, PentatonicType::None).unwrap();
+    /// let some_pentatonic = Scale::try_new(ScaleType::Minor, PentatonicType::Major).unwrap();
+    /// let chromatic_scale = Scale::try_new(ScaleType::Chromatic, PentatonicType::None).unwrap();
     /// ```
-    pub fn from(scale: ScaleType, pentatonic: PentatonicType) -> Option<Scale> {
-        let scale_intervals: Vec<u8> = match scale {
-            ScaleType::Major | ScaleType::Ionian => vec![0, 2, 4, 5, 7, 9, 11, 12],
-            ScaleType::Minor
-            | ScaleType::Aeolian
-            | ScaleType::NaturalMinor
-            | ScaleType::DescendingMelodicMinor => {
-                vec![0, 2, 3, 5, 7, 8, 10, 12]
-            }
-            ScaleType::Dorian => vec![0, 2, 3, 5, 7, 9, 10, 12],
-            ScaleType::Phrygian => vec![0, 1, 3, 5, 7, 8, 10, 12],
-            ScaleType::Lydian => vec![0, 2, 4, 6, 7, 9, 11, 12],
-            ScaleType::Mixolydian => vec![0, 2, 4, 5, 7, 9, 10, 12],
-            ScaleType::Locrian => vec![0, 1, 3, 5, 6, 8, 10, 12],
-            ScaleType::HarmonicMinor => vec![0, 2, 3, 5, 7, 8, 11, 12],
-            ScaleType::AscendingMelodicMinor => vec![0, 2, 3, 5, 7, 9, 11, 12],
-            ScaleType::PhrygianDominant => vec![0, 1, 4, 5, 7, 8, 10, 12],
-            ScaleType::NonatonicBlues => vec![0, 2, 3, 4, 5, 7, 9, 10, 11, 12],
-            ScaleType::MajorBlues => vec![0, 2, 3, 4, 7, 9, 12],
-            ScaleType::MinorBlues => vec![0, 3, 5, 6, 7, 10, 12],
-            ScaleType::Whole => vec![0, 2, 4, 6, 8, 10, 12],
-            ScaleType::Chromatic => vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    pub fn try_new(scale: ScaleType, pentatonic: PentatonicType) -> Result<Self, InputError> {
+        let scale_intervals: Vec<u8> = match scale.get_id() {
+            //Major modes
+            1 => vec![0, 2, 4, 5, 7, 9, 11, 12],
+            2 => vec![0, 2, 3, 5, 7, 9, 10, 12],
+            3 => vec![0, 1, 3, 5, 7, 8, 10, 12],
+            4 => vec![0, 2, 4, 6, 7, 9, 11, 12],
+            5 => vec![0, 2, 4, 5, 7, 9, 10, 12],
+            6 => vec![0, 2, 3, 5, 7, 8, 10, 12],
+            7 => vec![0, 1, 3, 5, 6, 8, 10, 12],
+            //Harmonic minor modes
+            8 => vec![0, 2, 3, 5, 7, 8, 11, 12],
+            9 => vec![0, 1, 3, 5, 6, 9, 10, 12],
+            10 => vec![0, 2, 4, 5, 8, 9, 11, 12],
+            11 => vec![0, 2, 3, 6, 7, 9, 10, 12],
+            12 => vec![0, 1, 4, 5, 7, 8, 10, 12],
+            13 => vec![0, 3, 4, 6, 7, 9, 11, 12],
+            14 => vec![0, 1, 3, 4, 6, 8, 9, 12],
+            //Melodic minor modes
+            15 => vec![0, 2, 3, 5, 7, 9, 11, 12],
+            16 => vec![0, 1, 3, 5, 7, 9, 10, 12],
+            17 => vec![0, 2, 4, 6, 8, 9, 11, 12],
+            18 => vec![0, 2, 4, 6, 7, 9, 10, 12],
+            19 => vec![0, 2, 4, 5, 7, 8, 10, 12],
+            20 => vec![0, 2, 3, 5, 6, 8, 10, 12],
+            21 => vec![0, 1, 3, 4, 6, 8, 10, 12],
+            //Other scales
+            22 => vec![0, 2, 3, 5, 6, 8, 9, 11, 12],
+            23 => vec![0, 1, 3, 4, 6, 7, 9, 10, 12],
+            24 => vec![0, 2, 3, 4, 5, 7, 9, 10, 11, 12],
+            25 => vec![0, 2, 3, 4, 7, 9, 12],
+            26 => vec![0, 3, 5, 6, 7, 10, 12],
+            27 => vec![0, 2, 4, 6, 8, 10, 12],
+            28 => vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            _ => unimplemented!(),
         };
-        let mut intervals: Vec<Interval> = Vec::new();
-        for interval_value in scale_intervals {
-            intervals.push(Interval::from(interval_value));
-        }
+        let mut intervals: Vec<Interval> = scale_intervals
+            .iter()
+            .map(|value| Interval::from(*value))
+            .collect();
         if pentatonic != PentatonicType::None && intervals.len() != 8 {
-            return None;
+            return Err(InputError {
+                message: "cannot create a pentatonic scale from a scale that is not diatonic",
+            });
         }
         if pentatonic == PentatonicType::Major {
             intervals.remove(6);
@@ -71,17 +88,11 @@ impl Scale {
             intervals.remove(5);
             intervals.remove(1);
         }
-        Some(Scale {
+        Ok(Self {
             intervals,
             scale,
             pentatonic,
         })
-    }
-
-    /// Returns a vector of [`Interval`] representing the intervals of each of the notes in the
-    /// scale with respect to the tonic.
-    pub fn get_intervals(&self) -> Vec<Interval> {
-        self.intervals.clone()
     }
 
     /// Returns a [`ScaleType`] representing the type of the current scale.
@@ -97,23 +108,17 @@ impl Scale {
 
     /// Returns true if the scale is diatonic or heptatonic (has 7 notes), or false if otherwise.
     pub fn is_diatonic(&self) -> bool {
-        if self.intervals.len() == 8 {
-            return true;
-        }
-        false
+        self.intervals.len() == 8
     }
 
     /// Returns true if the scale is pentatonic (has 5 notes), or false if otherwise.
     pub fn is_pentatonic(&self) -> bool {
-        if self.intervals.len() == 6 {
-            return true;
-        }
-        false
+        self.intervals.len() == 6
     }
 
-    /// Returns an [`Option<Vec<Chord>>`] with a vector of the seven diatonic chords of the current
-    /// scale, given the pitch class of the tonic and optionally the octave of each of these chords,
-    /// or [`None`] if the current scale is not diatonic.
+    /// Returns a [`Result`] which can contain a [`Vec<Chord>`] consisting of the seven diatonic
+    /// chords of the current scale, given the pitch class of the tonic and optionally the octave of
+    /// each of these chords, or an [`InputError`] if the current scale is not diatonic.
     ///
     /// # Parameters
     ///
@@ -132,27 +137,50 @@ impl Scale {
     ///
     /// ```rust
     /// use music_tools::scale::Scale;
-    /// use music_tools::pitchclass::PitchClasses;
-    /// use music_tools::common::{ScaleType, PentatonicType};
+    /// use music_tools::chord::Chord;
+    /// use music_tools::pitchclass::PitchClass;
+    /// use music_tools::common::{ScaleType, PentatonicType, TriadQuality};
     ///
-    /// let locrian = Scale::from(ScaleType::Locrian, PentatonicType::None).unwrap();
-    /// let g_locrian_chords = locrian.get_diatonic_chords(PitchClasses::G, Some(5), true).unwrap();
-    /// let mut index = 1;
-    /// for chord in g_locrian_chords {
-    ///     let chord_notes = chord.to_notes().unwrap();
-    ///     println!("Diatonic chord #{} of the G locrian scale has the following notes:", index);
-    ///     for note in chord_notes {
-    ///         println!("{}{}", note.get_pitch_class().get_names()[0], note.get_octave());
-    ///     }
-    ///     index += 1;
-    /// }
+    /// let locrian = Scale::try_new(ScaleType::Locrian, PentatonicType::None).unwrap();
+    /// let g_locrian_chords = locrian.get_diatonic_chords(PitchClass::G, Some(5), false).unwrap();
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Diminished, Some(PitchClass::G), Some(5)),
+    ///     g_locrian_chords[0]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::A_FLAT), Some(5)),
+    ///     g_locrian_chords[1]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Minor, Some(PitchClass::B_FLAT), Some(5)),
+    ///     g_locrian_chords[2]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Minor, Some(PitchClass::C), Some(6)),
+    ///     g_locrian_chords[3]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::D_FLAT), Some(6)),
+    ///     g_locrian_chords[4]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::E_FLAT), Some(6)),
+    ///     g_locrian_chords[5]
+    /// );
+    /// assert_eq!(
+    ///     Chord::from_triad(TriadQuality::Minor, Some(PitchClass::F), Some(6)),
+    ///     g_locrian_chords[6]
+    /// );
     /// ```
     pub fn get_diatonic_chords(
         &self,
         tonic: PitchClass,
         octave: Option<i8>,
         with_seventh: bool,
-    ) -> Option<Vec<Chord>> {
+    ) -> Result<Vec<Chord>, InputError> {
+        let invalid_scale_error = Err(InputError {
+            message: "cannot obtain the diatonic chords for a scale that is not diatonic",
+        });
         let chord_numerals: [&str; 7] = if with_seventh {
             match self.scale {
                 ScaleType::Minor => ["i7", "ii°7", "bIIImaj7", "iv7", "Vmaj7", "bVImaj7", "bVII7"],
@@ -167,7 +195,7 @@ impl Scale {
                     ["i7", "ii°7", "bIIImaj7", "iv7", "v7", "bVImaj7", "bVII7"]
                 }
                 ScaleType::Locrian => ["i°7", "bIImaj7", "biii7", "iv7", "bVmaj7", "bVI7", "bvii7"],
-                _ => return None,
+                _ => return invalid_scale_error,
             }
         } else {
             match self.scale {
@@ -180,32 +208,19 @@ impl Scale {
                 ScaleType::Lydian => ["I", "II", "iii", "#iv°", "V", "vi", "vii"],
                 ScaleType::Mixolydian => ["I", "ii", "iii°", "IV", "v", "vi", "bVII"],
                 ScaleType::Locrian => ["i°", "bII", "biii", "iv", "bV", "bVI", "bvii"],
-                _ => return None,
+                _ => return invalid_scale_error,
             }
         };
         let chords = chord_numerals
             .iter()
-            .map(|x| Chord::from_numeral(x, tonic, octave).unwrap())
+            .map(|numeral| Chord::from_numeral(numeral, tonic, octave).unwrap())
             .collect();
-        Some(chords)
+        Ok(chords)
     }
 
-    /// Converts the scale into a [`Chord`].
-    ///
-    /// # Parameters
-    ///
-    /// - `tonic`: An [`Option<PitchClass>`] which will serve as the pitch class of the tonic note
-    ///   if defined. If [`None`] is provided then the chord will not assign the intervals it holds
-    ///   to any pitch classes.
-    /// - `octave`: An [`Option<i8>`] which will represent the octave the chord is based on if
-    ///   defined. If [`None`] is provided then the chord will not assign the intervals it holds to
-    ///   any octaves.
-    pub fn to_chord(&self, tonic: Option<PitchClass>, octave: Option<i8>) -> Chord {
-        let mut chord = Chord::new(tonic, octave);
-        for index in 1..self.intervals.len() {
-            chord.add_interval(self.intervals[index]);
-        }
-        chord
+    /// Returns a vector with each of the intervals of the scale.
+    pub fn get_intervals(&self) -> Vec<Interval> {
+        self.intervals.clone()
     }
 
     /// Converts the scale to a vector of [`Note`], given a pitch class as the tonic and the octave
@@ -216,9 +231,10 @@ impl Scale {
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic of the set of notes.
     /// - `starting_octave`: An integer representing the octave to place the tonic on.
     pub fn to_notes(&self, tonic: PitchClass, starting_octave: i8) -> Vec<Note> {
-        self.to_chord(Some(tonic), Some(starting_octave))
-            .to_notes()
-            .unwrap()
+        let mut chord = Chord::from(self.clone());
+        chord.set_tonic(Some(tonic));
+        chord.set_octave(Some(starting_octave));
+        Vec::<Note>::try_from(chord).unwrap()
     }
 
     /// Converts the scale to a vector of [`PitchClass`], given a pitch class as the tonic.
@@ -228,7 +244,15 @@ impl Scale {
     /// - `tonic`: A [`PitchClass`] representing the pitch class of the tonic of the other pitch
     ///   classes.
     pub fn to_pitch_classes(&self, tonic: PitchClass) -> Vec<PitchClass> {
-        self.to_chord(Some(tonic), None).to_pitch_classes().unwrap()
+        let mut chord = Chord::from(self.clone());
+        chord.set_tonic(Some(tonic));
+        Vec::try_from(chord).unwrap()
+    }
+}
+
+impl Default for Scale {
+    fn default() -> Self {
+        Self::try_new(ScaleType::default(), PentatonicType::default()).unwrap()
     }
 }
 

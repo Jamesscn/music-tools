@@ -1,15 +1,16 @@
 use crate::chord::Chord;
-use crate::common::{Beat, Fraction};
+use crate::common::{Beat, Fraction, IncompleteChordError};
 use crate::note::Note;
 
 /// This structure is used to store a track with a sequence of events with the same structure as a
 /// MIDI event, however holding [`Note`] structures instead.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Track {
     tempo: f32,
     time_signature: Fraction,
     ticks_per_quarter_note: u16,
     duration: u64,
+    current_delta_ticks: u64,
     current_event: usize,
     events: Vec<Event>,
 }
@@ -17,12 +18,13 @@ pub struct Track {
 impl Track {
     /// Creates an empty track with a given tempo and time signature, with a default value of 360
     /// MIDI ticks per quarter note.
-    pub fn new(tempo: f32, time_signature: Fraction) -> Track {
-        Track {
+    pub fn new(tempo: f32, time_signature: Fraction) -> Self {
+        Self {
             tempo,
             time_signature,
             ticks_per_quarter_note: 360,
             duration: 0,
+            current_delta_ticks: 0,
             current_event: 0,
             events: Vec::new(),
         }
@@ -33,12 +35,13 @@ impl Track {
         tempo: f32,
         time_signature: Fraction,
         ticks_per_quarter_note: u16,
-    ) -> Track {
-        Track {
+    ) -> Self {
+        Self {
             tempo,
             time_signature,
             ticks_per_quarter_note,
             duration: 0,
+            current_delta_ticks: 0,
             current_event: 0,
             events: Vec::new(),
         }
@@ -53,11 +56,13 @@ impl Track {
     /// - `active`: A boolean representing whether to activate or deactivate the note.
     /// - `delta_ticks`: The amount of MIDI ticks until the event should occur.
     pub fn add_event(&mut self, note: Note, active: bool, delta_ticks: u64) {
+        let total_delta_ticks = self.current_delta_ticks + delta_ticks;
         self.events.push(Event {
             note,
             active,
-            delta_ticks,
+            delta_ticks: total_delta_ticks,
         });
+        self.current_delta_ticks = 0;
         self.duration += delta_ticks;
     }
 
@@ -80,23 +85,21 @@ impl Track {
     /// - `duration`: The duration the rest will take.
     pub fn add_rest(&mut self, duration: Beat) {
         let delta_ticks = self.beat_to_ticks(duration);
-        self.add_event(Note::from_midi_index(0).unwrap(), false, delta_ticks);
+        self.current_delta_ticks += delta_ticks;
+        self.duration += delta_ticks;
     }
 
     /// Adds a [`Chord`] to the end of the current track which will be played for the given
-    /// duration. The function will return false if the chord could not be converted to a set of
-    /// [`Note`] objects.
+    /// duration. The function will return a [`Result`] which can contain an
+    /// [`IncompleteChordError`] if the chord did not have a tonic or an octave.
     ///
     /// # Parameters
     ///
     /// - `chord`: The [`Chord`] to be added.
     /// - `duration`: A [`Beat`] representing the duration to play the chord for.
-    pub fn add_chord(&mut self, chord: Chord, duration: Beat) -> bool {
+    pub fn add_chord(&mut self, chord: Chord, duration: Beat) -> Result<(), IncompleteChordError> {
         let delta_ticks = self.beat_to_ticks(duration);
-        let notes = match chord.to_notes() {
-            Some(notes_vec) => notes_vec,
-            None => return false,
-        };
+        let notes = Vec::<Note>::try_from(chord)?;
         for note in notes.clone() {
             self.add_event(note, true, 0);
         }
@@ -109,7 +112,7 @@ impl Track {
                 self.add_event(note, false, 0);
             }
         }
-        true
+        Ok(())
     }
 
     /// Sets the tempo of the current track to a given value in beats per minute.
@@ -162,8 +165,13 @@ impl Track {
     }
 
     /// Returns the duration of a single tick in milliseconds.
-    pub fn get_tick_duration(&mut self) -> f32 {
+    pub fn get_tick_duration(&self) -> f32 {
         60000.0 / (self.tempo * self.ticks_per_quarter_note as f32)
+    }
+
+    /// Resets the internal event tracker to the start of the track.
+    pub fn reset_tracker(&mut self) {
+        self.current_event = 0;
     }
 
     /// Returns the track as a vector of tuples with a [`Note`] and a [`u64`] representing how many
@@ -229,8 +237,24 @@ impl Track {
     }
 }
 
+impl Default for Track {
+    fn default() -> Self {
+        Self {
+            tempo: 120.0,
+            time_signature: Fraction::new(4, 4),
+            ticks_per_quarter_note: 360,
+            duration: 0,
+            current_delta_ticks: 0,
+            current_event: 0,
+            events: Vec::new(),
+        }
+    }
+}
+
+impl Eq for Track {}
+
 /// A struct representing a MIDI or track event.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub struct Event {
     note: Note,
     active: bool,

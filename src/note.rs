@@ -1,5 +1,9 @@
+use crate::chord::Chord;
+use crate::common::{IncompleteChordError, InputError};
 use crate::pitchclass::PitchClass;
 use regex::Regex;
+use std::cmp::Ordering;
+use std::str::FromStr;
 
 /// A structure which is used to represent a note with a pitch class and an octave or frequency.
 #[derive(Copy, Clone, Debug)]
@@ -22,75 +26,78 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let a = Note::from(PitchClasses::A_SHARP, 5);
-    /// let b = Note::from(PitchClasses::B_FLAT, 4);
-    /// let c = Note::from(PitchClasses::C, 3);
+    /// let a = Note::new(PitchClass::A_SHARP, 5);
+    /// let b = Note::new(PitchClass::B_FLAT, 4);
+    /// let c = Note::new(PitchClass::C, 3);
+    /// assert_eq!(a.get_frequency(), 932.3277);
+    /// assert_eq!(b.get_frequency(), 466.16385);
+    /// assert_eq!(c.get_frequency(), 130.81277);
     /// ```
-    pub fn from(pitch_class: PitchClass, octave: i8) -> Note {
-        Note {
+    pub fn new(pitch_class: PitchClass, octave: i8) -> Self {
+        Self {
             pitch_class,
             octave,
             base_frequency: 440.0,
         }
     }
 
-    /// Constructs a [`Note`] from a string containing the pitch class and the octave of the note.
-    /// If the string is invalid, [`None`] is returned.
-    ///
-    /// # Parameters
-    ///
-    /// - `string`: A string with the uppercase letter of the pitch class, which can be followed by
-    ///   a `#` or `♯` to indicate it is a sharp pitch class or a `b` or `♭` to indicate that it is
-    ///   a flat note, and which is then followed by a number representing the octave of the note.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use music_tools::note::Note;
-    ///
-    /// let a = Note::from_string("A#5").unwrap();
-    /// let b = Note::from_string("Bb4").unwrap();
-    /// let c = Note::from_string("C3").unwrap();
-    /// ```
-    pub fn from_string(string: &str) -> Option<Note> {
-        let regex = Regex::new(r"^([A-G])(♮|x|b{1,2}|♭{1,2}|\#{1,2}|♯{1,2})?(\-?\d+)$").unwrap();
-        if !regex.is_match(string) {
-            return None;
-        }
-        let regex_capture_groups = regex.captures(string).unwrap();
-        let pitch_class_letter = regex_capture_groups.get(1).map_or("", |x| x.as_str());
-        let accidental = regex_capture_groups.get(2).map_or("", |x| x.as_str());
-        let octave: i8 = regex_capture_groups
-            .get(3)
-            .map_or(0, |x| x.as_str().parse::<i8>().unwrap());
-        let pitch_class_option =
-            PitchClass::from_name(format!("{pitch_class_letter}{accidental}").as_str());
-        pitch_class_option.map(|pitch_class| Note {
-            pitch_class,
-            octave,
-            base_frequency: 440.0,
-        })
-    }
-
-    /// Constructs a [`Note`] from a midi index between 0 and 127. If the value provided is outside
-    /// of this range [`None`] is returned.
+    /// Constructs a [`Note`] from a midi index between 0 and 127. The function returns a [`Result`]
+    /// which can contain the note or an [`InputError`] if the input string was not valid.
     ///
     /// # Parameters
     ///
     /// - `index`: The index of the midi note, which can be any number between 0 and 127 inclusive.
-    pub fn from_midi_index(index: u8) -> Option<Note> {
+    pub fn from_midi_index(index: u8) -> Result<Self, InputError> {
         if index > 127 {
-            return None;
+            return Err(InputError {
+                message: "the midi index must be an integer between 0 and 127",
+            });
         }
-        let pitch_class = PitchClass::from_value(index % 12).unwrap();
+        let pitch_class = PitchClass::try_from(index % 12).unwrap();
         let octave = (index / 12) as i8 - 1;
-        Some(Note {
+        Ok(Self {
             pitch_class,
             octave,
             base_frequency: 440.0,
         })
+    }
+
+    /// Returns a [`Note`] that is a certain offset away from the current note with the same base
+    /// frequency as the current note.
+    ///
+    /// # Parameters
+    ///
+    /// - `offset`: A signed integer representing the offset of the new note to return from the
+    /// current one.
+    pub fn at_offset(&self, offset: isize) -> Self {
+        let pitch_class_val = self.pitch_class.get_value() as isize + offset;
+        Self {
+            pitch_class: PitchClass::try_from(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            octave: self.octave + pitch_class_val.div_floor(12) as i8,
+            base_frequency: self.base_frequency,
+        }
+    }
+
+    /// Returns the next [`Note`] after the current one.
+    pub fn next(&self) -> Self {
+        let pitch_class_val = self.pitch_class.get_value() as i8 + 1;
+        Self {
+            pitch_class: PitchClass::try_from(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            octave: self.octave + pitch_class_val.div_floor(12),
+            base_frequency: self.base_frequency,
+        }
+    }
+
+    /// Returns the previous [`Note`] before the current one.
+    pub fn prev(&self) -> Self {
+        let pitch_class_val = self.pitch_class.get_value() as i8 - 1;
+        Self {
+            pitch_class: PitchClass::try_from(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            octave: self.octave + pitch_class_val.div_floor(12),
+            base_frequency: self.base_frequency,
+        }
     }
 
     /// Changes the reference frequency of A4 to a specific value for this note, which will affect
@@ -106,12 +113,12 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let mut note = Note::from(PitchClasses::C, 5);
-    /// println!("{}", note.get_frequency());
+    /// let mut note = Note::new(PitchClass::A, 5);
+    /// assert_eq!(note.get_frequency(), 880.0);
     /// note.set_base_frequency(432.0);
-    /// println!("{}", note.get_frequency());
+    /// assert_eq!(note.get_frequency(), 864.0);
     /// ```
     pub fn set_base_frequency(&mut self, base_frequency: f32) {
         self.base_frequency = base_frequency;
@@ -124,12 +131,12 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let mut note = Note::from(PitchClasses::C, 5);
-    /// println!("{}", note.get_base_frequency());
+    /// let mut note = Note::new(PitchClass::C, 5);
+    /// assert_eq!(440.0, note.get_base_frequency());
     /// note.set_base_frequency(432.0);
-    /// println!("{}", note.get_base_frequency());
+    /// assert_eq!(432.0, note.get_base_frequency());
     /// ```
     pub fn get_base_frequency(&self) -> f32 {
         self.base_frequency
@@ -174,14 +181,14 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let c_minus_one = Note::from(PitchClasses::C, -1);
-    /// let zero = Note::from(PitchClasses::C, 0);
-    /// let middle_c = Note::from(PitchClasses::C, 4);
-    /// println!("{}", c_minus_one.get_value());
-    /// println!("{}", zero.get_value());
-    /// println!("{}", middle_c.get_value());
+    /// let c_minus_one = Note::new(PitchClass::C, -1);
+    /// let zero = Note::new(PitchClass::C, 0);
+    /// let middle_c = Note::new(PitchClass::C, 4);
+    /// assert_eq!(-12, c_minus_one.get_value());
+    /// assert_eq!(0, zero.get_value());
+    /// assert_eq!(48, middle_c.get_value());
     /// ```
     pub fn get_value(&self) -> i16 {
         self.octave as i16 * 12 + self.pitch_class.get_value() as i16
@@ -195,10 +202,10 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let middle_c = Note::from(PitchClasses::C, 4);
-    /// println!("{}", middle_c.get_keyboard_index().unwrap());
+    /// let middle_c = Note::new(PitchClass::C, 4);
+    /// assert_eq!(40, middle_c.get_keyboard_index().unwrap());
     /// ```
     pub fn get_keyboard_index(&self) -> Option<u8> {
         let keyboard_index = self.get_value() - 8;
@@ -215,10 +222,10 @@ impl Note {
     ///
     /// ```rust
     /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let middle_c = Note::from(PitchClasses::C, 4);
-    /// println!("{}", middle_c.get_keyboard_index().unwrap());
+    /// let middle_c = Note::new(PitchClass::C, 4);
+    /// assert_eq!(60, middle_c.get_midi_index().unwrap());
     /// ```
     pub fn get_midi_index(&self) -> Option<u8> {
         let midi_index = self.get_value() + 12;
@@ -229,9 +236,87 @@ impl Note {
     }
 }
 
+impl Default for Note {
+    fn default() -> Self {
+        Self {
+            pitch_class: PitchClass::default(),
+            octave: 4,
+            base_frequency: 440.0,
+        }
+    }
+}
+
 impl PartialEq for Note {
     fn eq(&self, other: &Self) -> bool {
-        self.get_keyboard_index() == other.get_keyboard_index()
-            && self.base_frequency == other.base_frequency
+        self.get_value() == other.get_value()
+    }
+}
+
+impl Eq for Note {}
+
+impl PartialOrd for Note {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Note {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.get_value().cmp(&other.get_value())
+    }
+}
+
+impl FromStr for Note {
+    type Err = InputError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let regex = Regex::new(r"^([A-G])(♮|x|b{1,2}|♭{1,2}|\#{1,2}|♯{1,2})?(\-?\d+)$").unwrap();
+        if !regex.is_match(s) {
+            return Err(InputError {
+                message: "string does not conform to expected note format",
+            });
+        }
+        let regex_capture_groups = regex.captures(s).unwrap();
+        let pitch_class_letter = regex_capture_groups.get(1).map_or("", |x| x.as_str());
+        let accidental = regex_capture_groups.get(2).map_or("", |x| x.as_str());
+        let octave: i8 = regex_capture_groups
+            .get(3)
+            .map_or(0, |x| x.as_str().parse::<i8>().unwrap());
+        let pitch_class =
+            PitchClass::from_str(format!("{pitch_class_letter}{accidental}").as_str())?;
+        Ok(Self {
+            pitch_class,
+            octave,
+            base_frequency: 440.0,
+        })
+    }
+}
+
+impl TryFrom<Chord> for Vec<Note> {
+    type Error = IncompleteChordError;
+
+    fn try_from(value: Chord) -> Result<Self, Self::Error> {
+        if value.get_tonic().is_none() || value.get_octave().is_none() {
+            return Err(IncompleteChordError {
+                needs_tonic: true,
+                needs_octave: true,
+                has_tonic: value.get_tonic().is_some(),
+                has_octave: value.get_octave().is_some(),
+            });
+        }
+        let mut notes: Vec<Note> = Vec::new();
+        for interval in value.get_intervals() {
+            let current_octave = value.get_octave().unwrap()
+                + ((value.get_tonic().unwrap().get_value() as u64 + interval.get_value()) / 12)
+                    as i8;
+            let current_semitone = interval.get_value() % 12;
+            let current_pitch_class = value
+                .get_tonic()
+                .unwrap()
+                .get_offset(current_semitone as i8);
+            let current_note = Note::new(current_pitch_class, current_octave);
+            notes.push(current_note);
+        }
+        Ok(notes)
     }
 }

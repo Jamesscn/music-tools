@@ -1,14 +1,15 @@
-use crate::common::TriadQuality;
-use crate::interval::{Interval, Intervals};
+use crate::common::{InputError, TriadQuality};
+use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::PitchClass;
+use crate::scale::Scale;
 use regex::Regex;
 
 /// A structure which holds a chord, which is a group of consecutive intervals with a given
 /// inversion. A chord can optionally have a tonic which will define the pitch classes of each of
-/// the notes in the chord, and also an octave which will define the octaves of these pitch classes,
-/// or neither of these attributes.
-#[derive(Clone, Debug)]
+/// the notes in the chord, and optionally also an octave which will define the octaves of these
+/// pitch classes.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Chord {
     intervals: Vec<Interval>,
     tonic: Option<PitchClass>,
@@ -32,15 +33,21 @@ impl Chord {
     ///
     /// ```rust
     /// use music_tools::chord::Chord;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
+    /// use music_tools::note::Note;
+    /// use std::str::FromStr;
     ///
     /// let unison_chord = Chord::new(None, None);
-    /// let g_unison_chord = Chord::new(Some(PitchClasses::G), None);
-    /// let g5_unison_chord = Chord::new(Some(PitchClasses::G), Some(5));
+    /// let g_unison_chord = Chord::new(Some(PitchClass::G), None);
+    /// let g5_unison_chord = Chord::new(Some(PitchClass::G), Some(5));
+    /// assert_eq!(Vec::<PitchClass>::try_from(g_unison_chord).unwrap(), vec![PitchClass::G]);
+    /// assert_eq!(
+    ///     Vec::<Note>::try_from(g5_unison_chord).unwrap(), vec![Note::from_str("G5").unwrap()]
+    /// );
     /// ```
-    pub fn new(tonic: Option<PitchClass>, octave: Option<i8>) -> Chord {
-        Chord {
-            intervals: Vec::from([Intervals::PERFECT_UNISON]),
+    pub fn new(tonic: Option<PitchClass>, octave: Option<i8>) -> Self {
+        Self {
+            intervals: vec![Interval::PERFECT_UNISON],
             tonic,
             octave,
             inversion: 0,
@@ -77,9 +84,13 @@ impl Chord {
     /// ```rust
     /// use music_tools::chord::Chord;
     /// use music_tools::common::TriadQuality;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let chord = Chord::from_triad(TriadQuality::Sus2, Some(PitchClasses::G), None);
+    /// let chord = Chord::from_triad(TriadQuality::Sus2, Some(PitchClass::G), None);
+    /// assert_eq!(
+    ///     Vec::<PitchClass>::try_from(chord).unwrap(),
+    ///     vec![PitchClass::G, PitchClass::A, PitchClass::D],
+    /// )
     /// ```
     ///
     /// The following example demonstrates the creation of a C5 augmented triad:
@@ -87,48 +98,58 @@ impl Chord {
     /// ```rust
     /// use music_tools::chord::Chord;
     /// use music_tools::common::TriadQuality;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
+    /// use music_tools::note::Note;
+    /// use std::str::FromStr;
     ///
-    /// let chord = Chord::from_triad(TriadQuality::Augmented, Some(PitchClasses::C), Some(5));
+    /// let chord = Chord::from_triad(TriadQuality::Augmented, Some(PitchClass::C), Some(5));
+    /// assert_eq!(
+    ///     Vec::<Note>::try_from(chord).unwrap(),
+    ///     vec![
+    ///         Note::from_str("C5").unwrap(),
+    ///         Note::from_str("E5").unwrap(),
+    ///         Note::from_str("G#5").unwrap(),
+    ///     ],
+    /// )
     /// ```
     pub fn from_triad(
         triad_quality: TriadQuality,
         tonic: Option<PitchClass>,
         octave: Option<i8>,
-    ) -> Chord {
+    ) -> Self {
         let intervals: Vec<Interval> = match triad_quality {
             TriadQuality::Major => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::MAJOR_THIRD,
-                Intervals::PERFECT_FIFTH,
+                Interval::PERFECT_UNISON,
+                Interval::MAJOR_THIRD,
+                Interval::PERFECT_FIFTH,
             ],
             TriadQuality::Minor => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::MINOR_THIRD,
-                Intervals::PERFECT_FIFTH,
+                Interval::PERFECT_UNISON,
+                Interval::MINOR_THIRD,
+                Interval::PERFECT_FIFTH,
             ],
             TriadQuality::Sus2 => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::MAJOR_SECOND,
-                Intervals::PERFECT_FIFTH,
+                Interval::PERFECT_UNISON,
+                Interval::MAJOR_SECOND,
+                Interval::PERFECT_FIFTH,
             ],
             TriadQuality::Sus4 => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::PERFECT_FOURTH,
-                Intervals::PERFECT_FIFTH,
+                Interval::PERFECT_UNISON,
+                Interval::PERFECT_FOURTH,
+                Interval::PERFECT_FIFTH,
             ],
             TriadQuality::Augmented => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::MAJOR_THIRD,
-                Intervals::MINOR_SIXTH,
+                Interval::PERFECT_UNISON,
+                Interval::MAJOR_THIRD,
+                Interval::MINOR_SIXTH,
             ],
             TriadQuality::Diminished => vec![
-                Intervals::PERFECT_UNISON,
-                Intervals::MINOR_THIRD,
-                Intervals::DIMINISHED_FIFTH,
+                Interval::PERFECT_UNISON,
+                Interval::MINOR_THIRD,
+                Interval::DIMINISHED_FIFTH,
             ],
         };
-        Chord {
+        Self {
             intervals,
             tonic,
             octave,
@@ -139,21 +160,22 @@ impl Chord {
     /// Constructs a chord from a string with a roman numeral that represents the offset of the
     /// chord from a tonic, and a pitch class representing that tonic. One can also provide an
     /// [`Option<i8>`] representing the octave of the chord to be constructed. The string can also
-    /// contain an accidental, the quality of the chord and a seventh note. This function returns an
-    /// [`Option<Chord>`] which can be [`None`] if the input string was invalid.
+    /// contain an accidental, the quality of the chord and a seventh note. The function returns a
+    /// [`Result`] which can contain the new [`Chord`] or an [`InputError`] if the string could not
+    /// be parsed correctly.
     ///
     /// # Parameters
     ///
     /// - `input_numeral`: A string that can contain the following items in the following order:
-    ///     - An optional accidental `b` or `♭` which will treat the chord as a flat chord, or `#`
+    ///     - (Optional) an accidental `b` or `♭` which will treat the chord as a flat chord, or `#`
     ///       or `♯` which will treat the chord as a sharp chord.
-    ///     - A numeral I - VII or i - vii which will represent the scale degree to offset the chord
-    ///       from the tonic. If the numeral is in uppercase then the chord will be a major chord,
-    ///       and if it is in lowercase it will be a minor chord.
-    ///     - A quality `°` which will make the chord diminished or `+` which will make the chord
-    ///       augmented.
-    ///     - A seventh `7` which will add a minor seventh on top of the chord, or `maj7` which will
-    ///       add a major seventh on top of the chord.
+    ///     - (Required) A numeral I - VII or i - vii which will represent the scale degree to
+    ///       offset the chord from the tonic. If the numeral is in uppercase then the chord will be
+    ///       a major chord, and if it is in lowercase it will be a minor chord.
+    ///     - (Optional) A quality `°` which will make the chord diminished or `+` which will make
+    ///       the chord augmented.
+    ///     - (Optional) A seventh `7` which will add a minor seventh on top of the chord, or `maj7`
+    ///       which will add a major seventh on top of the chord.
     /// - `tonic`: A [`PitchClass`] representing the tonic or root note which will be offset by the
     ///   numeral.
     /// - `octave`: An [`Option<i8>`] representing the octave of the chord that will be returned. If
@@ -166,10 +188,11 @@ impl Chord {
     ///
     /// ```rust
     /// use music_tools::chord::Chord;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let chord1 = Chord::from_numeral("bVII+7", PitchClasses::C, Some(4)).unwrap();
-    /// let chord2 = Chord::from_numeral("♭VII+7", PitchClasses::C, Some(4)).unwrap();
+    /// let chord1 = Chord::from_numeral("bVII+7", PitchClass::C, Some(4)).unwrap();
+    /// let chord2 = Chord::from_numeral("♭VII+7", PitchClass::C, Some(4)).unwrap();
+    /// assert_eq!(chord1, chord2);
     /// ```
     ///
     /// The following example demonstrates the creation of two copies of a minor tetrad two scale
@@ -178,10 +201,11 @@ impl Chord {
     ///
     /// ```rust
     /// use music_tools::chord::Chord;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let chord1 = Chord::from_numeral("#ii°maj7", PitchClasses::G_SHARP, Some(5)).unwrap();
-    /// let chord2 = Chord::from_numeral("♯ii°maj7", PitchClasses::G_SHARP, Some(5)).unwrap();
+    /// let chord1 = Chord::from_numeral("#ii°maj7", PitchClass::G_SHARP, Some(5)).unwrap();
+    /// let chord2 = Chord::from_numeral("♯ii°maj7", PitchClass::G_SHARP, Some(5)).unwrap();
+    /// assert_eq!(chord1, chord2);
     /// ```
     ///
     /// The following example demonstrates the creation of a minor triad three scale degrees above A
@@ -189,21 +213,25 @@ impl Chord {
     ///
     /// ```rust
     /// use music_tools::chord::Chord;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
+    /// use music_tools::common::TriadQuality;
     ///
-    /// let chord = Chord::from_numeral("iii", PitchClasses::A, None).unwrap();
+    /// let chord = Chord::from_numeral("iii", PitchClass::A, None).unwrap();
+    /// assert_eq!(chord, Chord::from_triad(TriadQuality::Minor, Some(PitchClass::C_SHARP), None));
     /// ```
     pub fn from_numeral(
         input_numeral: &str,
         tonic: PitchClass,
         octave: Option<i8>,
-    ) -> Option<Chord> {
+    ) -> Result<Self, InputError> {
         let numeral_array = ["I", "II", "III", "IV", "V", "VI", "VII"];
         let numeral_regex =
             Regex::new(r"^(b|♭|\#|♯)?(I|II|III|IV|V|VI|VII|i|ii|iii|iv|v|vi|vii)(°|\+)?(maj7|7)?$")
                 .unwrap();
         if !numeral_regex.is_match(input_numeral) {
-            return None;
+            return Err(InputError {
+                message: "string does not conform to expected numeral format",
+            });
         }
         let regex_capture_groups = numeral_regex.captures(input_numeral).unwrap();
         let accidental = regex_capture_groups.get(1).map_or("", |m| m.as_str());
@@ -219,27 +247,41 @@ impl Chord {
             if quality == "+" {
                 triad_quality = TriadQuality::Augmented;
             } else if quality == "°" {
-                return None;
+                return Err(InputError {
+                    message: concat!(
+                        "numeral cannot be uppercase and contain ° symbol, it must either be ",
+                        "augmented (uppercase with a +) or diminished (lowercase with a °)"
+                    ),
+                });
             } else {
                 triad_quality = TriadQuality::Major;
             }
         } else if quality == "°" {
             triad_quality = TriadQuality::Diminished;
         } else if quality == "+" {
-            return None;
+            return Err(InputError {
+                message: concat!(
+                    "numeral cannot be lowercase and contain + symbol, it must either be ",
+                    "augmented (uppercase with a +) or diminished (lowercase with a °)"
+                ),
+            });
         } else {
             triad_quality = TriadQuality::Minor;
         }
         let increment: u8;
         if accidental == "b" || accidental == "♭" {
-            increment = match numeral_value {
-                1 => 1,
-                2 => 3,
-                4 => 6,
-                5 => 8,
-                6 => 10,
-                _ => return None,
-            };
+            increment =
+                match numeral_value {
+                    1 => 1,
+                    2 => 3,
+                    4 => 6,
+                    5 => 8,
+                    6 => 10,
+                    _ => return Err(InputError {
+                        message:
+                            "only numerals ii, II, iii, III, v, V, vi, VI, vii and VII can be flat",
+                    }),
+                };
         } else if accidental == "#" || accidental == "♯" {
             increment = match numeral_value {
                 0 => 1,
@@ -247,7 +289,11 @@ impl Chord {
                 3 => 6,
                 4 => 8,
                 5 => 10,
-                _ => return None,
+                _ => {
+                    return Err(InputError {
+                        message: "only numerals i, I, ii, II, iv, IV, v, V, vi and VI can be sharp",
+                    })
+                }
             };
         } else {
             increment = match numeral_value {
@@ -258,19 +304,19 @@ impl Chord {
                 4 => 7,
                 5 => 9,
                 6 => 11,
-                _ => return None,
+                _ => unreachable!(),
             };
         }
         let chord_tonic = tonic.get_offset(increment as i8);
         let chord_octave =
             octave.map(|octave_value| octave_value + ((tonic.get_value() + increment) / 12) as i8);
-        let mut chord = Chord::from_triad(triad_quality, Some(chord_tonic), chord_octave);
+        let mut chord = Self::from_triad(triad_quality, Some(chord_tonic), chord_octave);
         if seventh == "maj7" {
-            chord.add_interval(Intervals::MAJOR_SEVENTH);
+            chord.add_interval(Interval::MAJOR_SEVENTH);
         } else if seventh == "7" {
-            chord.add_interval(Intervals::MINOR_SEVENTH);
+            chord.add_interval(Interval::MINOR_SEVENTH);
         }
-        Some(chord)
+        Ok(chord)
     }
 
     /// Adds an interval on top of the current chord.
@@ -282,15 +328,15 @@ impl Chord {
     /// # Examples
     ///
     /// The following example demonstrates adding a minor seventh to a major triad with no
-    /// particular pitch classes or octaves.
+    /// particular pitch classes or octaves assigned to the chord.
     ///
     /// ```rust
     /// use music_tools::chord::Chord;
     /// use music_tools::common::TriadQuality;
-    /// use music_tools::interval::Intervals;
+    /// use music_tools::interval::Interval;
     ///
     /// let mut chord = Chord::from_triad(TriadQuality::Major, None, None);
-    /// chord.add_interval(Intervals::MINOR_SEVENTH);
+    /// chord.add_interval(Interval::MINOR_SEVENTH);
     /// ```
     pub fn add_interval(&mut self, interval: Interval) {
         let mut insert_index = 0;
@@ -309,24 +355,20 @@ impl Chord {
     /// Returns a vector of [`Interval`] objects representing the intervals of the current chord
     /// with the inversion of the chord applied.
     pub fn get_intervals(&self) -> Vec<Interval> {
-        let mut values: Vec<u8> = Vec::new();
-        let first_half_octave_offset = self.intervals[self.inversion].get_value() as i8 / 12;
+        let mut values: Vec<u64> = Vec::new();
+        let first_half_octave_offset = self.intervals[self.inversion].get_value() as i64 / 12;
         for index in self.inversion..self.intervals.len() {
             values.push(
-                (self.intervals[index].get_value() as i8 - 12 * first_half_octave_offset) as u8,
+                (self.intervals[index].get_value() as i64 - 12 * first_half_octave_offset) as u64,
             );
         }
-        let second_half_octave_offset = values[values.len() - 1] as i8 / 12 + 1;
+        let second_half_octave_offset = values[values.len() - 1] as i64 / 12 + 1;
         for index in 0..self.inversion {
             values.push(
-                (self.intervals[index].get_value() as i8 + 12 * second_half_octave_offset) as u8,
+                (self.intervals[index].get_value() as i64 + 12 * second_half_octave_offset) as u64,
             );
         }
-        let mut intervals: Vec<Interval> = Vec::new();
-        for value in values {
-            intervals.push(Interval::from(value));
-        }
-        intervals
+        values.iter().map(|value| Interval::from(*value)).collect()
     }
 
     /// Sets the inversion of the current chord which changes the order of the intervals in the
@@ -354,10 +396,14 @@ impl Chord {
     /// ```rust
     /// use music_tools::chord::Chord;
     /// use music_tools::common::TriadQuality;
-    /// use music_tools::pitchclass::PitchClasses;
+    /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let mut chord = Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::C), None);
+    /// let mut chord = Chord::from_triad(TriadQuality::Minor, Some(PitchClass::C), None);
     /// chord.set_inversion(2);
+    /// assert_eq!(
+    ///     Vec::<PitchClass>::try_from(chord).unwrap(),
+    ///     vec![PitchClass::G, PitchClass::C, PitchClass::E_FLAT]
+    /// );
     /// ```
     pub fn set_inversion(&mut self, inversion: u8) {
         self.inversion = inversion as usize % self.intervals.len();
@@ -400,54 +446,128 @@ impl Chord {
     pub fn get_octave(&self) -> Option<i8> {
         self.octave
     }
+}
 
-    /// Returns an [`Option<Vec<Note>>`] which contains a vector of consecutive [`Note`] objects
-    /// with the pitch classes and octaves of each note in the chord, or [`None`] if either the
-    /// tonic or the octave of the chord are [`None`].
-    ///
-    /// # Examples
-    ///
-    /// The following example will create a G major chord on the fourth octave whose notes will be
-    /// G4, B4 and D5.
-    ///
-    /// ```rust
-    /// use music_tools::chord::Chord;
-    /// use music_tools::common::TriadQuality;
-    /// use music_tools::pitchclass::PitchClasses;
-    ///
-    /// let mut chord = Chord::from_triad(TriadQuality::Major, Some(PitchClasses::G), Some(4));
-    /// let notes = chord.to_notes().unwrap();
-    /// ```
-    pub fn to_notes(&self) -> Option<Vec<Note>> {
-        self.tonic?;
-        self.octave?;
-        let mut notes: Vec<Note> = Vec::new();
-        let intervals = self.get_intervals();
-        for interval in intervals {
-            let current_octave = self.octave.unwrap()
-                + ((self.tonic.unwrap().get_value() + interval.get_value()) / 12) as i8;
-            let current_semitone = interval.get_value() % 12;
-            let current_pitch_class = self.tonic.unwrap().get_offset(current_semitone as i8);
-            let current_note = Note::from(current_pitch_class, current_octave);
-            notes.push(current_note);
+impl Default for Chord {
+    fn default() -> Self {
+        Self {
+            intervals: vec![Interval::PERFECT_UNISON],
+            tonic: None,
+            octave: None,
+            inversion: 0,
         }
-        Some(notes)
     }
+}
 
-    /// Returns an [`Option<Vec<PitchClass>>`] which contains a vector of [`PitchClass`]
-    /// corresponding to the pitch classes of the notes in the current chord, or [`None`] if the
-    /// tonic of the chord is [`None`]. Note that this representation of a chord is not optimal
-    /// because it makes it impossible to distinguish the difference between an interval less than
-    /// an octave and any interval larger than an octave.
-    pub fn to_pitch_classes(&self) -> Option<Vec<PitchClass>> {
-        self.tonic?;
-        let mut pitch_classes: Vec<PitchClass> = Vec::new();
-        let intervals = self.get_intervals();
-        for interval in intervals {
-            let current_semitone = interval.get_value() % 12;
-            let current_pitch_class = self.tonic.unwrap().get_offset(current_semitone as i8);
-            pitch_classes.push(current_pitch_class);
+impl From<Interval> for Chord {
+    fn from(value: Interval) -> Self {
+        let intervals: Vec<Interval> = if value == Interval::PERFECT_UNISON {
+            vec![Interval::PERFECT_UNISON]
+        } else {
+            vec![Interval::PERFECT_UNISON, value]
+        };
+        Chord {
+            intervals,
+            tonic: None,
+            octave: None,
+            inversion: 0,
         }
-        Some(pitch_classes)
+    }
+}
+
+impl From<&[Interval]> for Chord {
+    fn from(value: &[Interval]) -> Self {
+        let mut intervals = Vec::from(value);
+        intervals.push(Interval::PERFECT_UNISON);
+        intervals.sort();
+        intervals.dedup();
+        Chord {
+            intervals,
+            tonic: None,
+            octave: None,
+            inversion: 0,
+        }
+    }
+}
+
+impl From<Note> for Chord {
+    fn from(value: Note) -> Self {
+        Chord {
+            intervals: vec![Interval::PERFECT_UNISON],
+            tonic: Some(value.get_pitch_class()),
+            octave: Some(value.get_octave()),
+            inversion: 0,
+        }
+    }
+}
+
+impl From<&[Note]> for Chord {
+    fn from(value: &[Note]) -> Self {
+        let intervals = if value.is_empty() {
+            vec![Interval::PERFECT_UNISON]
+        } else {
+            let mut notes = Vec::from(value);
+            notes.sort();
+            notes.dedup();
+            let smallest = notes[0];
+            notes
+                .iter()
+                .map(|note| Interval::between_notes(smallest, *note))
+                .collect()
+        };
+        let tonic = value.get(0).map(|note| note.get_pitch_class());
+        let octave = value.get(0).map(|note| note.get_octave());
+        Chord {
+            intervals,
+            tonic,
+            octave,
+            inversion: 0,
+        }
+    }
+}
+
+impl From<PitchClass> for Chord {
+    fn from(value: PitchClass) -> Self {
+        Chord {
+            intervals: vec![Interval::PERFECT_UNISON],
+            tonic: Some(value),
+            octave: None,
+            inversion: 0,
+        }
+    }
+}
+
+impl From<&[PitchClass]> for Chord {
+    fn from(value: &[PitchClass]) -> Self {
+        let mut tonic_diff = 0;
+        let mut intervals: Vec<Interval> = value
+            .iter()
+            .map_windows(|&[prev, curr]| {
+                tonic_diff += if curr.get_value() > prev.get_value() {
+                    curr.get_value() - prev.get_value()
+                } else {
+                    12 - prev.get_value() + curr.get_value()
+                };
+                Interval::from(tonic_diff)
+            })
+            .collect();
+        intervals.insert(0, Interval::PERFECT_UNISON);
+        Chord {
+            intervals,
+            tonic: value.get(0).copied(),
+            octave: None,
+            inversion: 0,
+        }
+    }
+}
+
+impl From<Scale> for Chord {
+    fn from(value: Scale) -> Self {
+        Chord {
+            intervals: value.get_intervals(),
+            tonic: None,
+            octave: None,
+            inversion: 0,
+        }
     }
 }

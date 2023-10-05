@@ -1,4 +1,4 @@
-use crate::common::Fraction;
+use crate::common::{Fraction, InputError};
 use crate::note::Note;
 use crate::track::Track;
 use apres::MIDIEvent;
@@ -6,35 +6,36 @@ use apres::MIDI as Apres_MIDI;
 
 /// A structure which holds a MIDI object that can be imported from or exported to a MIDI file,
 /// containing a set of [`Track`] objects.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct MIDI {
     tracks: Vec<Track>,
 }
 
 impl MIDI {
     /// Creates an empty MIDI class with no tracks
-    pub fn new() -> MIDI {
-        MIDI { tracks: Vec::new() }
+    pub fn new() -> Self {
+        Self::default()
     }
 
-    /// Imports a MIDI object from a MIDI file. The return value is an [`Option<MIDI>`] which can be
-    /// [`None`] if the MIDI file provided does not exist or is invalid.
+    /// Imports a MIDI object from a MIDI file. The return value is a [`Result`] which can be either
+    /// a [`MIDI`] or an [`InputError`] if the MIDI file provided does not exist or is invalid.
     ///
     /// # Parameters
     ///
     /// - `file_path`: A string of the path to the MIDI file to import.
-    pub fn import_from_file(file_path: &str) -> Option<MIDI> {
+    pub fn import_from_file(file_path: &str) -> Result<Self, InputError> {
         let midi_object = match Apres_MIDI::from_path(file_path) {
             Ok(apres_midi_object) => apres_midi_object,
             Err(_) => {
-                println!("Could not read MIDI file from {file_path}!");
-                return None;
+                return Err(InputError {
+                    message: "the path provided does not exist or the midi file was invalid",
+                })
             }
         };
         let ticks_per_quarter_note = midi_object.get_ppqn();
         let midi_tracks = midi_object.get_tracks();
         let mut tracks: Vec<Track> = Vec::new();
-        let mut tempo: f32 = 0.0;
+        let mut tempo: f32 = 120.0;
         let mut time_signature: Fraction = Fraction::new(4, 4);
         for midi_track_info in midi_tracks {
             let mut track = Track::new_with_ticks(tempo, time_signature, ticks_per_quarter_note);
@@ -84,27 +85,27 @@ impl MIDI {
                 tracks.push(track);
             }
         }
-        let mut timed_tracks: Vec<Track> = Vec::new();
-        for mut track in tracks {
+        for track in &mut tracks {
             track.set_time_signature(time_signature);
             track.set_tempo(tempo);
-            timed_tracks.push(track);
         }
-        Some(MIDI {
-            tracks: timed_tracks,
-        })
+        Ok(Self { tracks })
     }
 
-    /// Exports a MIDI object to a MIDI file. The function returns true if the file was successfully
-    /// exported or false if it was not or if the MIDI object has no tracks.
+    /// Exports a MIDI object to a MIDI file. The function returns a [`Result`] which can be an
+    /// [`InputError`] if the MIDI file could not be saved. Unfortunately the apres library does
+    /// not return if the file was successfully saved, so this is something that has to be looked
+    /// into in the future.
     ///
     /// # Parameters
     ///
     /// - `file_path`: A string of the path to save the MIDI file to.
-    pub fn export_to_file(&self, file_path: &str) -> bool {
+    pub fn export_to_file(&mut self, file_path: &str) -> Result<(), InputError> {
         let mut midi_object = Apres_MIDI::new();
         if self.tracks.is_empty() {
-            return false;
+            return Err(InputError {
+                message: "the midi object could not be saved because it has no tracks",
+            });
         }
         let time_signature: Fraction = self.tracks[0].get_time_signature();
         let tempo: f32 = self.tracks[0].get_tempo();
@@ -116,7 +117,7 @@ impl MIDI {
         midi_object.insert_event(0, 0, MIDIEvent::TimeSignature(midi_num, midi_denom, 24, 8));
         midi_object.insert_event(0, 0, MIDIEvent::SetTempo(us_per_quarter_note));
         let mut track_index = 1;
-        for mut track in self.tracks.clone() {
+        for track in &mut self.tracks {
             let mut current_tick = 0;
             while let Some(event) = track.get_next_event() {
                 let note_option = event.get_note().get_midi_index();
@@ -132,10 +133,11 @@ impl MIDI {
                 current_tick += event.get_delta_ticks() as usize;
                 midi_object.insert_event(track_index, current_tick, midi_event);
             }
+            track.reset_tracker();
             track_index += 1;
         }
-        midi_object.save(file_path);
-        true
+        midi_object.save(file_path); // This function does not indicate if saving was successful!
+        Ok(())
     }
 
     /// Adds a [`Track`] to the MIDI object.
@@ -155,11 +157,5 @@ impl MIDI {
     /// Returns the number of valid tracks in the MIDI object.
     pub fn get_num_tracks(&self) -> usize {
         self.tracks.len()
-    }
-}
-
-impl Default for MIDI {
-    fn default() -> Self {
-        Self::new()
     }
 }

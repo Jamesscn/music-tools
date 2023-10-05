@@ -2,9 +2,10 @@ use music_tools::chord::Chord;
 use music_tools::common::{Beat, Fraction, PentatonicType, ScaleType, TriadQuality};
 use music_tools::midi::MIDI;
 use music_tools::note::Note;
-use music_tools::pitchclass::PitchClasses;
+use music_tools::pitchclass::PitchClass;
 use music_tools::scale::Scale;
 use music_tools::track::Track;
+use std::str::FromStr;
 
 fn main() {
     //The tempo and time signature of the song is set
@@ -14,12 +15,13 @@ fn main() {
     let mut melody_track = Track::new(tempo, waltz);
 
     //The melody is obtained from the C minor and harmonic minor scales
-    let minor_scale = Scale::from(ScaleType::Minor, PentatonicType::None).unwrap();
-    let harmonic_minor_scale = Scale::from(ScaleType::HarmonicMinor, PentatonicType::None).unwrap();
-    let c_minor_scale = minor_scale.to_notes(PitchClasses::C, 5);
+    let minor_scale = Scale::try_new(ScaleType::Minor, PentatonicType::None).unwrap();
+    let harmonic_minor_scale =
+        Scale::try_new(ScaleType::HarmonicMinor, PentatonicType::None).unwrap();
+    let c_minor_scale = minor_scale.to_notes(PitchClass::C, 5);
     let c_harmonic_double_scale = [
-        &harmonic_minor_scale.to_notes(PitchClasses::C, 4)[0..7],
-        &harmonic_minor_scale.to_notes(PitchClasses::C, 5),
+        &harmonic_minor_scale.to_notes(PitchClass::C, 4)[0..7],
+        &harmonic_minor_scale.to_notes(PitchClass::C, 5),
     ]
     .concat();
     let c_minor_functions = [5, 3, 2, 1, 1, 2, 3, 1, 3, 5, 6, 5];
@@ -31,8 +33,8 @@ fn main() {
     for function in c_harmonic_minor_functions {
         melody_notes.push(c_harmonic_double_scale[function - 1]);
     }
-    melody_notes.push(Note::from_string("Gb5").unwrap());
-    melody_notes.push(Note::from_string("G5").unwrap());
+    melody_notes.push(Note::from_str("Gb5").unwrap());
+    melody_notes.push(Note::from_str("G5").unwrap());
 
     //The beats for each of the notes are predefined
     let melody_beats = [
@@ -70,23 +72,27 @@ fn main() {
         if index % 3 == 0 {
             if index % 6 == 0 {
                 if !(30..54).contains(&index) {
-                    beat_track.add_note(Note::from(PitchClasses::C, 3), Beat::QUARTER);
+                    beat_track.add_note(Note::new(PitchClass::C, 3), Beat::QUARTER);
                 } else {
-                    beat_track.add_note(Note::from(PitchClasses::D, 3), Beat::QUARTER);
+                    beat_track.add_note(Note::new(PitchClass::D, 3), Beat::QUARTER);
                 }
             } else {
-                beat_track.add_note(Note::from(PitchClasses::G, 2), Beat::QUARTER);
+                beat_track.add_note(Note::new(PitchClass::G, 2), Beat::QUARTER);
             }
         } else if !(30..54).contains(&index) {
-            beat_track.add_chord(
-                Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::C), Some(3)),
-                Beat::QUARTER,
-            );
+            beat_track
+                .add_chord(
+                    Chord::from_triad(TriadQuality::Minor, Some(PitchClass::C), Some(3)),
+                    Beat::QUARTER,
+                )
+                .unwrap();
         } else {
-            beat_track.add_chord(
-                Chord::from_triad(TriadQuality::Minor, Some(PitchClasses::F), Some(3)),
-                Beat::QUARTER,
-            );
+            beat_track
+                .add_chord(
+                    Chord::from_triad(TriadQuality::Minor, Some(PitchClass::F), Some(3)),
+                    Beat::QUARTER,
+                )
+                .unwrap();
         }
     }
 
@@ -103,5 +109,6 @@ fn main() {
     let mut midi: MIDI = MIDI::new();
     midi.add_track(beat_track);
     midi.add_track(melody_track);
-    midi.export_to_file("second_waltz.mid");
+    midi.export_to_file("second_waltz.mid")
+        .expect("could not create midi file");
 }
