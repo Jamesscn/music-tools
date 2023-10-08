@@ -3,7 +3,6 @@ use music_tools::audio::player::AudioPlayer;
 use music_tools::audio::wavetable::WavetableOscillator;
 use music_tools::common::Beat;
 use music_tools::note::Note;
-use std::str::FromStr;
 
 fn main() {
     let mut player = AudioPlayer::try_new().unwrap();
@@ -27,7 +26,7 @@ fn main() {
                 player.set_synth(square_table);
             }
         }
-        player.push(&Note::from_str("A4").unwrap(), &Beat::QUARTER);
+        player.push(&Note::from_string("A4").unwrap(), &Beat::QUARTER);
     }
     player.play();
 }

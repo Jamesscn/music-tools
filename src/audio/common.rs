@@ -121,10 +121,10 @@ pub enum ArpeggioDirection {
 }
 
 /// An error which is returned when audio could not be played.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AudioPlayError {
     /// A more specific message that explains why specific audio could not be played.
-    pub message: &'static str,
+    pub message: String,
 }
 
 impl Error for AudioPlayError {}

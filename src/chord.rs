@@ -35,14 +35,13 @@ impl Chord {
     /// use music_tools::chord::Chord;
     /// use music_tools::pitchclass::PitchClass;
     /// use music_tools::note::Note;
-    /// use std::str::FromStr;
     ///
     /// let unison_chord = Chord::new(None, None);
     /// let g_unison_chord = Chord::new(Some(PitchClass::G), None);
     /// let g5_unison_chord = Chord::new(Some(PitchClass::G), Some(5));
     /// assert_eq!(Vec::<PitchClass>::try_from(g_unison_chord).unwrap(), vec![PitchClass::G]);
     /// assert_eq!(
-    ///     Vec::<Note>::try_from(g5_unison_chord).unwrap(), vec![Note::from_str("G5").unwrap()]
+    ///     Vec::<Note>::try_from(g5_unison_chord).unwrap(), vec![Note::from_string("G5").unwrap()]
     /// );
     /// ```
     pub fn new(tonic: Option<PitchClass>, octave: Option<i8>) -> Self {
@@ -100,15 +99,14 @@ impl Chord {
     /// use music_tools::common::TriadQuality;
     /// use music_tools::pitchclass::PitchClass;
     /// use music_tools::note::Note;
-    /// use std::str::FromStr;
     ///
     /// let chord = Chord::from_triad(TriadQuality::Augmented, Some(PitchClass::C), Some(5));
     /// assert_eq!(
     ///     Vec::<Note>::try_from(chord).unwrap(),
     ///     vec![
-    ///         Note::from_str("C5").unwrap(),
-    ///         Note::from_str("E5").unwrap(),
-    ///         Note::from_str("G#5").unwrap(),
+    ///         Note::from_string("C5").unwrap(),
+    ///         Note::from_string("E5").unwrap(),
+    ///         Note::from_string("G#5").unwrap(),
     ///     ],
     /// )
     /// ```
@@ -230,7 +228,7 @@ impl Chord {
                 .unwrap();
         if !numeral_regex.is_match(input_numeral) {
             return Err(InputError {
-                message: "string does not conform to expected numeral format",
+                message: String::from("string does not conform to expected numeral format"),
             });
         }
         let regex_capture_groups = numeral_regex.captures(input_numeral).unwrap();
@@ -248,10 +246,10 @@ impl Chord {
                 triad_quality = TriadQuality::Augmented;
             } else if quality == "°" {
                 return Err(InputError {
-                    message: concat!(
+                    message: String::from(concat!(
                         "numeral cannot be uppercase and contain ° symbol, it must either be ",
                         "augmented (uppercase with a +) or diminished (lowercase with a °)"
-                    ),
+                    )),
                 });
             } else {
                 triad_quality = TriadQuality::Major;
@@ -260,10 +258,10 @@ impl Chord {
             triad_quality = TriadQuality::Diminished;
         } else if quality == "+" {
             return Err(InputError {
-                message: concat!(
+                message: String::from(concat!(
                     "numeral cannot be lowercase and contain + symbol, it must either be ",
                     "augmented (uppercase with a +) or diminished (lowercase with a °)"
-                ),
+                )),
             });
         } else {
             triad_quality = TriadQuality::Minor;
@@ -278,8 +276,9 @@ impl Chord {
                     5 => 8,
                     6 => 10,
                     _ => return Err(InputError {
-                        message:
+                        message: String::from(
                             "only numerals ii, II, iii, III, v, V, vi, VI, vii and VII can be flat",
+                        ),
                     }),
                 };
         } else if accidental == "#" || accidental == "♯" {
@@ -291,7 +290,9 @@ impl Chord {
                 5 => 10,
                 _ => {
                     return Err(InputError {
-                        message: "only numerals i, I, ii, II, iv, IV, v, V, vi and VI can be sharp",
+                        message: String::from(
+                            "only numerals i, I, ii, II, iv, IV, v, V, vi and VI can be sharp",
+                        ),
                     })
                 }
             };

@@ -78,7 +78,9 @@ impl Scale {
             .collect();
         if pentatonic != PentatonicType::None && intervals.len() != 8 {
             return Err(InputError {
-                message: "cannot create a pentatonic scale from a scale that is not diatonic",
+                message: String::from(
+                    "cannot create a pentatonic scale from a scale that is not diatonic",
+                ),
             });
         }
         if pentatonic == PentatonicType::Major {
@@ -179,7 +181,9 @@ impl Scale {
         with_seventh: bool,
     ) -> Result<Vec<Chord>, InputError> {
         let invalid_scale_error = Err(InputError {
-            message: "cannot obtain the diatonic chords for a scale that is not diatonic",
+            message: String::from(
+                "cannot obtain the diatonic chords for a scale that is not diatonic",
+            ),
         });
         let chord_numerals: [&str; 7] = if with_seventh {
             match self.scale {

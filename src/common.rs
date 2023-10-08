@@ -99,7 +99,7 @@ impl Fraction {
     /// assert_ne!(two_quarters.get_numerator(), one_half.get_numerator());
     /// assert_ne!(two_quarters.get_denominator(), one_half.get_denominator());
     /// assert_eq!(two_quarters.get_as_float(), one_half.get_as_float());
-    /// 
+    ///
     /// let two_quarters_simplified = two_quarters.get_simplified();
     /// assert_eq!(two_quarters_simplified.get_numerator(), one_half.get_numerator());
     /// assert_eq!(two_quarters_simplified.get_denominator(), one_half.get_denominator());
@@ -417,10 +417,10 @@ pub enum PentatonicType {
 
 /// An error which is returned when a function receives an input that was not in the expected
 /// format.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct InputError {
     /// A more specific message that explains the reason why the string was invalid.
-    pub message: &'static str,
+    pub message: String,
 }
 
 impl Error for InputError {}

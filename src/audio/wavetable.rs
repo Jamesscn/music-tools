@@ -54,12 +54,11 @@ impl WavetableVoice {
 /// use music_tools::audio::wavetable::WavetableOscillator;
 /// use music_tools::common::Beat;
 /// use music_tools::note::Note;
-/// use std::str::FromStr;
 ///
 /// let mut square_oscillator = WavetableOscillator::new(Waveforms::SQUARE_WAVE, 1.0, 128);
 /// let mut player = AudioPlayer::try_new().unwrap();
 /// player.set_synth(square_oscillator);
-/// player.push(&Note::from_str("A4").unwrap(), &Beat::WHOLE);
+/// player.push(&Note::from_string("A4").unwrap(), &Beat::WHOLE);
 /// player.play();
 /// ```
 #[derive(Clone, Debug)]

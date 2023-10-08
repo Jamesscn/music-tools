@@ -5,7 +5,6 @@ use music_tools::note::Note;
 use music_tools::pitchclass::PitchClass;
 use music_tools::scale::Scale;
 use music_tools::track::Track;
-use std::str::FromStr;
 
 fn main() {
     //The tempo and time signature of the song is set
@@ -33,8 +32,8 @@ fn main() {
     for function in c_harmonic_minor_functions {
         melody_notes.push(c_harmonic_double_scale[function - 1]);
     }
-    melody_notes.push(Note::from_str("Gb5").unwrap());
-    melody_notes.push(Note::from_str("G5").unwrap());
+    melody_notes.push(Note::from_string("Gb5").unwrap());
+    melody_notes.push(Note::from_string("G5").unwrap());
 
     //The beats for each of the notes are predefined
     let melody_beats = [

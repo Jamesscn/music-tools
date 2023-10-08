@@ -2,7 +2,6 @@ use music_tools::common::{PentatonicType, ScaleType};
 use music_tools::pitchclass::PitchClass;
 use music_tools::scale::Scale;
 use std::cmp;
-use std::str::FromStr;
 
 #[test]
 fn test_scale_notes() {
@@ -31,7 +30,7 @@ fn test_scale_notes() {
         let expected_vec: Vec<PitchClass> = test_case
             .1
             .into_iter()
-            .map(|x| PitchClass::from_str(x).unwrap())
+            .map(|x| PitchClass::from_string(x).unwrap())
             .collect();
         assert_eq!(output_vec.len(), expected_vec.len());
         for index in 0..cmp::min(output_vec.len(), expected_vec.len()) {

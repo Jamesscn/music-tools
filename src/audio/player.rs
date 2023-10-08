@@ -85,14 +85,14 @@ impl AudioPlayer {
         let stream_result = OutputStream::try_default();
         if stream_result.is_err() {
             return Err(AudioPlayError {
-                message: "no sound card detected",
+                message: String::from("no sound card detected"),
             });
         }
         let (_stream, stream_handle) = stream_result.unwrap();
         let sink_result = Sink::try_new(&stream_handle);
         if sink_result.is_err() {
             return Err(AudioPlayError {
-                message: "sink could not be created",
+                message: String::from("sink could not be created"),
             });
         }
         let mut processor = AudioProcessor::new();

@@ -3,7 +3,6 @@ use music_tools::common::TriadQuality;
 use music_tools::note::Note;
 use music_tools::pitchclass::PitchClass;
 use std::cmp;
-use std::str::FromStr;
 
 #[test]
 fn test_triads() {
@@ -60,7 +59,7 @@ fn test_triads() {
         let expected_vec: Vec<Note> = test_case
             .1
             .into_iter()
-            .map(|x| Note::from_str(x).unwrap())
+            .map(|x| Note::from_string(x).unwrap())
             .collect();
         assert_eq!(output_vec.len(), expected_vec.len());
         for index in 0..cmp::min(output_vec.len(), expected_vec.len()) {

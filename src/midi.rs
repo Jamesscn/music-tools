@@ -28,7 +28,9 @@ impl MIDI {
             Ok(apres_midi_object) => apres_midi_object,
             Err(_) => {
                 return Err(InputError {
-                    message: "the path provided does not exist or the midi file was invalid",
+                    message: String::from(
+                        "the path provided does not exist or the midi file was invalid",
+                    ),
                 })
             }
         };
@@ -104,7 +106,9 @@ impl MIDI {
         let mut midi_object = Apres_MIDI::new();
         if self.tracks.is_empty() {
             return Err(InputError {
-                message: "the midi object could not be saved because it has no tracks",
+                message: String::from(
+                    "the midi object could not be saved because it has no tracks",
+                ),
             });
         }
         let time_signature: Fraction = self.tracks[0].get_time_signature();
