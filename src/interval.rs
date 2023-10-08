@@ -1,5 +1,5 @@
 use crate::{chord::Chord, note::Note, scale::Scale};
-use std::cmp::Ordering;
+use std::{cmp::Ordering, fmt};
 
 /// A structure which is used to represent the interval between two notes.
 #[derive(Copy, Clone, Debug, Eq)]
@@ -261,6 +261,15 @@ impl<T: Into<u64>> From<T> for Interval {
             value: numeric_value,
             full_name: None,
             short_name: None,
+        }
+    }
+}
+
+impl fmt::Display for Interval {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.full_name {
+            Some(name) => write!(f, "{}", name),
+            None => write!(f, "Interval of {} semitones", self.value),
         }
     }
 }

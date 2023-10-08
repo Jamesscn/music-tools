@@ -120,6 +120,12 @@ pub enum ArpeggioDirection {
     UpDown,
 }
 
+impl fmt::Display for ArpeggioDirection {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?} arpeggio", self)
+    }
+}
+
 /// An error which is returned when audio could not be played.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AudioPlayError {

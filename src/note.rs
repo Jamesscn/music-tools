@@ -3,6 +3,7 @@ use crate::common::{IncompleteChordError, InputError};
 use crate::pitchclass::PitchClass;
 use regex::Regex;
 use std::cmp::Ordering;
+use std::fmt;
 
 /// A structure which is used to represent a note with a pitch class and an octave or frequency.
 #[derive(Copy, Clone, Debug)]
@@ -305,6 +306,12 @@ impl PartialOrd for Note {
 impl Ord for Note {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_value().cmp(&other.get_value())
+    }
+}
+
+impl fmt::Display for Note {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}{}", self.pitch_class, self.octave)
     }
 }
 

@@ -1,5 +1,6 @@
 use crate::chord::Chord;
 use crate::common::{IncompleteChordError, InputError};
+use std::fmt;
 
 /// A structure used to define one of the pitch classes of the twelve tone equal temperament system.
 #[derive(Copy, Clone, Debug)]
@@ -227,5 +228,11 @@ impl TryFrom<Chord> for Vec<PitchClass> {
                 has_octave: value.get_octave().is_some(),
             }),
         }
+    }
+}
+
+impl fmt::Display for PitchClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.get_names()[0])
     }
 }

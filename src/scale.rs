@@ -3,6 +3,7 @@ use crate::common::{InputError, PentatonicType, ScaleType};
 use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::PitchClass;
+use std::fmt;
 
 /// A structure used to represent a scale of notes, or a major or minor pentatonic variation of a
 /// scale.
@@ -263,5 +264,11 @@ impl Default for Scale {
 impl PartialEq for Scale {
     fn eq(&self, other: &Self) -> bool {
         self.scale == other.scale && self.pentatonic == other.pentatonic
+    }
+}
+
+impl fmt::Display for Scale {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.scale)
     }
 }

@@ -1,6 +1,7 @@
 use crate::chord::Chord;
 use crate::common::{Beat, Fraction, IncompleteChordError};
 use crate::note::Note;
+use std::fmt;
 
 /// This structure is used to store a track with a sequence of events with the same structure as a
 /// MIDI event, however holding [`Note`] structures instead.
@@ -275,5 +276,19 @@ impl Event {
     /// Returns the amount of MIDI ticks between the last event and the current event.
     pub fn get_delta_ticks(&self) -> u64 {
         self.delta_ticks
+    }
+}
+
+impl fmt::Display for Event {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let state = match self.active {
+            true => "on",
+            false => "off",
+        };
+        write!(
+            f,
+            "MIDI event: turn {} {} after {} ticks",
+            self.note, state, self.delta_ticks
+        )
     }
 }

@@ -8,6 +8,7 @@ use byteorder::{BigEndian, LittleEndian, WriteBytesExt};
 use rodio::{OutputStream, Sink, Source};
 use std::cmp::min;
 use std::error::Error;
+use std::fmt;
 use std::fs::File;
 use std::io::Write;
 use std::time::Duration;
@@ -22,6 +23,12 @@ pub enum BitsPerSample {
     /// Represents 32 bits per sample
     #[default]
     TWENTYFOUR = 24,
+}
+
+impl fmt::Display for BitsPerSample {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} bits per sample", *self as u32)
+    }
 }
 
 #[derive(Clone, Debug)]
