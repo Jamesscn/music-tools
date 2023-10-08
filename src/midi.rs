@@ -3,6 +3,7 @@ use crate::note::Note;
 use crate::track::Track;
 use apres::MIDIEvent;
 use apres::MIDI as Apres_MIDI;
+use std::path::Path;
 
 /// A structure which holds a MIDI object that can be imported from or exported to a MIDI file,
 /// containing a set of [`Track`] objects.
@@ -23,8 +24,16 @@ impl MIDI {
     /// # Parameters
     ///
     /// - `file_path`: A string of the path to the MIDI file to import.
-    pub fn import_from_file(file_path: &str) -> Result<Self, InputError> {
-        let midi_object = match Apres_MIDI::from_path(file_path) {
+    pub fn import_from_file(file_path: impl AsRef<Path>) -> Result<Self, InputError> {
+        let str_path = match file_path.as_ref().to_str() {
+            Some(path) => path,
+            None => {
+                return Err(InputError {
+                    message: String::from("the file path must be a valid unicode string"),
+                })
+            }
+        };
+        let midi_object = match Apres_MIDI::from_path(str_path) {
             Ok(apres_midi_object) => apres_midi_object,
             Err(_) => {
                 return Err(InputError {

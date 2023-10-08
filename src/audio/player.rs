@@ -11,6 +11,7 @@ use std::error::Error;
 use std::fmt;
 use std::fs::File;
 use std::io::Write;
+use std::path::Path;
 use std::time::Duration;
 
 /// An enum representing the amount of bits per sample to use while exporting a WAV file.
@@ -338,7 +339,7 @@ impl AudioPlayer {
     ///   be stored in the WAV file.
     pub fn export_wav(
         &self,
-        path: &str,
+        path: impl AsRef<Path>,
         bits_per_sample: BitsPerSample,
     ) -> Result<(), Box<dyn Error>> {
         const CHANNELS: u16 = 1; //Mono audio
