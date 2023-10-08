@@ -357,19 +357,21 @@ impl Chord {
     /// with the inversion of the chord applied.
     pub fn get_intervals(&self) -> Vec<Interval> {
         let mut values: Vec<u64> = Vec::new();
-        let first_half_octave_offset = self.intervals[self.inversion].get_value() as i64 / 12;
+        let first_half_octave_offset = self.intervals[self.inversion].get_semitones() as i64 / 12;
         for index in self.inversion..self.intervals.len() {
             values.push(
-                (self.intervals[index].get_value() as i64 - 12 * first_half_octave_offset) as u64,
+                (self.intervals[index].get_semitones() as i64 - 12 * first_half_octave_offset)
+                    as u64,
             );
         }
         let second_half_octave_offset = values[values.len() - 1] as i64 / 12 + 1;
         for index in 0..self.inversion {
             values.push(
-                (self.intervals[index].get_value() as i64 + 12 * second_half_octave_offset) as u64,
+                (self.intervals[index].get_semitones() as i64 + 12 * second_half_octave_offset)
+                    as u64,
             );
         }
-        values.iter().map(|value| Interval::from(*value)).collect()
+        values.iter().map(|value| Interval::new(*value)).collect()
     }
 
     /// Sets the inversion of the current chord which changes the order of the intervals in the
@@ -549,7 +551,7 @@ impl From<&[PitchClass]> for Chord {
                 } else {
                     12 - prev.get_value() + curr.get_value()
                 };
-                Interval::from(tonic_diff)
+                Interval::new(tonic_diff)
             })
             .collect();
         intervals.insert(0, Interval::PERFECT_UNISON);

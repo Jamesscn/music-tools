@@ -23,10 +23,10 @@ impl PitchClass {
     /// ```rust
     /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let g_flat = PitchClass::try_from(6u32).unwrap();
+    /// let g_flat = PitchClass::try_new(6u32).unwrap();
     /// assert_eq!(PitchClass::G_FLAT, g_flat);
     /// ```
-    pub fn try_from(value: impl Into<u64>) -> Result<PitchClass, InputError> {
+    pub fn try_new(value: impl Into<u64>) -> Result<PitchClass, InputError> {
         let numeric_value = value.into();
         let index = numeric_value as usize;
         if index < 12 {
@@ -66,7 +66,7 @@ impl PitchClass {
         })
     }
 
-    /// Returns the [`PitchClass`] that is a certain offset away from the current one.
+    /// Returns the [`PitchClass`] that is a certain amount of semitones away from the current one.
     ///
     /// # Parameters
     ///
@@ -219,7 +219,7 @@ impl TryFrom<Chord> for Vec<PitchClass> {
             Some(tonic) => Ok(value
                 .get_intervals()
                 .iter()
-                .map(|interval| tonic.get_offset((interval.get_value() % 12) as i8))
+                .map(|interval| tonic.get_offset((interval.get_semitones() % 12) as i8))
                 .collect()),
             None => Err(IncompleteChordError {
                 needs_tonic: true,

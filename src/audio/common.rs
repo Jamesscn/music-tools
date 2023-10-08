@@ -14,22 +14,27 @@ pub trait Synth {
     ///
     /// - `volume`: The new volume of the synthesizer, which must be a value between 0.0 and 1.0.
     fn set_volume(&mut self, volume: f32);
+
     /// Clears all the voices or frequencies that are being played on the synthesizer.
     fn clear_voices(&mut self);
+
     /// Adds a voice which will play a frequency on the synthesizer.
     ///
     /// # Parameters
     ///
     /// - `frequency`: The frequency in hertz of the voice to be played.
     fn add_voice(&mut self, frequency: f32);
+
     /// Stops or removes a voice which is being played on the synthesizer.
     ///
     /// # Parameters
     ///
     /// - `frequency`: The frequency in hertz of the voice that will stop being played.
     fn remove_voice(&mut self, frequency: f32);
+
     /// Returns the current sample that is being produced by the synthesizer as an [`f32`].
     fn get_sample(&mut self) -> f32;
+
     /// Advances the synthesizer to play the next sample.
     ///
     /// # Parameters
@@ -84,7 +89,7 @@ impl Playable for Chord {
 impl Playable for Interval {
     fn get_frequencies(&self) -> Vec<f32> {
         let tonic = Note::default();
-        let interval_note = tonic.at_offset(self.get_value() as isize);
+        let interval_note = tonic.at_offset(self.get_semitones() as isize);
         vec![tonic.get_frequency(), interval_note.get_frequency()]
     }
 }

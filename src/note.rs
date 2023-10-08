@@ -99,7 +99,7 @@ impl Note {
                 ),
             });
         }
-        let pitch_class = PitchClass::try_from(index % 12).unwrap();
+        let pitch_class = PitchClass::try_new(index % 12).unwrap();
         let octave = (index / 12) as i8 - 1;
         Ok(Self {
             pitch_class,
@@ -118,7 +118,7 @@ impl Note {
     pub fn at_offset(&self, offset: isize) -> Self {
         let pitch_class_val = self.pitch_class.get_value() as isize + offset;
         Self {
-            pitch_class: PitchClass::try_from(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            pitch_class: PitchClass::try_new(pitch_class_val.rem_euclid(12) as u8).unwrap(),
             octave: self.octave + pitch_class_val.div_floor(12) as i8,
             base_frequency: self.base_frequency,
         }
@@ -128,7 +128,7 @@ impl Note {
     pub fn next(&self) -> Self {
         let pitch_class_val = self.pitch_class.get_value() as i8 + 1;
         Self {
-            pitch_class: PitchClass::try_from(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            pitch_class: PitchClass::try_new(pitch_class_val.rem_euclid(12) as u8).unwrap(),
             octave: self.octave + pitch_class_val.div_floor(12),
             base_frequency: self.base_frequency,
         }
@@ -138,7 +138,7 @@ impl Note {
     pub fn prev(&self) -> Self {
         let pitch_class_val = self.pitch_class.get_value() as i8 - 1;
         Self {
-            pitch_class: PitchClass::try_from(pitch_class_val.rem_euclid(12) as u8).unwrap(),
+            pitch_class: PitchClass::try_new(pitch_class_val.rem_euclid(12) as u8).unwrap(),
             octave: self.octave + pitch_class_val.div_floor(12),
             base_frequency: self.base_frequency,
         }
@@ -330,9 +330,9 @@ impl TryFrom<Chord> for Vec<Note> {
         let mut notes: Vec<Note> = Vec::new();
         for interval in value.get_intervals() {
             let current_octave = value.get_octave().unwrap()
-                + ((value.get_tonic().unwrap().get_value() as u64 + interval.get_value()) / 12)
+                + ((value.get_tonic().unwrap().get_value() as u64 + interval.get_semitones()) / 12)
                     as i8;
-            let current_semitone = interval.get_value() % 12;
+            let current_semitone = interval.get_semitones() % 12;
             let current_pitch_class = value
                 .get_tonic()
                 .unwrap()
