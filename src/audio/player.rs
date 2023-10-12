@@ -2,17 +2,17 @@ use super::common::{ArpeggioDirection, AudioPlayError, Playable, Synth};
 use super::processor::{AudioProcessor, SynthRc};
 use super::wavetable::WavetableOscillator;
 use crate::common::{AudioDuration, Rhythm};
-use crate::midi::MIDI;
-use crate::track::Event;
 use byteorder::{BigEndian, LittleEndian, WriteBytesExt};
 use rodio::{OutputStream, Sink, Source};
-use std::cmp::min;
 use std::error::Error;
 use std::fmt;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::time::Duration;
+
+#[cfg(feature = "midi")]
+use {crate::midi::common::Event, crate::midi::processor::MIDI, std::cmp::min};
 
 /// An enum representing the amount of bits per sample to use while exporting a WAV file.
 #[derive(Copy, Clone, Debug, Default)]
@@ -249,6 +249,7 @@ impl AudioPlayer {
         }
     }
 
+    #[cfg(feature = "midi")]
     /// Pushes a MIDI item onto the queue of audio to be played.
     ///
     /// # Parameters

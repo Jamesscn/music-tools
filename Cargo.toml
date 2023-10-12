@@ -10,7 +10,7 @@ license = "MIT"
 keywords = ["music", "musictheory", "harmony", "audio", "sound"]
 
 [dependencies]
-apres = "0.3.4"
+apres = { version = "0.3.4", optional = true}
 rodio = { version = "0.17.1", optional = true}
 regex = "1.7.3"
 ordered-float = { version = "4.1.0", optional = true}
@@ -18,21 +18,22 @@ byteorder = { version = "1.4.3", optional = true}
 
 [features]
 audio = ["dep:rodio", "dep:ordered-float", "dep:byteorder"]
+midi = ["dep:apres"]
 
 [[example]]
 name = "midi_in"
 path = "examples/midi_in.rs"
-required-features = ["audio"]
+required-features = ["audio", "midi"]
 
 [[example]]
 name = "midi_out"
 path = "examples/midi_out.rs"
-required-features = []
+required-features = ["midi"]
 
 [[example]]
 name = "midi_to_grub"
 path = "examples/midi_to_grub.rs"
-required-features = []
+required-features = ["midi"]
 
 [[example]]
 name = "play_frequencies"

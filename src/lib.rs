@@ -10,6 +10,10 @@
 /// The audio module contains structures for playing frequencies and processing audio waves.
 pub mod audio;
 
+#[cfg(feature = "midi")]
+/// The midi module contains a structure which can be used to work with MIDI files.
+pub mod midi;
+
 /// The common module contains common structures, enums and functions that are used by other
 /// modules.
 pub mod common;
@@ -29,10 +33,3 @@ pub mod interval;
 
 /// The pitchclass module contains a structure which can be used to represent a pitch class.
 pub mod pitchclass;
-
-/// The midi module contains a structure which can be used to import and export tracks to MIDI
-/// files.
-pub mod midi;
-
-/// The track module contains a structure which can be used to represent a MIDI file track.
-pub mod track;

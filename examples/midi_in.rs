@@ -1,7 +1,7 @@
 use music_tools::audio::common::Waveforms;
 use music_tools::audio::player::AudioPlayer;
 use music_tools::audio::wavetable::WavetableOscillator;
-use music_tools::midi::MIDI;
+use music_tools::midi::processor::MIDI;
 use std::io::{self, Write};
 
 fn main() {

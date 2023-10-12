@@ -1,4 +1,4 @@
-use music_tools::midi::MIDI;
+use music_tools::midi::processor::MIDI;
 use std::io::{self, Write};
 
 fn main() {

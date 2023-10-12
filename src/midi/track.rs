@@ -1,7 +1,7 @@
+use super::common::Event;
 use crate::chord::Chord;
 use crate::common::{Beat, Fraction, IncompleteChordError};
 use crate::note::Note;
-use std::fmt;
 
 /// This structure is used to store a track with a sequence of events with the same structure as a
 /// MIDI event, however holding [`Note`] structures instead.
@@ -58,11 +58,8 @@ impl Track {
     /// - `delta_ticks`: The amount of MIDI ticks until the event should occur.
     pub fn add_event(&mut self, note: Note, active: bool, delta_ticks: u64) {
         let total_delta_ticks = self.current_delta_ticks + delta_ticks;
-        self.events.push(Event {
-            note,
-            active,
-            delta_ticks: total_delta_ticks,
-        });
+        self.events
+            .push(Event::new(note, active, total_delta_ticks));
         self.current_delta_ticks = 0;
         self.duration += delta_ticks;
     }
@@ -253,42 +250,3 @@ impl Default for Track {
 }
 
 impl Eq for Track {}
-
-/// A struct representing a MIDI or track event.
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
-pub struct Event {
-    note: Note,
-    active: bool,
-    delta_ticks: u64,
-}
-
-impl Event {
-    /// Returns the [`Note`] associated with the current event.
-    pub fn get_note(&self) -> Note {
-        self.note
-    }
-
-    /// Returns true if the event activates the current note, or false if it deactivates it.
-    pub fn is_active(&self) -> bool {
-        self.active
-    }
-
-    /// Returns the amount of MIDI ticks between the last event and the current event.
-    pub fn get_delta_ticks(&self) -> u64 {
-        self.delta_ticks
-    }
-}
-
-impl fmt::Display for Event {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let state = match self.active {
-            true => "on",
-            false => "off",
-        };
-        write!(
-            f,
-            "MIDI event: turn {} {} after {} ticks",
-            self.note, state, self.delta_ticks
-        )
-    }
-}

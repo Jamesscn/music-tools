@@ -1,10 +1,10 @@
 use music_tools::chord::Chord;
 use music_tools::common::{Beat, Fraction, PentatonicType, ScaleType, TriadQuality};
-use music_tools::midi::MIDI;
+use music_tools::midi::processor::MIDI;
+use music_tools::midi::track::Track;
 use music_tools::note::Note;
 use music_tools::pitchclass::PitchClass;
 use music_tools::scale::Scale;
-use music_tools::track::Track;
 
 fn main() {
     //The tempo and time signature of the song is set
@@ -105,7 +105,7 @@ fn main() {
     }
 
     //The MIDI object and file are created
-    let mut midi: MIDI = MIDI::new();
+    let mut midi = MIDI::new();
     midi.add_track(beat_track);
     midi.add_track(melody_track);
     midi.export_to_file("second_waltz.mid")
