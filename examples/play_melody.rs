@@ -1,21 +1,20 @@
 use music_tools::audio::player::AudioPlayer;
-use music_tools::common::Beat;
+use music_tools::common::{Beat, Rhythm};
 use music_tools::note::Note;
 
 fn main() {
     let mut player = AudioPlayer::try_new().unwrap();
     player.set_tempo(160.0);
-    let beats = [
+    let rhythm = Rhythm::from([
         Beat::QUARTER_DOTTED,
         Beat::QUARTER_DOTTED,
         Beat::QUARTER,
         Beat::QUARTER,
-    ];
-    let note_names = ["G4", "G4", "A#4", "C5", "G4", "G4", "F4", "F#4"];
-    for index in 0..16 {
-        let note = Note::from_string(note_names[index % note_names.len()]).unwrap();
-        let duration = beats[index % beats.len()];
-        player.push(&note, &duration);
-    }
+    ]);
+    let notes = ["G4", "G4", "A#4", "C5", "G4", "G4", "F4", "F#4"]
+        .iter()
+        .map(|name| Note::from_string(name).unwrap())
+        .collect::<Vec<Note>>();
+    player.push_rhythm(&notes, rhythm, 16);
     player.play();
 }

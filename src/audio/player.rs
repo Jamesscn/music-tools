@@ -1,7 +1,7 @@
 use super::common::{ArpeggioDirection, AudioPlayError, Playable, Synth};
 use super::processor::{AudioProcessor, SynthRc};
 use super::wavetable::WavetableOscillator;
-use crate::common::AudioDuration;
+use crate::common::{AudioDuration, Rhythm};
 use crate::midi::MIDI;
 use crate::track::Event;
 use byteorder::{BigEndian, LittleEndian, WriteBytesExt};
@@ -188,14 +188,14 @@ impl AudioPlayer {
     ///   be played for. This duration must implement the [`AudioDuration`] trait.
     /// - `direction`: An [`ArpeggioDirection`] enum representing the direction that the audio will
     ///   be arpeggiated in.
-    /// - `repetitions`: A [`usize`] representing the total amount of individual notes that will be
+    /// - `total_notes`: A [`usize`] representing the total amount of individual notes that will be
     ///   played while the arpeggio is happening.
     pub fn push_arpeggiate(
         &mut self,
         playable: &impl Playable,
         duration: &impl AudioDuration,
         direction: ArpeggioDirection,
-        repetitions: usize,
+        total_notes: usize,
     ) {
         let frequencies = playable.get_frequencies();
         let mut updown_ascending: bool = true;
@@ -204,7 +204,7 @@ impl AudioPlayer {
             ArpeggioDirection::Down => frequencies.len() - 1,
             ArpeggioDirection::UpDown => 0,
         };
-        for _ in 0..repetitions {
+        for _ in 0..total_notes {
             let curr_frequency = frequencies[current_index];
             self.push(&curr_frequency, duration);
             current_index = match direction {
@@ -225,6 +225,27 @@ impl AudioPlayer {
             if updown_ascending && current_index == frequencies.len() - 1 {
                 updown_ascending = false;
             }
+        }
+    }
+
+    /// Pushes a series of playable audio items with a rhythm onto the queue of audio to be played.
+    ///
+    /// # Parameters
+    ///
+    /// - `playables`: The audio items to be played to the given rhythm, which must be an iterable
+    ///   set of [`Playable`] trait objects.
+    /// - `rhythm`: A [`Rhythm`] representing the rhythm that will be used to play the audio.
+    /// - `total_notes`: A [`usize`] representing the total amount of playable items that will be
+    ///   played. If this value is greater than either of the `playables` and `rhythm` iterables
+    ///   then they are wrapped around from the beginning.
+    pub fn push_rhythm(&mut self, playables: &[impl Playable], rhythm: Rhythm, total_notes: usize) {
+        if playables.is_empty() || rhythm.is_empty() {
+            return;
+        }
+        for index in 0..total_notes {
+            let curr_playable = &playables[index % playables.len()];
+            let curr_beat = &rhythm[index % rhythm.len()];
+            self.push(curr_playable, curr_beat);
         }
     }
 
