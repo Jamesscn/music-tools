@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt;
+use std::ops::{Add, AddAssign, Sub, SubAssign};
 use std::time::Duration;
 
 /// A structure which is used to hold the exact representation of a fraction. Fractions are used in
@@ -7,8 +8,8 @@ use std::time::Duration;
 /// are not simplified when they are stored.
 #[derive(Copy, Clone, Debug, Eq)]
 pub struct Fraction {
-    numerator: u8,
-    denominator: u8,
+    numerator: u64,
+    denominator: u64,
 }
 
 impl Fraction {
@@ -31,7 +32,7 @@ impl Fraction {
     /// # Panics
     ///
     /// This function panics if the denominator is equal to zero.
-    pub const fn new(numerator: u8, denominator: u8) -> Self {
+    pub const fn new(numerator: u64, denominator: u64) -> Self {
         if denominator == 0 {
             panic!("Cannot create a fraction with a denominator of zero!");
         }
@@ -52,7 +53,7 @@ impl Fraction {
     /// let numerator = five_sevenths.get_numerator();
     /// assert_eq!(5, numerator);
     /// ```
-    pub fn get_numerator(&self) -> u8 {
+    pub fn get_numerator(&self) -> u64 {
         self.numerator
     }
 
@@ -67,7 +68,7 @@ impl Fraction {
     /// let denominator = five_sevenths.get_denominator();
     /// assert_eq!(7, denominator);
     /// ```
-    pub fn get_denominator(&self) -> u8 {
+    pub fn get_denominator(&self) -> u64 {
         self.denominator
     }
 
@@ -149,6 +150,44 @@ impl Ord for Fraction {
 impl fmt::Display for Fraction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}/{}", self.numerator, self.denominator)
+    }
+}
+
+impl Add for Fraction {
+    type Output = Fraction;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let new_denominator = lcm(self.denominator, rhs.denominator);
+        Fraction::new(
+            self.numerator * new_denominator / self.denominator
+                + rhs.numerator * new_denominator / rhs.denominator,
+            new_denominator,
+        )
+    }
+}
+
+impl AddAssign for Fraction {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
+impl Sub for Fraction {
+    type Output = Fraction;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let new_denominator = lcm(self.denominator, rhs.denominator);
+        Fraction::new(
+            self.numerator * new_denominator / self.denominator
+                - rhs.numerator * new_denominator / rhs.denominator,
+            new_denominator,
+        )
+    }
+}
+
+impl SubAssign for Fraction {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs;
     }
 }
 
@@ -539,10 +578,14 @@ impl fmt::Display for IncompleteChordError {
     }
 }
 
-fn gcd(a: u8, b: u8) -> u8 {
+fn gcd(a: u64, b: u64) -> u64 {
     if b == 0 {
         a
     } else {
         gcd(b, a % b)
     }
+}
+
+fn lcm(a: u64, b: u64) -> u64 {
+    a * b / gcd(a, b)
 }

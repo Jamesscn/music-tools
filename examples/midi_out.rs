@@ -1,17 +1,18 @@
 use music_tools::chord::Chord;
 use music_tools::common::{Beat, Fraction, PentatonicType, ScaleType, TriadQuality};
-use music_tools::midi::processor::MIDI;
+use music_tools::midi::common::MIDIEvent;
+use music_tools::midi::parser::MIDI;
 use music_tools::midi::track::Track;
 use music_tools::note::Note;
 use music_tools::pitchclass::PitchClass;
 use music_tools::scale::Scale;
 
 fn main() {
-    //The tempo and time signature of the song is set
-    let tempo: f32 = 170.0;
-    let waltz: Fraction = Fraction::new(3, 4);
-    let mut beat_track = Track::new(tempo, waltz);
-    let mut melody_track = Track::new(tempo, waltz);
+    let mut info_track = Track::new();
+    let mut beat_track = Track::new();
+    let mut melody_track = Track::new();
+    info_track.push_event(MIDIEvent::SetTempo(170));
+    info_track.push_event(MIDIEvent::SetTimeSignature(Fraction::new(3, 4)));
 
     //The melody is obtained from the C minor and harmonic minor scales
     let minor_scale = Scale::try_new(ScaleType::Minor, PentatonicType::None).unwrap();
@@ -71,43 +72,50 @@ fn main() {
         if index % 3 == 0 {
             if index % 6 == 0 {
                 if !(30..54).contains(&index) {
-                    beat_track.add_note(Note::new(PitchClass::C, 3), Beat::QUARTER);
+                    beat_track.push_note(Note::new(PitchClass::C, 3), Beat::QUARTER);
                 } else {
-                    beat_track.add_note(Note::new(PitchClass::D, 3), Beat::QUARTER);
+                    beat_track.push_note(Note::new(PitchClass::D, 3), Beat::QUARTER);
                 }
             } else {
-                beat_track.add_note(Note::new(PitchClass::G, 2), Beat::QUARTER);
+                beat_track.push_note(Note::new(PitchClass::G, 2), Beat::QUARTER);
             }
         } else if !(30..54).contains(&index) {
-            beat_track
-                .add_chord(
-                    Chord::from_triad(TriadQuality::Minor, Some(PitchClass::C), Some(3)),
-                    Beat::QUARTER,
-                )
-                .unwrap();
+            beat_track.push_notes(
+                Vec::try_from(Chord::from_triad(
+                    TriadQuality::Minor,
+                    Some(PitchClass::C),
+                    Some(3),
+                ))
+                .unwrap(),
+                Beat::QUARTER,
+            );
         } else {
-            beat_track
-                .add_chord(
-                    Chord::from_triad(TriadQuality::Minor, Some(PitchClass::F), Some(3)),
-                    Beat::QUARTER,
-                )
-                .unwrap();
+            beat_track.push_notes(
+                Vec::try_from(Chord::from_triad(
+                    TriadQuality::Minor,
+                    Some(PitchClass::F),
+                    Some(3),
+                ))
+                .unwrap(),
+                Beat::QUARTER,
+            );
         }
     }
 
     //The melody is added on track 2
     for index in 0..melody_notes.len() + 12 {
         if index < 12 {
-            melody_track.add_rest(Beat::QUARTER);
+            melody_track.push_rest(Beat::QUARTER);
         } else {
-            melody_track.add_note(melody_notes[index - 12], melody_beats[index - 12]);
+            melody_track.push_note(melody_notes[index - 12], melody_beats[index - 12]);
         }
     }
 
     //The MIDI object and file are created
     let mut midi = MIDI::new();
-    midi.add_track(beat_track);
-    midi.add_track(melody_track);
-    midi.export_to_file("second_waltz.mid")
+    midi.push(info_track);
+    midi.push(beat_track);
+    midi.push(melody_track);
+    midi.export("second_waltz.mid")
         .expect("could not create midi file");
 }

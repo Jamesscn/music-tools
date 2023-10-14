@@ -1,7 +1,7 @@
 use super::common::{ArpeggioDirection, AudioPlayError, Playable, Synth};
 use super::processor::{AudioProcessor, SynthRc};
 use super::wavetable::WavetableOscillator;
-use crate::common::{AudioDuration, Rhythm};
+use crate::common::{AudioDuration, InputError, Rhythm};
 use byteorder::{BigEndian, LittleEndian, WriteBytesExt};
 use rodio::{OutputStream, Sink, Source};
 use std::error::Error;
@@ -12,7 +12,11 @@ use std::path::Path;
 use std::time::Duration;
 
 #[cfg(feature = "midi")]
-use {crate::midi::common::Event, crate::midi::processor::MIDI, std::cmp::min};
+use {
+    crate::midi::common::{iter_track_items, MIDIEvent},
+    crate::midi::parser::MIDI,
+    crate::midi::track::TrackItem,
+};
 
 /// An enum representing the amount of bits per sample to use while exporting a WAV file.
 #[derive(Copy, Clone, Debug, Default)]
@@ -264,74 +268,41 @@ impl AudioPlayer {
         midi: &MIDI,
         synth: impl Synth + Clone + 'static,
         custom_tempo: Option<f32>,
-    ) {
-        let mut tracks = midi.get_tracks();
-        if tracks.is_empty() {
-            return;
-        }
-        if let Some(tempo) = custom_tempo {
-            tracks[0].set_tempo(tempo)
-        }
-        let tick_ms = tracks[0].get_tick_duration();
-        let mut pending_event_tuples: Vec<(Event, u64, usize)> = Vec::new();
-        for (track_index, track) in &mut tracks.iter_mut().enumerate() {
-            let first_event_option = track.get_next_event();
-            if let Some(first_event) = first_event_option {
-                let event_tuple = (first_event, first_event.get_delta_ticks(), track_index);
-                pending_event_tuples.push(event_tuple);
-            }
+    ) -> Result<(), InputError> {
+        if midi.is_empty() {
+            return Err(InputError {
+                message: String::from("midi object is empty"),
+            });
         }
         let mut synth_ref_vec: Vec<SynthRc> = Vec::new();
-        for _ in tracks.iter() {
+        for _ in 0..midi.get_num_tracks() {
             let oscillator = synth.clone();
             let synth_ref = self.processor.register_synth(Box::new(oscillator));
             synth_ref_vec.push(synth_ref);
         }
-        loop {
-            let mut next_event_tuples: Vec<(Event, u64, usize)> = Vec::new();
-            let mut min_wait_ticks = u64::MAX;
-            'track: for event_index in (0..pending_event_tuples.len()).rev() {
-                let event_tuple = pending_event_tuples[event_index];
-                let mut current_event = event_tuple.0;
-                let mut wait_time = event_tuple.1;
-                let track_index = event_tuple.2;
-                let synth = &synth_ref_vec[track_index];
-                while wait_time == 0 {
-                    if current_event.is_active() {
-                        self.processor
-                            .start_frequency(current_event.get_note().get_frequency(), synth);
-                    } else {
-                        self.processor
-                            .stop_frequency(current_event.get_note().get_frequency(), synth);
+        let mut curr_tempo = 120;
+        for (track_index, track_item) in iter_track_items(midi) {
+            let synth = &synth_ref_vec[track_index];
+            match track_item {
+                TrackItem::Event(event) => match event {
+                    MIDIEvent::NoteOn(note) => {
+                        self.processor.start_frequency(note.get_frequency(), synth);
                     }
-                    let next_event_option = &mut tracks[track_index].get_next_event();
-                    if next_event_option.is_none() {
-                        self.processor.unregister_synth(synth);
-                        continue 'track;
+                    MIDIEvent::NoteOff(note) => {
+                        self.processor.stop_frequency(note.get_frequency(), synth);
                     }
-                    let next_event = next_event_option.unwrap();
-                    wait_time = next_event.get_delta_ticks();
-                    current_event = next_event;
+                    MIDIEvent::SetTempo(tempo) => curr_tempo = tempo,
+                    MIDIEvent::SetTimeSignature(_) => {}
+                },
+                TrackItem::Rest(beat) => {
+                    let mut audio_vec = self
+                        .processor
+                        .render(beat.get_duration(custom_tempo.unwrap_or(curr_tempo as f32)));
+                    self.buffer.append(&mut audio_vec);
                 }
-                min_wait_ticks = min(min_wait_ticks, wait_time);
-                next_event_tuples.insert(0, (current_event, wait_time, track_index));
             }
-            if next_event_tuples.is_empty() {
-                break;
-            }
-            let mut audio_vec = self.processor.render(Duration::from_millis(
-                (tick_ms * (min_wait_ticks as f32)) as u64,
-            ));
-            self.processor.stop_all_frequencies();
-            self.buffer.append(&mut audio_vec);
-            for event in &mut next_event_tuples {
-                *event = (event.0, event.1 - min_wait_ticks, event.2);
-            }
-            pending_event_tuples = next_event_tuples;
         }
-        for mut track in tracks {
-            track.reset_tracker();
-        }
+        Ok(())
     }
 
     /// Starts playing all the audio in the queue through the current speaker.

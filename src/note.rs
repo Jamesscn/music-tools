@@ -94,7 +94,7 @@ impl Note {
         if index > 127 {
             return Err(InputError {
                 message: format!(
-                    "the midi index {} must be an integer between 0 and 127",
+                    "cannot create note, the midi index {} must be an integer between 0 and 127",
                     index
                 ),
             });
@@ -250,12 +250,20 @@ impl Note {
     /// let middle_c = Note::new(PitchClass::C, 4);
     /// assert_eq!(40, middle_c.get_keyboard_index().unwrap());
     /// ```
-    pub fn get_keyboard_index(&self) -> Option<u8> {
+    pub fn get_keyboard_index(&self) -> Result<u8, InputError> {
         let keyboard_index = self.get_value() - 8;
         if !(1..=88).contains(&keyboard_index) {
-            return None;
+            return Err(InputError {
+                message: format!(
+                    concat!(
+                        "note {} does not have a keyboard index because it is out of range, ",
+                        "expected value between 1 and 88, got {}"
+                    ),
+                    self, keyboard_index
+                ),
+            });
         }
-        Some(keyboard_index as u8)
+        Ok(keyboard_index as u8)
     }
 
     /// Returns an [`Option<u8>`] with the value of the current note according to the MIDI standard,
@@ -270,12 +278,20 @@ impl Note {
     /// let middle_c = Note::new(PitchClass::C, 4);
     /// assert_eq!(60, middle_c.get_midi_index().unwrap());
     /// ```
-    pub fn get_midi_index(&self) -> Option<u8> {
+    pub fn get_midi_index(&self) -> Result<u8, InputError> {
         let midi_index = self.get_value() + 12;
         if !(0..=127).contains(&midi_index) {
-            return None;
+            return Err(InputError {
+                message: format!(
+                    concat!(
+                        "note {} does not have a midi index because it is out of range, ",
+                        "expected value between 0 and 127, got {}"
+                    ),
+                    self, midi_index
+                ),
+            });
         }
-        Some(midi_index as u8)
+        Ok(midi_index as u8)
     }
 }
 
