@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: Check test cases and lints
 
 on:
   push:
@@ -19,8 +19,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install dependencies
         run: |
-        sudo apt install libasound2-dev
-        cargo install cargo-audit
+          sudo apt install libasound2-dev
+          cargo install cargo-audit
       - name: Check build status
         run: cargo build --verbose
       - name: Check test cases
