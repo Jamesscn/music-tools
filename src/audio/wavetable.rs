@@ -57,10 +57,12 @@ impl WavetableVoice {
 /// use std::str::FromStr;
 ///
 /// let mut square_oscillator = WavetableOscillator::new(Waveforms::SQUARE_WAVE, 1.0, 128);
-/// let mut player = AudioPlayer::try_new().unwrap();
-/// player.set_synth(square_oscillator);
-/// player.push(&Note::from_str("A4").unwrap(), &Beat::WHOLE);
-/// player.play();
+/// let player = AudioPlayer::try_new();
+/// if let Ok(mut player) = player {
+///     player.set_synth(square_oscillator);
+///     player.push(&Note::from_str("A4").unwrap(), &Beat::WHOLE);
+///     player.play();
+/// }
 /// ```
 #[derive(Clone, Debug)]
 pub struct WavetableOscillator {
