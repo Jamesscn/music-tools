@@ -23,10 +23,10 @@ jobs:
           cargo install cargo-audit
           rustup component add clippy --toolchain nightly-x86_64-unknown-linux-gnu
       - name: Check build status
-        run: cargo build --verbose
+        run: cargo build --verbose --all-features
       - name: Check test cases
-        run: cargo test --verbose
+        run: cargo test --verbose --all-features
       - name: Check linter
-        run: cargo clippy --verbose -- -Dwarnings
+        run: cargo clippy --verbose --all-features -- -Dwarnings
       - name: Audit dependencies
         run: cargo audit
