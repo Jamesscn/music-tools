@@ -1,7 +1,7 @@
 [package]
 name = "music-tools"
 version = "0.1.0"
-authors = ["James Scoon <jamesscn@gmail.com>"]
+authors = ["James Scoon"]
 edition = "2021"
 description = "A set of tools related to music theory."
 readme = "README.md"
