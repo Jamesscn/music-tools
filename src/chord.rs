@@ -518,8 +518,8 @@ impl From<&[Note]> for Chord {
                 .map(|note| Interval::between_notes(smallest, *note))
                 .collect()
         };
-        let tonic = value.get(0).map(|note| note.get_pitch_class());
-        let octave = value.get(0).map(|note| note.get_octave());
+        let tonic = value.first().map(|note| note.get_pitch_class());
+        let octave = value.first().map(|note| note.get_octave());
         Chord {
             intervals,
             tonic,
@@ -557,7 +557,7 @@ impl From<&[PitchClass]> for Chord {
         intervals.insert(0, Interval::PERFECT_UNISON);
         Chord {
             intervals,
-            tonic: value.get(0).copied(),
+            tonic: value.first().copied(),
             octave: None,
             inversion: 0,
         }
