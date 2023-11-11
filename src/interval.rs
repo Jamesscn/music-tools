@@ -1,5 +1,9 @@
-use crate::{chord::Chord, note::Note, scale::Scale};
-use std::{cmp::Ordering, fmt};
+use crate::chord::Chord;
+use crate::note::Note;
+use crate::scale::Scale;
+use std::cmp::Ordering;
+use std::fmt;
+use std::hash::Hash;
 
 /// A structure which is used to represent the interval between two notes.
 #[derive(Copy, Clone, Debug, Eq)]
@@ -265,6 +269,12 @@ impl PartialOrd for Interval {
 impl Ord for Interval {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_semitones().cmp(&other.get_semitones())
+    }
+}
+
+impl Hash for Interval {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.get_semitones().hash(state);
     }
 }
 

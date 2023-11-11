@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt;
+use std::hash::Hash;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 use std::time::Duration;
 
@@ -144,6 +145,13 @@ impl Ord for Fraction {
         self.get_as_float()
             .partial_cmp(&other.get_as_float())
             .unwrap()
+    }
+}
+
+impl Hash for Fraction {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        let hash_tuple = (self.numerator, self.denominator);
+        hash_tuple.hash(state);
     }
 }
 
@@ -442,6 +450,12 @@ impl ScaleType {
 impl PartialEq for ScaleType {
     fn eq(&self, other: &Self) -> bool {
         self.get_id() == other.get_id()
+    }
+}
+
+impl Hash for ScaleType {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.get_id().hash(state);
     }
 }
 

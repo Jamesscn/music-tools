@@ -4,7 +4,7 @@ use crate::note::Note;
 use std::fmt;
 use std::slice::Iter;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum TrackItem {
     Event(MIDIEvent),
     Rest(Beat),

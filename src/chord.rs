@@ -9,7 +9,7 @@ use regex::Regex;
 /// inversion. A chord can optionally have a tonic which will define the pitch classes of each of
 /// the notes in the chord, and optionally also an octave which will define the octaves of these
 /// pitch classes.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Chord {
     intervals: Vec<Interval>,
     tonic: Option<PitchClass>,

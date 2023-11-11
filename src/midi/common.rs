@@ -7,7 +7,7 @@ use std::fmt;
 pub type Ticks = u64;
 
 /// An enum representing a MIDI event.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum MIDIEvent {
     NoteOn(Note),
     NoteOff(Note),

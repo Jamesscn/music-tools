@@ -4,6 +4,7 @@ use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::PitchClass;
 use std::fmt;
+use std::hash::Hash;
 
 /// A structure used to represent a scale of notes, or a major or minor pentatonic variation of a
 /// scale.
@@ -264,6 +265,12 @@ impl Default for Scale {
 impl PartialEq for Scale {
     fn eq(&self, other: &Self) -> bool {
         self.scale == other.scale && self.pentatonic == other.pentatonic
+    }
+}
+
+impl Hash for Scale {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.scale.hash(state);
     }
 }
 

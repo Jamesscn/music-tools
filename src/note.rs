@@ -4,6 +4,7 @@ use crate::pitchclass::PitchClass;
 use regex::Regex;
 use std::cmp::Ordering;
 use std::fmt;
+use std::hash::Hash;
 
 /// A structure which is used to represent a note with a pitch class and an octave or frequency.
 #[derive(Copy, Clone, Debug)]
@@ -312,6 +313,12 @@ impl PartialOrd for Note {
 impl Ord for Note {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_value().cmp(&other.get_value())
+    }
+}
+
+impl Hash for Note {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.get_value().hash(state);
     }
 }
 
