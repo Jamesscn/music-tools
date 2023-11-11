@@ -60,6 +60,7 @@ impl Iterator for TrackItemIterator {
                 match track_item {
                     TrackItem::Event(_) => {
                         next_track_index = Some(track_index);
+                        min_wait_beats = None;
                         break;
                     }
                     TrackItem::Rest(beat) => {
