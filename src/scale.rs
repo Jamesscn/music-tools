@@ -151,11 +151,11 @@ impl Scale {
     ///     g_locrian_chords[0]
     /// );
     /// assert_eq!(
-    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::A_FLAT), Some(5)),
+    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::AFlat), Some(5)),
     ///     g_locrian_chords[1]
     /// );
     /// assert_eq!(
-    ///     Chord::from_triad(TriadQuality::Minor, Some(PitchClass::B_FLAT), Some(5)),
+    ///     Chord::from_triad(TriadQuality::Minor, Some(PitchClass::BFlat), Some(5)),
     ///     g_locrian_chords[2]
     /// );
     /// assert_eq!(
@@ -163,11 +163,11 @@ impl Scale {
     ///     g_locrian_chords[3]
     /// );
     /// assert_eq!(
-    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::D_FLAT), Some(6)),
+    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::DFlat), Some(6)),
     ///     g_locrian_chords[4]
     /// );
     /// assert_eq!(
-    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::E_FLAT), Some(6)),
+    ///     Chord::from_triad(TriadQuality::Major, Some(PitchClass::EFlat), Some(6)),
     ///     g_locrian_chords[5]
     /// );
     /// assert_eq!(
@@ -239,7 +239,7 @@ impl Scale {
         let mut chord = Chord::from(self.clone());
         chord.set_tonic(Some(tonic));
         chord.set_octave(Some(starting_octave));
-        Vec::<Note>::try_from(chord).unwrap()
+        Vec::try_from(chord).unwrap()
     }
 
     /// Converts the scale to a vector of [`PitchClass`], given a pitch class as the tonic.

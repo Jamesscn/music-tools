@@ -10,12 +10,12 @@ fn test_triads() {
     let c_major = Chord::from_triad(TriadQuality::Major, Some(PitchClass::C), Some(0));
     let e_major = Chord::from_triad(TriadQuality::Major, Some(PitchClass::E), Some(1));
     let f_major = Chord::from_triad(TriadQuality::Major, Some(PitchClass::F), Some(7));
-    let f_sharp_major = Chord::from_triad(TriadQuality::Major, Some(PitchClass::F_SHARP), Some(8));
+    let f_sharp_major = Chord::from_triad(TriadQuality::Major, Some(PitchClass::FSharp), Some(8));
 
     // Minor Triads
     let a_minor = Chord::from_triad(TriadQuality::Minor, Some(PitchClass::A), Some(4));
-    let a_flat_minor = Chord::from_triad(TriadQuality::Minor, Some(PitchClass::A_FLAT), Some(1));
-    let a_sharp_minor = Chord::from_triad(TriadQuality::Minor, Some(PitchClass::A_SHARP), Some(1));
+    let a_flat_minor = Chord::from_triad(TriadQuality::Minor, Some(PitchClass::AFlat), Some(1));
+    let a_sharp_minor = Chord::from_triad(TriadQuality::Minor, Some(PitchClass::ASharp), Some(1));
     let c_minor = Chord::from_triad(TriadQuality::Minor, Some(PitchClass::C), Some(0));
 
     //Augmented Triads
@@ -25,14 +25,14 @@ fn test_triads() {
     //Diminished Triads
     let d_diminished = Chord::from_triad(TriadQuality::Diminished, Some(PitchClass::D), Some(3));
     let g_sharp_diminished =
-        Chord::from_triad(TriadQuality::Diminished, Some(PitchClass::G_SHARP), Some(3));
+        Chord::from_triad(TriadQuality::Diminished, Some(PitchClass::GSharp), Some(3));
 
     //Sus2 Triads
     let g_sus2 = Chord::from_triad(TriadQuality::Sus2, Some(PitchClass::G), Some(0));
-    let g_flat_sus2 = Chord::from_triad(TriadQuality::Sus2, Some(PitchClass::G_FLAT), Some(1));
+    let g_flat_sus2 = Chord::from_triad(TriadQuality::Sus2, Some(PitchClass::GFlat), Some(1));
 
     //Sus4 Triads
-    let a_sharp_sus4 = Chord::from_triad(TriadQuality::Sus4, Some(PitchClass::A_SHARP), Some(7));
+    let a_sharp_sus4 = Chord::from_triad(TriadQuality::Sus4, Some(PitchClass::ASharp), Some(7));
     let f_sus4 = Chord::from_triad(TriadQuality::Sus4, Some(PitchClass::F), Some(8));
 
     let test_cases = [
@@ -72,8 +72,8 @@ fn test_triads() {
                 expected_vec[index].get_pitch_class()
             );
             assert_eq!(
-                output_vec[index].get_keyboard_index(),
-                expected_vec[index].get_keyboard_index()
+                output_vec[index].get_keyboard_index().ok(),
+                expected_vec[index].get_keyboard_index().ok()
             );
             assert_eq!(
                 output_vec[index].get_frequency(),

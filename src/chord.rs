@@ -201,8 +201,8 @@ impl Chord {
     /// use music_tools::chord::Chord;
     /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let chord1 = Chord::from_numeral("#ii°maj7", PitchClass::G_SHARP, Some(5)).unwrap();
-    /// let chord2 = Chord::from_numeral("♯ii°maj7", PitchClass::G_SHARP, Some(5)).unwrap();
+    /// let chord1 = Chord::from_numeral("#ii°maj7", PitchClass::GSharp, Some(5)).unwrap();
+    /// let chord2 = Chord::from_numeral("♯ii°maj7", PitchClass::GSharp, Some(5)).unwrap();
     /// assert_eq!(chord1, chord2);
     /// ```
     ///
@@ -215,7 +215,7 @@ impl Chord {
     /// use music_tools::common::TriadQuality;
     ///
     /// let chord = Chord::from_numeral("iii", PitchClass::A, None).unwrap();
-    /// assert_eq!(chord, Chord::from_triad(TriadQuality::Minor, Some(PitchClass::C_SHARP), None));
+    /// assert_eq!(chord, Chord::from_triad(TriadQuality::Minor, Some(PitchClass::CSharp), None));
     /// ```
     pub fn from_numeral(
         input_numeral: &str,
@@ -308,7 +308,7 @@ impl Chord {
                 _ => unreachable!(),
             };
         }
-        let chord_tonic = tonic.get_offset(increment as i8);
+        let chord_tonic = tonic.offset(increment as i8);
         let chord_octave =
             octave.map(|octave_value| octave_value + ((tonic.get_value() + increment) / 12) as i8);
         let mut chord = Self::from_triad(triad_quality, Some(chord_tonic), chord_octave);
@@ -405,7 +405,7 @@ impl Chord {
     /// chord.set_inversion(2);
     /// assert_eq!(
     ///     Vec::<PitchClass>::try_from(chord).unwrap(),
-    ///     vec![PitchClass::G, PitchClass::C, PitchClass::E_FLAT]
+    ///     vec![PitchClass::G, PitchClass::C, PitchClass::EFlat]
     /// );
     /// ```
     pub fn set_inversion(&mut self, inversion: u8) {

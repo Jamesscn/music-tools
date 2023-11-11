@@ -89,7 +89,7 @@ impl Playable for Chord {
 impl Playable for Interval {
     fn get_frequencies(&self) -> Vec<f32> {
         let tonic = Note::default();
-        let interval_note = tonic.at_offset(self.get_semitones() as isize);
+        let interval_note = tonic.offset(self.get_semitones() as i8);
         vec![tonic.get_frequency(), interval_note.get_frequency()]
     }
 }

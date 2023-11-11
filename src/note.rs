@@ -28,8 +28,8 @@ impl Note {
     /// use music_tools::note::Note;
     /// use music_tools::pitchclass::PitchClass;
     ///
-    /// let a = Note::new(PitchClass::A_SHARP, 5);
-    /// let b = Note::new(PitchClass::B_FLAT, 4);
+    /// let a = Note::new(PitchClass::ASharp, 5);
+    /// let b = Note::new(PitchClass::BFlat, 4);
     /// let c = Note::new(PitchClass::C, 3);
     /// assert_eq!(a.get_frequency(), 932.3277);
     /// assert_eq!(b.get_frequency(), 466.16385);
@@ -63,7 +63,8 @@ impl Note {
     /// let c = Note::from_string("C3").unwrap();
     /// ```
     pub fn from_string(string: &str) -> Result<Self, InputError> {
-        let regex = Regex::new(r"^([A-G])(♮|x|b{1,2}|♭{1,2}|\#{1,2}|♯{1,2})?(\-?\d+)$").unwrap();
+        let regex =
+            Regex::new(r"^([A-Ga-g])(♮|x|X|b{1,2}|♭{1,2}|\#{1,2}|♯{1,2})?(\-?\d+)$").unwrap();
         if !regex.is_match(string) {
             return Err(InputError {
                 message: String::from("string does not conform to expected note format"),
@@ -99,7 +100,7 @@ impl Note {
                 ),
             });
         }
-        let pitch_class = PitchClass::try_new(index % 12).unwrap();
+        let pitch_class = PitchClass::from_value(index % 12).unwrap();
         let octave = (index / 12) as i8 - 1;
         Ok(Self {
             pitch_class,
@@ -115,31 +116,31 @@ impl Note {
     ///
     /// - `offset`: A signed integer representing the offset of the new note to return from the
     /// current one.
-    pub fn at_offset(&self, offset: isize) -> Self {
-        let pitch_class_val = self.pitch_class.get_value() as isize + offset;
+    pub fn offset(&self, offset: i8) -> Self {
+        let offset_pitch_class = self.pitch_class.offset(offset);
         Self {
-            pitch_class: PitchClass::try_new(pitch_class_val.rem_euclid(12) as u8).unwrap(),
-            octave: self.octave + pitch_class_val.div_floor(12) as i8,
+            pitch_class: offset_pitch_class,
+            octave: self.octave + offset_pitch_class.get_value().div_floor(12) as i8,
             base_frequency: self.base_frequency,
         }
     }
 
     /// Returns the next [`Note`] after the current one.
     pub fn next(&self) -> Self {
-        let pitch_class_val = self.pitch_class.get_value() as i8 + 1;
+        let next_pitch_class = self.pitch_class.next();
         Self {
-            pitch_class: PitchClass::try_new(pitch_class_val.rem_euclid(12) as u8).unwrap(),
-            octave: self.octave + pitch_class_val.div_floor(12),
+            pitch_class: next_pitch_class,
+            octave: self.octave + next_pitch_class.get_value().div_floor(12) as i8,
             base_frequency: self.base_frequency,
         }
     }
 
     /// Returns the previous [`Note`] before the current one.
     pub fn prev(&self) -> Self {
-        let pitch_class_val = self.pitch_class.get_value() as i8 - 1;
+        let prev_pitch_class = self.pitch_class.prev();
         Self {
-            pitch_class: PitchClass::try_new(pitch_class_val.rem_euclid(12) as u8).unwrap(),
-            octave: self.octave + pitch_class_val.div_floor(12),
+            pitch_class: prev_pitch_class,
+            octave: self.octave + prev_pitch_class.get_value().div_floor(12) as i8,
             base_frequency: self.base_frequency,
         }
     }
@@ -203,17 +204,6 @@ impl Note {
     /// Returns a [`PitchClass`] representing the pitch class of the note.
     pub fn get_pitch_class(&self) -> PitchClass {
         self.pitch_class
-    }
-
-    /// Returns a [`Vec<String>`] with a set of names for the current note.
-    pub fn get_names(&self) -> Vec<String> {
-        let mut names: Vec<String> = Vec::new();
-        let octave_name = &self.octave.to_string();
-        for pitch_class_name in self.pitch_class.get_names() {
-            let name = format!("{pitch_class_name}{octave_name}");
-            names.push(name);
-        }
-        names
     }
 
     /// Returns a numerical value representing the position of the note with respect to C0. If a key
@@ -348,11 +338,10 @@ impl TryFrom<Chord> for Vec<Note> {
             let current_octave = value.get_octave().unwrap()
                 + ((value.get_tonic().unwrap().get_value() as u64 + interval.get_semitones()) / 12)
                     as i8;
-            let current_semitone = interval.get_semitones() % 12;
             let current_pitch_class = value
                 .get_tonic()
                 .unwrap()
-                .get_offset(current_semitone as i8);
+                .offset(interval.get_semitones() as i8);
             let current_note = Note::new(current_pitch_class, current_octave);
             notes.push(current_note);
         }
