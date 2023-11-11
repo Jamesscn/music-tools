@@ -267,7 +267,6 @@ impl AudioPlayer {
         &mut self,
         midi: &MIDI,
         synth: impl Synth + Clone + 'static,
-        custom_tempo: Option<f32>,
     ) -> Result<(), InputError> {
         if midi.is_empty() {
             return Err(InputError {
@@ -285,19 +284,25 @@ impl AudioPlayer {
             let synth = &synth_ref_vec[track_index];
             match track_item {
                 TrackItem::Event(event) => match event {
-                    MIDIEvent::NoteOn(note) => {
+                    MIDIEvent::NoteOn(mut note) => {
+                        if let Some(base_frequency) = midi.get_custom_base_frequency() {
+                            note.set_base_frequency(base_frequency);
+                        }
                         self.processor.start_frequency(note.get_frequency(), synth);
                     }
-                    MIDIEvent::NoteOff(note) => {
+                    MIDIEvent::NoteOff(mut note) => {
+                        if let Some(base_frequency) = midi.get_custom_base_frequency() {
+                            note.set_base_frequency(base_frequency);
+                        }
                         self.processor.stop_frequency(note.get_frequency(), synth);
                     }
                     MIDIEvent::SetTempo(tempo) => curr_tempo = tempo,
                     MIDIEvent::SetTimeSignature(_) => {}
                 },
                 TrackItem::Rest(beat) => {
-                    let mut audio_vec = self
-                        .processor
-                        .render(beat.get_duration(custom_tempo.unwrap_or(curr_tempo as f32)));
+                    let mut audio_vec = self.processor.render(
+                        beat.get_duration(midi.get_custom_tempo().unwrap_or(curr_tempo as f32)),
+                    );
                     self.buffer.append(&mut audio_vec);
                 }
             }
