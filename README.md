@@ -46,4 +46,4 @@ Optional crate features:
 
 ## Limitations
 
-This library only works for the twelve tone equal temperament system which is commonly used in western music.
+- This library cannot interpret live MIDI signals, only MIDI files.

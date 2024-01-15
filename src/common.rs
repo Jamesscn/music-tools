@@ -1,3 +1,4 @@
+use crate::pitchclass::PitchClass;
 use std::error::Error;
 use std::fmt;
 use std::hash::Hash;
@@ -530,6 +531,75 @@ impl fmt::Display for PentatonicType {
             _ => format!("{:?} pentatonic", self),
         };
         write!(f, "{pentatonic_name}")
+    }
+}
+
+pub trait Tuning: fmt::Debug + Clone + PartialEq {
+    fn get_frequency(&self, base_frequency: f32, pitch_class: &impl PitchClass, octave: i8) -> f32;
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct EqualTemperament;
+
+impl Tuning for EqualTemperament {
+    fn get_frequency(&self, base_frequency: f32, pitch_class: &impl PitchClass, octave: i8) -> f32 {
+        base_frequency
+            * 2f32.powf(
+                octave as f32
+                    + ((pitch_class.get_value() as f32
+                        - pitch_class.base_frequency_class_value() as f32)
+                        / pitch_class.get_num_classes() as f32)
+                    - 4f32,
+            )
+    }
+}
+
+const PYTHAGOREAN_TONES: [f32; 12] = [
+    1f32,
+    256f32 / 243f32,
+    9f32 / 8f32,
+    32f32 / 27f32,
+    81f32 / 64f32,
+    4f32 / 3f32,
+    1f32,
+    3f32 / 2f32,
+    128f32 / 81f32,
+    27f32 / 16f32,
+    16f32 / 9f32,
+    243f32 / 128f32,
+];
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum PythagoreanTuning {
+    AugmentedFourth,
+    DiminishedFifth,
+}
+
+impl Tuning for PythagoreanTuning {
+    fn get_frequency(&self, base_frequency: f32, pitch_class: &impl PitchClass, octave: i8) -> f32 {
+        if pitch_class.get_num_classes() != 12 {
+            return f32::NAN;
+        }
+        let tone_index = (pitch_class.get_value() as isize
+            - pitch_class.base_frequency_class_value() as isize)
+            .rem_euclid(12) as usize;
+        let tone_value = if tone_index == 6 {
+            match &self {
+                Self::AugmentedFourth => 729f32 / 512f32,
+                Self::DiminishedFifth => 1024f32 / 729f32,
+            }
+        } else {
+            PYTHAGOREAN_TONES[tone_index]
+        };
+        base_frequency
+            * 2f32.powf(
+                octave as f32
+                    + (pitch_class.get_value() as isize
+                        - pitch_class.base_frequency_class_value() as isize)
+                        .div_floor(12) as f32
+                    - 4f32,
+            )
+            * tone_value
     }
 }
 
