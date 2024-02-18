@@ -26,10 +26,10 @@ pub mod note;
 //pub mod chord;
 
 /// The scale module contains a structure which can be used to represent a scale.
-//pub mod scale;
+pub mod scale;
 
 /// The interval module contains a structure which can be used to represent an interval.
-//pub mod interval;
+pub mod interval;
 
 /// The pitchclass module contains a structure which can be used to represent a pitch class.
 pub mod pitchclass;

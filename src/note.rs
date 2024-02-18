@@ -1,4 +1,5 @@
 use crate::common::{EqualTemperament, InputError, Tuning};
+use crate::interval::{Interval, TwelveToneInterval};
 use crate::pitchclass::{PitchClass, TwelveTone};
 use regex::Regex;
 use std::cmp::Ordering;
@@ -16,38 +17,7 @@ pub struct Note<PitchClassType: PitchClass, TuningType: Tuning> {
     base_frequency: f32,
 }
 
-impl<PitchClassType: PitchClass> Note<PitchClassType, EqualTemperament> {
-    /// Constructs a [`Note`] in equal temperament tuning from a pitch class and an octave.
-    ///
-    /// # Parameters
-    ///
-    /// - `pitch_class`: A [`PitchClass`] representing the pitch class of the note to be
-    ///   constructed.
-    /// - `octave`: An integer representing the octave of the note to be constructed.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::*;
-    ///
-    /// let a = Note::new(A_SHARP, 5);
-    /// let b = Note::new(B_FLAT, 4);
-    /// let c = Note::new(C, 3);
-    /// assert_eq!(a.get_frequency(), 932.3277);
-    /// assert_eq!(b.get_frequency(), 466.16385);
-    /// assert_eq!(c.get_frequency(), 130.81277);
-    /// ```
-    pub fn new(pitch_class: PitchClassType, octave: i8) -> Self {
-        Self {
-            pitch_class,
-            octave,
-            tuning: EqualTemperament,
-            base_frequency: 440.0,
-        }
-    }
-}
-
+// Contains functions that assume the twelve tone equal temperament system.
 impl Note<TwelveTone, EqualTemperament> {
     /// Constructs a [`Note`] in twelve tone equal temperament tuning from a string containing the
     /// pitch class and the octave of the note. The function returns a [`Result`] which can contain
@@ -124,6 +94,120 @@ impl Note<TwelveTone, EqualTemperament> {
     }
 }
 
+// Contains function that assume the twelve tone pitch class system but any type of tuning.
+impl<TuningType: Tuning> Note<TwelveTone, TuningType> {
+    pub fn from_string_with_tuning(string: &str, tuning: TuningType) -> Result<Self, InputError> {
+        Ok(Note::change_tuning(Note::from_string(string)?, tuning))
+    }
+
+    pub fn from_midi_index_with_tuning(index: u8, tuning: TuningType) -> Result<Self, InputError> {
+        Ok(Note::change_tuning(Note::from_midi_index(index)?, tuning))
+    }
+
+    /// Returns a [`Result<u8>`] with an index representing the numerical position of the note on a
+    /// keyboard with 88 keys starting at A0 and ending at C8, or an [`InputError`] if the key is
+    /// outside of this range or a pitch class system with other than 12 pitch classes is used.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use music_tools::note::Note;
+    /// use music_tools::pitchclass::*;
+    ///
+    /// let middle_c = Note::new(C, 4);
+    /// assert_eq!(40, middle_c.get_keyboard_index().unwrap());
+    /// ```
+    pub fn get_keyboard_index(&self) -> Result<u8, InputError> {
+        let keyboard_index = self.get_value() - 8;
+        if !(1..=88).contains(&keyboard_index) {
+            return Err(InputError {
+                message: format!(
+                    concat!(
+                        "note {} does not have a keyboard index because it is out of range, ",
+                        "expected value between 1 and 88, got {}"
+                    ),
+                    self, keyboard_index
+                ),
+            });
+        }
+        Ok(keyboard_index as u8)
+    }
+
+    /// Returns an [`Result<u8>`] with the value of the current note according to the MIDI standard,
+    /// or an [`InputError`] if the note is outside of the range playable by MIDI or a pitch class
+    /// system with other than 12 pitch classes is used.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use music_tools::note::Note;
+    /// use music_tools::pitchclass::*;
+    ///
+    /// let middle_c = Note::new(C, 4);
+    /// assert_eq!(60, middle_c.get_midi_index().unwrap());
+    /// ```
+    pub fn get_midi_index(&self) -> Result<u8, InputError> {
+        let midi_index = self.get_value() + 12;
+        if !(0..=127).contains(&midi_index) {
+            return Err(InputError {
+                message: format!(
+                    concat!(
+                        "note {} does not have a midi index because it is out of range, ",
+                        "expected value between 0 and 127, got {}"
+                    ),
+                    self, midi_index
+                ),
+            });
+        }
+        Ok(midi_index as u8)
+    }
+
+    pub fn get_interval_with(&self, note: Note<TwelveTone, TuningType>) -> TwelveToneInterval {
+        let first_value = self.get_value();
+        let second_value = note.get_value();
+        let difference: usize = if first_value <= second_value {
+            (second_value - first_value) as usize
+        } else {
+            (first_value - second_value) as usize
+        };
+        TwelveToneInterval::new(difference)
+    }
+}
+
+// Contains functions that assume equal temperament but any type of pitch class.
+impl<PitchClassType: PitchClass> Note<PitchClassType, EqualTemperament> {
+    /// Constructs a [`Note`] in equal temperament tuning from a pitch class and an octave.
+    ///
+    /// # Parameters
+    ///
+    /// - `pitch_class`: A [`PitchClass`] representing the pitch class of the note to be
+    ///   constructed.
+    /// - `octave`: An integer representing the octave of the note to be constructed.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use music_tools::note::Note;
+    /// use music_tools::pitchclass::*;
+    ///
+    /// let a = Note::new(A_SHARP, 5);
+    /// let b = Note::new(B_FLAT, 4);
+    /// let c = Note::new(C, 3);
+    /// assert_eq!(a.get_frequency(), 932.3277);
+    /// assert_eq!(b.get_frequency(), 466.16385);
+    /// assert_eq!(c.get_frequency(), 130.81277);
+    /// ```
+    pub fn new(pitch_class: PitchClassType, octave: i8) -> Self {
+        Self {
+            pitch_class,
+            octave,
+            tuning: EqualTemperament,
+            base_frequency: 440.0,
+        }
+    }
+}
+
+// Contains functions that work for any pitch class system and tuning.
 impl<PitchClassType: PitchClass, TuningType: Tuning> Note<PitchClassType, TuningType> {
     pub fn new_with_tuning(pitch_class: PitchClassType, octave: i8, tuning: TuningType) -> Self {
         Self {
@@ -178,6 +262,10 @@ impl<PitchClassType: PitchClass, TuningType: Tuning> Note<PitchClassType, Tuning
             tuning: self.tuning.clone(),
             base_frequency: self.base_frequency,
         }
+    }
+
+    pub fn offset_interval(&self, interval: &impl Interval) -> Self {
+        self.offset(interval.get_value() as isize)
     }
 
     /// Returns the next [`Note`] after the current one.
@@ -284,84 +372,6 @@ impl<PitchClassType: PitchClass, TuningType: Tuning> Note<PitchClassType, Tuning
     pub fn get_value(&self) -> i32 {
         self.octave as i32 * self.pitch_class.get_num_classes() as i32
             + self.pitch_class.get_value() as i32
-    }
-
-    /// Returns a [`Result<u8>`] with an index representing the numerical position of the note on a
-    /// keyboard with 88 keys starting at A0 and ending at C8, or an [`InputError`] if the key is
-    /// outside of this range or a pitch class system with other than 12 pitch classes is used.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::*;
-    ///
-    /// let middle_c = Note::new(C, 4);
-    /// assert_eq!(40, middle_c.get_keyboard_index().unwrap());
-    /// ```
-    pub fn get_keyboard_index(&self) -> Result<u8, InputError> {
-        if self.pitch_class.get_num_classes() != 12 {
-            return Err(InputError {
-                message: format!(
-                    concat!(
-                        "note {} uses a pitch class which is not a part of a twelve tone scale"
-                    ),
-                    self
-                ),
-            });
-        }
-        let keyboard_index = self.get_value() - 8;
-        if !(1..=88).contains(&keyboard_index) {
-            return Err(InputError {
-                message: format!(
-                    concat!(
-                        "note {} does not have a keyboard index because it is out of range, ",
-                        "expected value between 1 and 88, got {}"
-                    ),
-                    self, keyboard_index
-                ),
-            });
-        }
-        Ok(keyboard_index as u8)
-    }
-
-    /// Returns an [`Result<u8>`] with the value of the current note according to the MIDI standard,
-    /// or an [`InputError`] if the note is outside of the range playable by MIDI or a pitch class
-    /// system with other than 12 pitch classes is used.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::*;
-    ///
-    /// let middle_c = Note::new(C, 4);
-    /// assert_eq!(60, middle_c.get_midi_index().unwrap());
-    /// ```
-    pub fn get_midi_index(&self) -> Result<u8, InputError> {
-        if self.pitch_class.get_num_classes() != 12 {
-            return Err(InputError {
-                message: format!(
-                    concat!(
-                        "note {} uses a pitch class which is not a part of a twelve tone scale"
-                    ),
-                    self
-                ),
-            });
-        }
-        let midi_index = self.get_value() + 12;
-        if !(0..=127).contains(&midi_index) {
-            return Err(InputError {
-                message: format!(
-                    concat!(
-                        "note {} does not have a midi index because it is out of range, ",
-                        "expected value between 0 and 127, got {}"
-                    ),
-                    self, midi_index
-                ),
-            });
-        }
-        Ok(midi_index as u8)
     }
 }
 

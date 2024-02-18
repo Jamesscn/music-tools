@@ -6,7 +6,8 @@ use std::hash::Hash;
 pub trait PitchClass: fmt::Debug + fmt::Display + Clone {
     fn get_value(&self) -> usize;
     fn get_num_classes(&self) -> usize;
-    ///The value of the class used for the base frequency (in most cases this is A)
+    /// The value of the class used for the base frequency (e.g. twelve tone's base frequency is A4,
+    /// so its base frequency class would be A).
     fn base_frequency_class_value(&self) -> usize;
     fn offset(&self, offset: isize) -> Self
     where
@@ -25,6 +26,8 @@ pub trait PitchClass: fmt::Debug + fmt::Display + Clone {
     }
 }
 
+/// Represents the twelve tone system of notes with pitch classes from A to G including sharps,
+/// flats, double sharps and double flats.
 #[derive(Copy, Clone, Debug)]
 pub struct TwelveTone {
     name: &'static str,
@@ -263,11 +266,11 @@ impl PitchClass for TwelveTone {
     }
 
     fn get_num_classes(&self) -> usize {
-        12
+        12 // There are twelve pitch classes in the twelve tone system
     }
 
     fn base_frequency_class_value(&self) -> usize {
-        9
+        A.get_value() // The base frequency is A4, so we return the value for A
     }
 
     fn offset(&self, offset: isize) -> Self {
