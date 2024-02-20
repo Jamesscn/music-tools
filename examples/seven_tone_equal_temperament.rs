@@ -1,6 +1,10 @@
 // In this example we create a seven tone equal temperament system of notes. To do this a new pitch
 // class system is defined with only seven tones (P1, P2, P3, P4, P5, P6 and P7).
-use music_tools::{note::Note, pitchclass::PitchClass};
+use music_tools::{
+    common::{EqualTemperament, Tuning},
+    note::Note,
+    pitchclass::PitchClass,
+};
 use std::fmt;
 
 // This enum holds the seven tones of our pitch class system we will use.
@@ -81,8 +85,11 @@ impl fmt::Display for SevenTone {
 }
 
 fn main() {
-    // This function will always assume equal temperament. To use another tuning or temperament
-    // use the function new_with_tuning instead. In this case though we do want equal temperament.
+    // Defining that we want to use equal temperament is as simple as instantiating the
+    // EqualTemperament structure and telling it we have 7 pitch classes.
+    let equal_temperament = EqualTemperament::new(7);
+
+    // We also define the note that will have a reference frequency of 440 hertz.
     let p1_4 = Note::new(SevenTone::P1, 4);
 
     // Print the frequencies of the notes from P1 octave 4 to P1 octave 5 with our newly defined
@@ -93,7 +100,9 @@ fn main() {
             "Frequency of note with pitch class {} and octave {}: {}",
             current_note.get_pitch_class(),
             current_note.get_octave(),
-            current_note.get_frequency()
+            // We define the note with P1 at octave 4 to have a reference frequency 440 hertz, and
+            // use that to calculate the frequency of the current note.
+            equal_temperament.get_frequency(440f32, p1_4, current_note)
         );
     }
 }

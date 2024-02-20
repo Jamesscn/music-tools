@@ -2,279 +2,272 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::hash::Hash;
 
-pub trait Interval {
-    fn get_value(&self) -> usize;
-}
+use crate::scale::Scale;
 
-#[derive(Copy, Clone, Debug)]
-pub struct TwelveToneInterval {
-    semitones: usize,
-    full_name: Option<&'static str>,
-    short_name: Option<&'static str>,
-}
-
-impl TwelveToneInterval {
-    /// Creates an interval given its size in semitones.
+/// This trait defines an interval, which can be used to determine which note is a certain
+/// interval away from another note. Implementations of the [`crate::common::Tuning`] trait can be
+/// used to determine the frequencies of these intervals.
+pub trait Interval: Clone {
+    /// Returns an [`Option`] holding the [`Interval`] with a size of a certain number of semitones
+    /// if that interval exists. Otherwise it returns [`None`].
     ///
     /// # Parameters
     ///
-    /// - `semitones`: The size of the interval in semitones.
-    pub fn new(semitones: impl Into<usize>) -> Self {
-        let semitones = semitones.into();
-        if semitones < INTERVALS.len() {
-            return INTERVALS[semitones];
-        }
-        Self {
-            semitones,
-            full_name: None,
-            short_name: None,
-        }
-    }
-
+    /// - `semitones`: The difference in semitones of the interval to return, if it exists.
+    fn from_semitones(semitones: usize) -> Option<Self>;
     /// Returns a positive integer representing the number of semitones held by the interval.
-    pub fn get_semitones(&self) -> usize {
-        self.semitones
-    }
+    fn get_semitones(&self) -> usize;
+}
 
+/// This struct is used to define a set of standard intervals ranging from the perfect unison to
+/// the double octave. This does not cover every single possible interval and there may be a need to
+/// create custom implementations of intervals, in such cases one should create their own structure
+/// or enum implementing the [`Interval`] trait instead.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct StandardInterval {
+    semitones: usize,
+    full_name: &'static str,
+    short_name: &'static str,
+}
+
+impl StandardInterval {
     /// Returns the full name of the interval if it exists, such as Perfect Unison or Diminished
     /// Fifth.
-    pub fn get_name(&self) -> Option<&'static str> {
+    pub fn get_name(&self) -> &'static str {
         self.full_name
     }
 
     /// Returns an abbreviated name for the interval if it exists, such as P1 or m6.
-    pub fn get_short_name(&self) -> Option<&'static str> {
+    pub fn get_short_name(&self) -> &'static str {
         self.short_name
     }
 }
 
-impl PartialEq for TwelveToneInterval {
-    fn eq(&self, other: &Self) -> bool {
-        self.semitones == other.semitones
+impl Interval for StandardInterval {
+    fn from_semitones(semitones: usize) -> Option<Self> {
+        INTERVALS.get(semitones).copied()
+    }
+
+    fn get_semitones(&self) -> usize {
+        self.semitones
     }
 }
 
-impl Eq for TwelveToneInterval {}
-
-impl PartialOrd for TwelveToneInterval {
+impl PartialOrd for StandardInterval {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for TwelveToneInterval {
+impl Ord for StandardInterval {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_semitones().cmp(&other.get_semitones())
     }
 }
 
-impl Hash for TwelveToneInterval {
+impl Hash for StandardInterval {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.get_semitones().hash(state);
     }
 }
 
-impl fmt::Display for TwelveToneInterval {
+impl fmt::Display for StandardInterval {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.full_name {
-            Some(name) => write!(f, "{}", name),
-            None => write!(f, "Interval of {} semitones", self.semitones),
-        }
+        write!(f, "{}", self.full_name)
     }
 }
 
 /*
 //TODO
-impl From<Chord> for Vec<Interval> {
+impl From<Chord> for Vec<StandardInterval> {
     fn from(value: Chord) -> Self {
-        value.get_intervals()
-    }
-}
-
-impl From<Scale> for Vec<Interval> {
-    fn from(value: Scale) -> Self {
         value.get_intervals()
     }
 }
 */
 
-/// The interval between two identical notes in the twelve tone system.
-pub const PERFECT_UNISON: TwelveToneInterval = TwelveToneInterval {
+impl From<Scale> for Vec<StandardInterval> {
+    fn from(value: Scale) -> Self {
+        // As long as the scale interval values are between 0 and 12 this line should never panic.
+        value.get_intervals().unwrap()
+    }
+}
+
+/// The interval between two identical notes.
+pub const PERFECT_UNISON: StandardInterval = StandardInterval {
     semitones: 0,
-    full_name: Some("Perfect Unison"),
-    short_name: Some("P1"),
+    full_name: "Perfect Unison",
+    short_name: "P1",
 };
-/// The interval between two notes separated a semitone in the twelve tone system.
-pub const MINOR_SECOND: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated a semitone.
+pub const MINOR_SECOND: StandardInterval = StandardInterval {
     semitones: 1,
-    full_name: Some("Minor Second"),
-    short_name: Some("m2"),
+    full_name: "Minor Second",
+    short_name: "m2",
 };
-/// The interval between two notes separated by two semitones in the twelve tone system.
-pub const MAJOR_SECOND: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by two semitones.
+pub const MAJOR_SECOND: StandardInterval = StandardInterval {
     semitones: 2,
-    full_name: Some("Major Second"),
-    short_name: Some("M2"),
+    full_name: "Major Second",
+    short_name: "M2",
 };
-/// The interval between two notes separated by three semitones in the twelve tone system.
-pub const MINOR_THIRD: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by three semitones.
+pub const MINOR_THIRD: StandardInterval = StandardInterval {
     semitones: 3,
-    full_name: Some("Minor Third"),
-    short_name: Some("m3"),
+    full_name: "Minor Third",
+    short_name: "m3",
 };
-/// The interval between two notes separated by four semitones in the twelve tone system.
-pub const MAJOR_THIRD: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by four semitones.
+pub const MAJOR_THIRD: StandardInterval = StandardInterval {
     semitones: 4,
-    full_name: Some("Major Third"),
-    short_name: Some("M3"),
+    full_name: "Major Third",
+    short_name: "M3",
 };
-/// The interval between two notes separated by five semitones in the twelve tone system.
-pub const PERFECT_FOURTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by five semitones.
+pub const PERFECT_FOURTH: StandardInterval = StandardInterval {
     semitones: 5,
-    full_name: Some("Perfect Fourth"),
-    short_name: Some("P4"),
+    full_name: "Perfect Fourth",
+    short_name: "P4",
 };
 /// The interval between two notes separated by six semitones, which is also equivalent to the
-/// tritone and the augmented fourth in the twelve tone system.
-pub const DIMINISHED_FIFTH: TwelveToneInterval = TwelveToneInterval {
+/// tritone and the augmented fourth.
+pub const DIMINISHED_FIFTH: StandardInterval = StandardInterval {
     semitones: 6,
-    full_name: Some("Diminished Fifth"),
-    short_name: Some("d5"),
+    full_name: "Diminished Fifth",
+    short_name: "d5",
 };
 /// The interval between two notes separated by six semitones, which is also equivalent to the
-/// diminished fifth and the augmented fourth in the twelve tone system.
-pub const TRITONE: TwelveToneInterval = TwelveToneInterval {
+/// diminished fifth and the augmented fourth.
+pub const TRITONE: StandardInterval = StandardInterval {
     semitones: 6,
-    full_name: Some("Tritone"),
-    short_name: Some("TT"),
+    full_name: "Tritone",
+    short_name: "TT",
 };
 /// The interval between two notes separated by six semitones, which is also equivalent to the
-/// tritone and the diminished fifth in the twelve tone system.
-pub const AUGMENTED_FOURTH: TwelveToneInterval = TwelveToneInterval {
+/// tritone and the diminished fifth.
+pub const AUGMENTED_FOURTH: StandardInterval = StandardInterval {
     semitones: 6,
-    full_name: Some("Augmented Fourth"),
-    short_name: Some("A4"),
+    full_name: "Augmented Fourth",
+    short_name: "A4",
 };
-/// The interval between two notes separated by seven semitones in the twelve tone system.
-pub const PERFECT_FIFTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by seven semitones.
+pub const PERFECT_FIFTH: StandardInterval = StandardInterval {
     semitones: 7,
-    full_name: Some("Perfect Fifth"),
-    short_name: Some("P5"),
+    full_name: "Perfect Fifth",
+    short_name: "P5",
 };
-/// The interval between two notes separated by eight semitones in the twelve tone system.
-pub const MINOR_SIXTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by eight semitones.
+pub const MINOR_SIXTH: StandardInterval = StandardInterval {
     semitones: 8,
-    full_name: Some("Minor Sixth"),
-    short_name: Some("m6"),
+    full_name: "Minor Sixth",
+    short_name: "m6",
 };
-/// The interval between two notes separated by nine semitones in the twelve tone system.
-pub const MAJOR_SIXTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by nine semitones.
+pub const MAJOR_SIXTH: StandardInterval = StandardInterval {
     semitones: 9,
-    full_name: Some("Major Sixth"),
-    short_name: Some("M6"),
+    full_name: "Major Sixth",
+    short_name: "M6",
 };
-/// The interval between two notes separated by ten semitones in the twelve tone system.
-pub const MINOR_SEVENTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by ten semitones.
+pub const MINOR_SEVENTH: StandardInterval = StandardInterval {
     semitones: 10,
-    full_name: Some("Minor Seventh"),
-    short_name: Some("m7"),
+    full_name: "Minor Seventh",
+    short_name: "m7",
 };
-/// The interval between two notes separated by eleven semitones in the twelve tone system.
-pub const MAJOR_SEVENTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by eleven semitones.
+pub const MAJOR_SEVENTH: StandardInterval = StandardInterval {
     semitones: 11,
-    full_name: Some("Major Seventh"),
-    short_name: Some("M7"),
+    full_name: "Major Seventh",
+    short_name: "M7",
 };
-/// The interval between two notes separated by twelve semitones or an octave in the twelve tone
-/// system.
-pub const PERFECT_OCTAVE: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by twelve semitones or an octave.
+pub const PERFECT_OCTAVE: StandardInterval = StandardInterval {
     semitones: 12,
-    full_name: Some("Perfect Octave"),
-    short_name: Some("P8"),
+    full_name: "Perfect Octave",
+    short_name: "P8",
 };
-/// The interval between two notes separated by thirteen semitones in the twelve tone system.
-pub const MINOR_NINTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by thirteen semitones.
+pub const MINOR_NINTH: StandardInterval = StandardInterval {
     semitones: 13,
-    full_name: Some("Minor Ninth"),
-    short_name: Some("m9"),
+    full_name: "Minor Ninth",
+    short_name: "m9",
 };
-/// The interval between two notes separated by fourteen semitones in the twelve tone system.
-pub const MAJOR_NINTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by fourteen semitones.
+pub const MAJOR_NINTH: StandardInterval = StandardInterval {
     semitones: 14,
-    full_name: Some("Major Ninth"),
-    short_name: Some("M9"),
+    full_name: "Major Ninth",
+    short_name: "M9",
 };
-/// The interval between two notes separated by fifteen semitones in the twelve tone system.
-pub const MINOR_TENTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by fifteen semitones.
+pub const MINOR_TENTH: StandardInterval = StandardInterval {
     semitones: 15,
-    full_name: Some("Minor Tenth"),
-    short_name: Some("m10"),
+    full_name: "Minor Tenth",
+    short_name: "m10",
 };
-/// The interval between two notes separated by sixteen semitones in the twelve tone system.
-pub const MAJOR_TENTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by sixteen semitones.
+pub const MAJOR_TENTH: StandardInterval = StandardInterval {
     semitones: 16,
-    full_name: Some("Major Tenth"),
-    short_name: Some("M10"),
+    full_name: "Major Tenth",
+    short_name: "M10",
 };
-/// The interval between two notes separated by seventeen semitones in the twelve tone system.
-pub const PERFECT_ELEVENTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by seventeen semitones.
+pub const PERFECT_ELEVENTH: StandardInterval = StandardInterval {
     semitones: 17,
-    full_name: Some("Perfect Eleventh"),
-    short_name: Some("P11"),
+    full_name: "Perfect Eleventh",
+    short_name: "P11",
 };
 /// The interval between two notes separated by eighteen semitones, which is also equivalent to
-/// the augmented eleventh in the twelve tone system.
-pub const DIMINISHED_TWELFTH: TwelveToneInterval = TwelveToneInterval {
+/// the augmented eleventh.
+pub const DIMINISHED_TWELFTH: StandardInterval = StandardInterval {
     semitones: 18,
-    full_name: Some("Diminished Twelfth"),
-    short_name: Some("d12"),
+    full_name: "Diminished Twelfth",
+    short_name: "d12",
 };
 /// The interval between two notes separated by eighteen semitones, which is also equivalent to
-/// the diminished twelfth in the twelve tone system.
-pub const AUGMENTED_ELEVENTH: TwelveToneInterval = TwelveToneInterval {
+/// the diminished twelfth.
+pub const AUGMENTED_ELEVENTH: StandardInterval = StandardInterval {
     semitones: 18,
-    full_name: Some("Augmented Eleventh"),
-    short_name: Some("A11"),
+    full_name: "Augmented Eleventh",
+    short_name: "A11",
 };
-/// The interval between two notes separated by nineteen semitones in the twelve tone system.
-pub const PERFECT_TWELFTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by nineteen semitones.
+pub const PERFECT_TWELFTH: StandardInterval = StandardInterval {
     semitones: 19,
-    full_name: Some("Perfect Twelfth"),
-    short_name: Some("P12"),
+    full_name: "Perfect Twelfth",
+    short_name: "P12",
 };
-/// The interval between two notes separated by twenty semitones in the twelve tone system.
-pub const MINOR_THIRTEENTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by twenty semitones.
+pub const MINOR_THIRTEENTH: StandardInterval = StandardInterval {
     semitones: 20,
-    full_name: Some("Minor Thirteenth"),
-    short_name: Some("m13"),
+    full_name: "Minor Thirteenth",
+    short_name: "m13",
 };
-/// The interval between two notes separated by twenty one semitones in the twelve tone system.
-pub const MAJOR_THIRTEENTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by twenty one semitones.
+pub const MAJOR_THIRTEENTH: StandardInterval = StandardInterval {
     semitones: 21,
-    full_name: Some("Major Thirteenth"),
-    short_name: Some("M13"),
+    full_name: "Major Thirteenth",
+    short_name: "M13",
 };
-/// The interval between two notes separated by twenty two semitones in the twelve tone system.
-pub const MINOR_FOURTEENTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by twenty two semitones.
+pub const MINOR_FOURTEENTH: StandardInterval = StandardInterval {
     semitones: 22,
-    full_name: Some("Minor Fourteenth"),
-    short_name: Some("m14"),
+    full_name: "Minor Fourteenth",
+    short_name: "m14",
 };
-/// The interval between two notes separated by twenty three semitones in the twelve tone system.
-pub const MAJOR_FOURTEENTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by twenty three semitones.
+pub const MAJOR_FOURTEENTH: StandardInterval = StandardInterval {
     semitones: 23,
-    full_name: Some("Major Fourteenth"),
-    short_name: Some("M14"),
+    full_name: "Major Fourteenth",
+    short_name: "M14",
 };
-/// The interval between two notes separated by twenty four semitones or two octaves in the twelve
-/// tone system.
-pub const PERFECT_FIFTEENTH: TwelveToneInterval = TwelveToneInterval {
+/// The interval between two notes separated by twenty four semitones or two octaves.
+pub const PERFECT_FIFTEENTH: StandardInterval = StandardInterval {
     semitones: 24,
-    full_name: Some("Perfect Fifteenth"),
-    short_name: Some("P15"),
+    full_name: "Perfect Fifteenth",
+    short_name: "P15",
 };
 
-const INTERVALS: [TwelveToneInterval; 25] = [
+const INTERVALS: [StandardInterval; 25] = [
     PERFECT_UNISON,
     MINOR_SECOND,
     MAJOR_SECOND,
@@ -301,9 +294,3 @@ const INTERVALS: [TwelveToneInterval; 25] = [
     MAJOR_FOURTEENTH,
     PERFECT_FIFTEENTH,
 ];
-
-impl Interval for TwelveToneInterval {
-    fn get_value(&self) -> usize {
-        self.semitones
-    }
-}

@@ -3,7 +3,7 @@ use regex::Regex;
 use std::fmt;
 use std::hash::Hash;
 
-pub trait PitchClass: fmt::Debug + fmt::Display + Clone {
+pub trait PitchClass: fmt::Display + Clone {
     fn get_value(&self) -> usize;
     fn get_num_classes(&self) -> usize;
     /// The value of the class used for the base frequency (e.g. twelve tone's base frequency is A4,
@@ -71,7 +71,7 @@ impl TwelveTone {
                 "G" | "g" => G_FLAT,
                 _ => unreachable!(),
             },
-            "bb" | "♭♭" => match pitch_class_letter {
+            "bb" | "♭♭" | "b♭" | "♭b" => match pitch_class_letter {
                 "A" | "a" => A_DOUBLE_FLAT,
                 "B" | "b" => B_DOUBLE_FLAT,
                 "C" | "c" => C_DOUBLE_FLAT,
@@ -91,7 +91,7 @@ impl TwelveTone {
                 "G" | "g" => G_SHARP,
                 _ => unreachable!(),
             },
-            "##" | "♯♯" | "x" | "X" => match pitch_class_letter {
+            "##" | "♯♯" | "#♯" | "♯#" | "x" | "X" => match pitch_class_letter {
                 "A" | "a" => A_DOUBLE_SHARP,
                 "B" | "b" => B_DOUBLE_SHARP,
                 "C" | "c" => C_DOUBLE_SHARP,

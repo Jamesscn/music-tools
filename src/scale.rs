@@ -1,12 +1,12 @@
 use crate::common::{EqualTemperament, InputError};
-use crate::interval::TwelveToneInterval;
+use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::TwelveTone;
 use std::fmt;
 use std::hash::Hash;
 
 /// A structure used to represent a scale of notes, or a major or minor pentatonic variation of a
-/// scale.
+/// scale in the twelve tone system.
 #[derive(Clone, Debug, Eq)]
 pub struct Scale {
     intervals: &'static [usize],
@@ -103,36 +103,50 @@ impl Scale {
     }
      */
 
-    pub fn get_pentatonic_major(&self) -> Result<Vec<TwelveToneInterval>, InputError> {
+    pub fn get_pentatonic_major<IntervalType: Interval>(
+        &self,
+    ) -> Result<Vec<IntervalType>, InputError> {
         if !self.is_diatonic() {
             return Err(InputError {
                 message: String::from("cannot obtain a pentatonic scale from a non diatonic scale"),
             });
         }
-        let mut pentatonic_major = self.get_intervals();
+        let mut pentatonic_major = self.get_intervals::<IntervalType>()?;
         pentatonic_major.remove(6);
         pentatonic_major.remove(3);
         Ok(pentatonic_major)
     }
 
-    pub fn get_pentatonic_minor(&self) -> Result<Vec<TwelveToneInterval>, InputError> {
+    pub fn get_pentatonic_minor<IntervalType: Interval>(
+        &self,
+    ) -> Result<Vec<IntervalType>, InputError> {
         if !self.is_diatonic() {
             return Err(InputError {
                 message: String::from("cannot obtain a pentatonic scale from a non diatonic scale"),
             });
         }
-        let mut pentatonic_minor = self.get_intervals();
+        let mut pentatonic_minor = self.get_intervals::<IntervalType>()?;
         pentatonic_minor.remove(5);
         pentatonic_minor.remove(1);
         Ok(pentatonic_minor)
     }
 
     /// Returns a vector with each of the intervals of the scale.
-    pub fn get_intervals(&self) -> Vec<TwelveToneInterval> {
-        self.intervals
+    pub fn get_intervals<IntervalType: Interval>(&self) -> Result<Vec<IntervalType>, InputError> {
+        let interval_options: Vec<(usize, Option<IntervalType>)> = self
+            .intervals
             .iter()
-            .map(|semitones| TwelveToneInterval::new(*semitones))
-            .collect()
+            .map(|semitones| (*semitones, IntervalType::from_semitones(*semitones)))
+            .collect();
+        if let Some((semitones, _)) = interval_options.iter().find(|(_, option)| option.is_none()) {
+            return Err(InputError {
+                message: format!("the from_semitones() function did not return an interval with a difference of {semitones} semitones"),
+            });
+        }
+        Ok(interval_options
+            .iter()
+            .map(|(_, interval_option)| interval_option.clone().unwrap())
+            .collect())
     }
 
     /*

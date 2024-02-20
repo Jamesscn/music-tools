@@ -1,8 +1,9 @@
+use crate::note::Note;
 use crate::pitchclass::PitchClass;
 use std::error::Error;
 use std::fmt;
 use std::hash::Hash;
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 use std::time::Duration;
 
 /// A structure which is used to hold the exact representation of a fraction. Fractions are used in
@@ -200,6 +201,40 @@ impl SubAssign for Fraction {
     }
 }
 
+impl Mul for Fraction {
+    type Output = Fraction;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Fraction::new(
+            self.numerator * rhs.numerator,
+            self.denominator * rhs.denominator,
+        )
+    }
+}
+
+impl MulAssign for Fraction {
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
+    }
+}
+
+impl Div for Fraction {
+    type Output = Fraction;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        Fraction::new(
+            self.numerator * rhs.denominator,
+            self.denominator * rhs.numerator,
+        )
+    }
+}
+
+impl DivAssign for Fraction {
+    fn div_assign(&mut self, rhs: Self) {
+        *self = *self / rhs;
+    }
+}
+
 /// The Beat type is the same as a [`Fraction`] but used to keep track of the duration of a
 /// rhythmic beat with respect to the time signature.
 pub type Beat = Fraction;
@@ -292,72 +327,76 @@ impl fmt::Display for TriadQuality {
     }
 }
 
-pub trait Tuning: fmt::Debug + Clone + PartialEq {
-    fn get_frequency(&self, base_frequency: f32, pitch_class: &impl PitchClass, octave: i8) -> f32;
+pub trait Tuning: Clone + PartialEq {
+    fn get_frequency<PitchClassType: PitchClass>(
+        &self,
+        base_frequency: f32,
+        base_note: Note<PitchClassType>,
+        note: Note<PitchClassType>,
+    ) -> f32;
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct EqualTemperament;
+pub struct EqualTemperament {
+    num_tones: usize,
+}
 
-impl Tuning for EqualTemperament {
-    fn get_frequency(&self, base_frequency: f32, pitch_class: &impl PitchClass, octave: i8) -> f32 {
-        base_frequency
-            * 2f32.powf(
-                octave as f32
-                    + ((pitch_class.get_value() as f32
-                        - pitch_class.base_frequency_class_value() as f32)
-                        / pitch_class.get_num_classes() as f32)
-                    - 4f32,
-            )
+impl EqualTemperament {
+    pub fn new(num_tones: usize) -> Self {
+        Self { num_tones }
     }
 }
 
-const PYTHAGOREAN_TONES: [f32; 12] = [
-    1f32,
-    256f32 / 243f32,
-    9f32 / 8f32,
-    32f32 / 27f32,
-    81f32 / 64f32,
-    4f32 / 3f32,
-    1f32,
-    3f32 / 2f32,
-    128f32 / 81f32,
-    27f32 / 16f32,
-    16f32 / 9f32,
-    243f32 / 128f32,
-];
+impl Tuning for EqualTemperament {
+    fn get_frequency<PitchClassType: PitchClass>(
+        &self,
+        base_frequency: f32,
+        base_note: Note<PitchClassType>,
+        note: Note<PitchClassType>,
+    ) -> f32 {
+        base_frequency
+            * 2f32.powf((note.get_value() - base_note.get_value()) as f32 / self.num_tones as f32)
+    }
+}
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum PythagoreanTuning {
-    AugmentedFourth,
-    DiminishedFifth,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PythagoreanTuning {
+    num_tones: usize,
+    ratios: Vec<Fraction>,
+}
+
+impl PythagoreanTuning {
+    pub fn new(num_tones: usize) -> Self {
+        let mut ratios: Vec<Fraction> = Vec::new();
+        let mut current_fraction = Fraction::new(1, 1);
+        let three_halves = Fraction::new(3, 2);
+        let one_half = Fraction::new(1, 2);
+        ratios.push(current_fraction);
+        for _ in 1..num_tones {
+            current_fraction *= three_halves; //Go up a fifth
+            if current_fraction.get_as_float() > 2f32 {
+                current_fraction *= one_half; // Go down an octave if the ratio is too big
+            }
+            ratios.push(current_fraction)
+        }
+        ratios.sort();
+        Self { num_tones, ratios }
+    }
 }
 
 impl Tuning for PythagoreanTuning {
-    fn get_frequency(&self, base_frequency: f32, pitch_class: &impl PitchClass, octave: i8) -> f32 {
-        if pitch_class.get_num_classes() != 12 {
-            return f32::NAN;
-        }
-        let tone_index = (pitch_class.get_value() as isize
-            - pitch_class.base_frequency_class_value() as isize)
-            .rem_euclid(12) as usize;
-        let tone_value = if tone_index == 6 {
-            match &self {
-                Self::AugmentedFourth => 729f32 / 512f32,
-                Self::DiminishedFifth => 1024f32 / 729f32,
-            }
-        } else {
-            PYTHAGOREAN_TONES[tone_index]
-        };
-        base_frequency
-            * 2f32.powf(
-                octave as f32
-                    + (pitch_class.get_value() as isize
-                        - pitch_class.base_frequency_class_value() as isize)
-                        .div_floor(12) as f32
-                    - 4f32,
-            )
-            * tone_value
+    fn get_frequency<PitchClassType: PitchClass>(
+        &self,
+        base_frequency: f32,
+        base_note: Note<PitchClassType>,
+        note: Note<PitchClassType>,
+    ) -> f32 {
+        let octave_difference = (note.get_value() - base_note.get_value())
+            .div_floor(base_note.get_pitch_class().get_num_classes() as i32);
+        let ratio_index = (note.get_pitch_class().get_value()
+            - base_note.get_pitch_class().get_value())
+        .rem_euclid(base_note.get_pitch_class().get_num_classes());
+        base_frequency * 2f32.powi(octave_difference) * self.ratios[ratio_index].get_as_float()
     }
 }
 

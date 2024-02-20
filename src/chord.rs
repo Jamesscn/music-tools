@@ -1,7 +1,7 @@
 use crate::common::{InputError, TriadQuality};
 use crate::interval::Interval;
 use crate::note::Note;
-use crate::pitchclass::PitchClass;
+use crate::pitchclass::{PitchClass, TwelveTone};
 use crate::scale::Scale;
 use regex::Regex;
 
@@ -12,8 +12,7 @@ use regex::Regex;
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Chord {
     intervals: Vec<Interval>,
-    tonic: Option<PitchClass>,
-    octave: Option<i8>,
+    base_note: Option<Note<TwelveTone>>,
     inversion: usize,
 }
 

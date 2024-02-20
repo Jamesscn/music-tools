@@ -1,24 +1,20 @@
-use crate::common::{EqualTemperament, InputError, Tuning};
-use crate::interval::{Interval, TwelveToneInterval};
+use crate::common::InputError;
+use crate::interval::Interval;
 use crate::pitchclass::{PitchClass, TwelveTone};
 use regex::Regex;
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::Hash;
 
-/// A structure which is used to represent a note with a pitch class and an octave. The base
-/// frequency of the note can be modified to a value other than A = 440Hz, and an alternate tuning
-/// type other than equal temperament can also be used.
+/// A structure which is used to represent a note with a pitch class and an octave.
 #[derive(Copy, Clone, Debug)]
-pub struct Note<PitchClassType: PitchClass, TuningType: Tuning> {
+pub struct Note<PitchClassType: PitchClass = TwelveTone> {
     pitch_class: PitchClassType,
     octave: i8,
-    tuning: TuningType,
-    base_frequency: f32,
 }
 
-// Contains functions that assume the twelve tone equal temperament system.
-impl Note<TwelveTone, EqualTemperament> {
+// Contains functions that assume the twelve tone pitch class system.
+impl Note<TwelveTone> {
     /// Constructs a [`Note`] in twelve tone equal temperament tuning from a string containing the
     /// pitch class and the octave of the note. The function returns a [`Result`] which can contain
     /// the note or an [`InputError`] if the input string was invalid.
@@ -62,8 +58,6 @@ impl Note<TwelveTone, EqualTemperament> {
         Ok(Self {
             pitch_class,
             octave,
-            tuning: EqualTemperament,
-            base_frequency: 440.0,
         })
     }
 
@@ -88,20 +82,7 @@ impl Note<TwelveTone, EqualTemperament> {
         Ok(Self {
             pitch_class,
             octave,
-            tuning: EqualTemperament,
-            base_frequency: 440.0,
         })
-    }
-}
-
-// Contains function that assume the twelve tone pitch class system but any type of tuning.
-impl<TuningType: Tuning> Note<TwelveTone, TuningType> {
-    pub fn from_string_with_tuning(string: &str, tuning: TuningType) -> Result<Self, InputError> {
-        Ok(Note::change_tuning(Note::from_string(string)?, tuning))
-    }
-
-    pub fn from_midi_index_with_tuning(index: u8, tuning: TuningType) -> Result<Self, InputError> {
-        Ok(Note::change_tuning(Note::from_midi_index(index)?, tuning))
     }
 
     /// Returns a [`Result<u8>`] with an index representing the numerical position of the note on a
@@ -161,21 +142,10 @@ impl<TuningType: Tuning> Note<TwelveTone, TuningType> {
         }
         Ok(midi_index as u8)
     }
-
-    pub fn get_interval_with(&self, note: Note<TwelveTone, TuningType>) -> TwelveToneInterval {
-        let first_value = self.get_value();
-        let second_value = note.get_value();
-        let difference: usize = if first_value <= second_value {
-            (second_value - first_value) as usize
-        } else {
-            (first_value - second_value) as usize
-        };
-        TwelveToneInterval::new(difference)
-    }
 }
 
-// Contains functions that assume equal temperament but any type of pitch class.
-impl<PitchClassType: PitchClass> Note<PitchClassType, EqualTemperament> {
+// Contains functions that work for any pitch class system.
+impl<PitchClassType: PitchClass> Note<PitchClassType> {
     /// Constructs a [`Note`] in equal temperament tuning from a pitch class and an octave.
     ///
     /// # Parameters
@@ -201,44 +171,16 @@ impl<PitchClassType: PitchClass> Note<PitchClassType, EqualTemperament> {
         Self {
             pitch_class,
             octave,
-            tuning: EqualTemperament,
-            base_frequency: 440.0,
-        }
-    }
-}
-
-// Contains functions that work for any pitch class system and tuning.
-impl<PitchClassType: PitchClass, TuningType: Tuning> Note<PitchClassType, TuningType> {
-    pub fn new_with_tuning(pitch_class: PitchClassType, octave: i8, tuning: TuningType) -> Self {
-        Self {
-            pitch_class,
-            octave,
-            tuning,
-            base_frequency: 440.0,
         }
     }
 
     pub fn change_pitch_class<NewPitchClassType: PitchClass>(
         note: Self,
         pitch_class: NewPitchClassType,
-    ) -> Note<NewPitchClassType, TuningType> {
+    ) -> Note<NewPitchClassType> {
         Note {
             pitch_class,
             octave: note.octave,
-            tuning: note.tuning,
-            base_frequency: note.base_frequency,
-        }
-    }
-
-    pub fn change_tuning<NewTuningType: Tuning>(
-        note: Self,
-        tuning: NewTuningType,
-    ) -> Note<PitchClassType, NewTuningType> {
-        Note {
-            pitch_class: note.pitch_class,
-            octave: note.octave,
-            tuning,
-            base_frequency: note.base_frequency,
         }
     }
 
@@ -259,13 +201,7 @@ impl<PitchClassType: PitchClass, TuningType: Tuning> Note<PitchClassType, Tuning
                         .try_into()
                         .expect("could not convert num classes to isize"),
                 ) as i8,
-            tuning: self.tuning.clone(),
-            base_frequency: self.base_frequency,
         }
-    }
-
-    pub fn offset_interval(&self, interval: &impl Interval) -> Self {
-        self.offset(interval.get_value() as isize)
     }
 
     /// Returns the next [`Note`] after the current one.
@@ -286,56 +222,6 @@ impl<PitchClassType: PitchClass, TuningType: Tuning> Note<PitchClassType, Tuning
         self.octave = octave;
     }
 
-    /// Changes the reference frequency of A4 or the base frequency of the pitch class system to a
-    /// specific value for this note, which will affect the frequency of the note when calculated.
-    /// The default value for this frequency is equal to 440 hertz.
-    ///
-    /// # Parameters
-    ///
-    /// - `base_frequency`: A floating point number which will represent the frequency in hertz of
-    ///   the reference note when the frequency of the current note is calculated.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::*;
-    ///
-    /// let mut note = Note::new(A, 5);
-    /// assert_eq!(note.get_frequency(), 880.0);
-    /// note.set_base_frequency(432.0);
-    /// assert_eq!(note.get_frequency(), 864.0);
-    /// ```
-    pub fn set_base_frequency(&mut self, base_frequency: f32) {
-        self.base_frequency = base_frequency;
-    }
-
-    /// Obtains the reference frequency of A4 or the base frequency of the pitch class system with
-    /// respect to this note in hertz. The default value for this frequency is 440 hertz.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use music_tools::note::Note;
-    /// use music_tools::pitchclass::*;
-    ///
-    /// let mut note = Note::new(C, 5);
-    /// assert_eq!(440.0, note.get_base_frequency());
-    /// note.set_base_frequency(432.0);
-    /// assert_eq!(432.0, note.get_base_frequency());
-    /// ```
-    pub fn get_base_frequency(&self) -> f32 {
-        self.base_frequency
-    }
-
-    /// Retuns the frequency in hertz of the current note. This frequency depends on the reference
-    /// frequency for the note A4 or the base frequency of the pitch class system, which can be
-    /// modified by the `set_base_frequency` function.
-    pub fn get_frequency(&self) -> f32 {
-        self.tuning
-            .get_frequency(self.base_frequency, &self.pitch_class, self.octave)
-    }
-
     /// Returns the octave of the current note.
     pub fn get_octave(&self) -> i8 {
         self.octave
@@ -344,11 +230,6 @@ impl<PitchClassType: PitchClass, TuningType: Tuning> Note<PitchClassType, Tuning
     /// Returns a [`PitchClass`] representing the pitch class of the note.
     pub fn get_pitch_class(&self) -> &PitchClassType {
         &self.pitch_class
-    }
-
-    /// Returns a [`Tuning`] representing the tuning system of the note.
-    pub fn get_tuning(&self) -> &TuningType {
-        &self.tuning
     }
 
     /// Returns a numerical value representing the position of the note with respect to C0 or the
@@ -373,46 +254,62 @@ impl<PitchClassType: PitchClass, TuningType: Tuning> Note<PitchClassType, Tuning
         self.octave as i32 * self.pitch_class.get_num_classes() as i32
             + self.pitch_class.get_value() as i32
     }
+
+    pub fn get_interval_with<IntervalType: Interval>(
+        &self,
+        note: Note<PitchClassType>,
+    ) -> Option<IntervalType> {
+        let first_value = self.get_value();
+        let second_value = note.get_value();
+        let difference: usize = if first_value <= second_value {
+            (second_value - first_value) as usize
+        } else {
+            (first_value - second_value) as usize
+        };
+        IntervalType::from_semitones(difference)
+    }
+
+    pub fn offset_interval(&self, interval: impl Interval) -> Self {
+        self.offset(interval.get_semitones() as isize)
+    }
 }
 
-impl Default for Note<TwelveTone, EqualTemperament> {
+impl Default for Note<TwelveTone> {
     fn default() -> Self {
         Self {
             pitch_class: TwelveTone::default(),
             octave: 4,
-            tuning: EqualTemperament,
-            base_frequency: 440.0,
         }
     }
 }
 
-impl<PC: PitchClass, T: Tuning> PartialEq for Note<PC, T> {
+impl<PC: PitchClass> PartialEq for Note<PC> {
     fn eq(&self, other: &Self) -> bool {
         self.get_value() == other.get_value()
     }
 }
 
-impl<PC: PitchClass, T: Tuning> Eq for Note<PC, T> {}
+impl<PC: PitchClass> Eq for Note<PC> {}
 
-impl<PC: PitchClass, T: Tuning> PartialOrd for Note<PC, T> {
+impl<PC: PitchClass> PartialOrd for Note<PC> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<PC: PitchClass, T: Tuning> Ord for Note<PC, T> {
+impl<PC: PitchClass> Ord for Note<PC> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_value().cmp(&other.get_value())
     }
 }
 
-impl<PC: PitchClass, T: Tuning> Hash for Note<PC, T> {
+impl<PC: PitchClass> Hash for Note<PC> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.get_value().hash(state);
     }
 }
 
-impl<PC: PitchClass, T: Tuning> fmt::Display for Note<PC, T> {
+impl<PC: PitchClass> fmt::Display for Note<PC> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}{}", self.pitch_class, self.octave)
     }
