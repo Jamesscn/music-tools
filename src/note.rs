@@ -196,8 +196,7 @@ impl<PitchClassType: PitchClass> Note<PitchClassType> {
             pitch_class: self.pitch_class.offset(offset),
             octave: self.octave
                 + (self.pitch_class.get_value() as isize + offset).div_floor(
-                    self.pitch_class
-                        .get_num_classes()
+                    PitchClassType::get_num_classes()
                         .try_into()
                         .expect("could not convert num classes to isize"),
                 ) as i8,
@@ -251,7 +250,7 @@ impl<PitchClassType: PitchClass> Note<PitchClassType> {
     /// assert_eq!(48, middle_c.get_value());
     /// ```
     pub fn get_value(&self) -> i32 {
-        self.octave as i32 * self.pitch_class.get_num_classes() as i32
+        self.octave as i32 * PitchClassType::get_num_classes() as i32
             + self.pitch_class.get_value() as i32
     }
 
@@ -312,6 +311,14 @@ impl<PC: PitchClass> Hash for Note<PC> {
 impl<PC: PitchClass> fmt::Display for Note<PC> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}{}", self.pitch_class, self.octave)
+    }
+}
+
+impl TryFrom<&str> for Note<TwelveTone> {
+    type Error = InputError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::from_string(value)
     }
 }
 

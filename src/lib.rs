@@ -1,6 +1,7 @@
 #![warn(missing_docs)]
 #![feature(int_roundings)]
 #![feature(iter_map_windows)]
+#![feature(associated_type_bounds)]
 #![doc = include_str!("../README.md")]
 
 //! This library contains modules which can be used to create, analyze and reproduce musical
@@ -23,7 +24,7 @@ pub mod common;
 pub mod note;
 
 /// The chord module contains a structure which can be used to represent a chord.
-//pub mod chord;
+pub mod chord;
 
 /// The scale module contains a structure which can be used to represent a scale.
 pub mod scale;

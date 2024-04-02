@@ -4,11 +4,11 @@ use std::fmt;
 use std::hash::Hash;
 
 pub trait PitchClass: fmt::Display + Clone {
-    fn get_value(&self) -> usize;
-    fn get_num_classes(&self) -> usize;
+    fn get_num_classes() -> usize;
     /// The value of the class used for the base frequency (e.g. twelve tone's base frequency is A4,
     /// so its base frequency class would be A).
-    fn base_frequency_class_value(&self) -> usize;
+    fn base_frequency_class_value() -> usize;
+    fn get_value(&self) -> usize;
     fn offset(&self, offset: isize) -> Self
     where
         Self: Sized;
@@ -265,11 +265,11 @@ impl PitchClass for TwelveTone {
         }
     }
 
-    fn get_num_classes(&self) -> usize {
+    fn get_num_classes() -> usize {
         12 // There are twelve pitch classes in the twelve tone system
     }
 
-    fn base_frequency_class_value(&self) -> usize {
+    fn base_frequency_class_value() -> usize {
         A.get_value() // The base frequency is A4, so we return the value for A
     }
 

@@ -77,6 +77,18 @@ impl fmt::Display for StandardInterval {
     }
 }
 
+impl From<StandardInterval> for usize {
+    fn from(value: StandardInterval) -> Self {
+        value.get_semitones()
+    }
+}
+
+impl From<StandardInterval> for isize {
+    fn from(value: StandardInterval) -> Self {
+        value.get_semitones() as isize
+    }
+}
+
 /*
 //TODO
 impl From<Chord> for Vec<StandardInterval> {

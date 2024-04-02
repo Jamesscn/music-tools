@@ -31,6 +31,16 @@ const SEVEN_TONE_PITCH_CLASSES: [SevenTone; 7] = [
 ];
 
 impl PitchClass for SevenTone {
+    // There are seven tones in the seven tone system.
+    fn get_num_classes() -> usize {
+        7
+    }
+
+    // We want the first tone (P1) to be the one used for the base frequency of 440 Hz.
+    fn base_frequency_class_value() -> usize {
+        Self::P1.get_value()
+    }
+
     // Each tone in the pitch class system has to have a unique value, which will allow us to
     // differentiate from each tone and also compare tones to each other. If two tones have the
     // same value, they are considered to be the same tone. This is useful for example in the twelve
@@ -47,16 +57,6 @@ impl PitchClass for SevenTone {
         }
     }
 
-    // There are seven tones in the seven tone system.
-    fn get_num_classes(&self) -> usize {
-        7
-    }
-
-    // We want the first tone (P1) to be the one used for the base frequency of 440 Hz.
-    fn base_frequency_class_value(&self) -> usize {
-        Self::P1.get_value()
-    }
-
     // We use the SEVEN_TONE_PITCH_CLASSES array defined earlier to find the tone at a given offset
     // from the current tone. We assume that the value of the tone is the same as the index of the
     // tone in the array.
@@ -65,7 +65,7 @@ impl PitchClass for SevenTone {
         Self: Sized,
     {
         SEVEN_TONE_PITCH_CLASSES[(self.get_value() as isize + offset)
-            .rem_euclid(self.get_num_classes() as isize) as usize]
+            .rem_euclid(Self::get_num_classes() as isize) as usize]
     }
 }
 
@@ -87,7 +87,7 @@ impl fmt::Display for SevenTone {
 fn main() {
     // Defining that we want to use equal temperament is as simple as instantiating the
     // EqualTemperament structure and telling it we have 7 pitch classes.
-    let equal_temperament = EqualTemperament::new(7);
+    let equal_temperament = EqualTemperament::new();
 
     // We also define the note that will have a reference frequency of 440 hertz.
     let p1_4 = Note::new(SevenTone::P1, 4);

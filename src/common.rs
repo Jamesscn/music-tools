@@ -1,5 +1,6 @@
 use crate::note::Note;
 use crate::pitchclass::PitchClass;
+use std::any::Any;
 use std::error::Error;
 use std::fmt;
 use std::hash::Hash;
@@ -337,13 +338,11 @@ pub trait Tuning: Clone + PartialEq {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct EqualTemperament {
-    num_tones: usize,
-}
+pub struct EqualTemperament;
 
 impl EqualTemperament {
-    pub fn new(num_tones: usize) -> Self {
-        Self { num_tones }
+    pub fn new() -> Self {
+        Self
     }
 }
 
@@ -355,7 +354,10 @@ impl Tuning for EqualTemperament {
         note: Note<PitchClassType>,
     ) -> f32 {
         base_frequency
-            * 2f32.powf((note.get_value() - base_note.get_value()) as f32 / self.num_tones as f32)
+            * 2f32.powf(
+                (note.get_value() - base_note.get_value()) as f32
+                    / PitchClassType::get_num_classes() as f32,
+            )
     }
 }
 
@@ -392,10 +394,10 @@ impl Tuning for PythagoreanTuning {
         note: Note<PitchClassType>,
     ) -> f32 {
         let octave_difference = (note.get_value() - base_note.get_value())
-            .div_floor(base_note.get_pitch_class().get_num_classes() as i32);
+            .div_floor(PitchClassType::get_num_classes() as i32);
         let ratio_index = (note.get_pitch_class().get_value()
             - base_note.get_pitch_class().get_value())
-        .rem_euclid(base_note.get_pitch_class().get_num_classes());
+        .rem_euclid(PitchClassType::get_num_classes());
         base_frequency * 2f32.powi(octave_difference) * self.ratios[ratio_index].get_as_float()
     }
 }
@@ -413,6 +415,19 @@ impl Error for InputError {}
 impl fmt::Display for InputError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid input provided - {}", self.message)
+    }
+}
+
+pub fn convert_error_to_input_error<E: 'static>(
+    error: E,
+    conversion_failure_message: String,
+) -> InputError {
+    let error_ref: &dyn Any = &error;
+    match error_ref.downcast_ref::<InputError>() {
+        Some(input_error) => (*input_error).clone(),
+        None => InputError {
+            message: conversion_failure_message,
+        },
     }
 }
 
