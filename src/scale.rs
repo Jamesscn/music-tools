@@ -1,7 +1,5 @@
-use crate::common::{EqualTemperament, InputError};
+use crate::common::InputError;
 use crate::interval::Interval;
-use crate::note::Note;
-use crate::pitchclass::TwelveTone;
 use std::fmt;
 use std::hash::Hash;
 
@@ -147,6 +145,10 @@ impl Scale {
             .iter()
             .map(|(_, interval_option)| interval_option.clone().unwrap())
             .collect())
+    }
+
+    pub fn get_semitones(&self) -> Vec<usize> {
+        self.intervals.to_vec()
     }
 
     /*

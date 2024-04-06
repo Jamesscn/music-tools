@@ -14,8 +14,6 @@ use std::time::Duration;
 pub struct MIDI {
     ticks_per_quarter_note: Ticks,
     tracks: Vec<Track>,
-    custom_tempo: Option<f32>,
-    custom_base_frequency: Option<f32>,
 }
 
 impl MIDI {
@@ -96,8 +94,6 @@ impl MIDI {
         Ok(Self {
             ticks_per_quarter_note,
             tracks,
-            custom_tempo: None,
-            custom_base_frequency: None,
         })
     }
 
@@ -194,22 +190,6 @@ impl MIDI {
     pub fn get_tick_duration(&self, tempo: f32) -> Duration {
         Duration::from_micros((60000000.0 / (tempo * self.ticks_per_quarter_note as f32)) as u64)
     }
-
-    pub fn set_custom_tempo(&mut self, custom_tempo: Option<f32>) {
-        self.custom_tempo = custom_tempo;
-    }
-
-    pub fn get_custom_tempo(&self) -> Option<f32> {
-        self.custom_tempo
-    }
-
-    pub fn set_custom_base_frequency(&mut self, custom_base_frequency: Option<f32>) {
-        self.custom_base_frequency = custom_base_frequency;
-    }
-
-    pub fn get_custom_base_frequency(&self) -> Option<f32> {
-        self.custom_base_frequency
-    }
 }
 
 impl Default for MIDI {
@@ -217,8 +197,6 @@ impl Default for MIDI {
         Self {
             ticks_per_quarter_note: 360,
             tracks: Vec::new(),
-            custom_tempo: None,
-            custom_base_frequency: None,
         }
     }
 }

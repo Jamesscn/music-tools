@@ -1,7 +1,9 @@
 use super::common::{ArpeggioDirection, AudioPlayError, Playable, Synth};
 use super::processor::{AudioProcessor, SynthRc};
 use super::wavetable::WavetableOscillator;
-use crate::common::{AudioDuration, InputError, Rhythm};
+use crate::common::{AudioDuration, EqualTemperament, InputError, Rhythm, Tuning};
+use crate::note::Note;
+use crate::pitchclass::{PitchClass, TwelveTone};
 use byteorder::{BigEndian, LittleEndian, WriteBytesExt};
 use rodio::{OutputStream, Sink, Source};
 use std::error::Error;
@@ -25,7 +27,7 @@ pub enum BitsPerSample {
     EIGHT = 8,
     /// Represents 16 bits per sample
     SIXTEEN = 16,
-    /// Represents 32 bits per sample
+    /// Represents 24 bits per sample
     #[default]
     TWENTYFOUR = 24,
 }
@@ -81,16 +83,19 @@ impl Source for PlayableAudio {
 
 /// A structure which can be used to play audio through the speakers of the current machine or to
 /// export audio into a WAV file.
-pub struct AudioPlayer {
+pub struct AudioPlayer<PitchClassType: PitchClass = TwelveTone> {
     tempo: f32,
+    speed: f32,
+    base_frequency: f32,
     sink: Sink,
     _stream: OutputStream,
     processor: AudioProcessor,
     synth_ref: SynthRc,
+    tuning: Box<dyn Tuning<PitchClassType>>,
     buffer: Vec<f32>,
 }
 
-impl AudioPlayer {
+impl<PitchClassType: PitchClass> AudioPlayer<PitchClassType> {
     /// Attempts to create a new audio player. A [`Result`] is returned which can be an error if
     /// there are no audio devices that can be captured.
     pub fn try_new() -> Result<Self, AudioPlayError> {
@@ -112,10 +117,13 @@ impl AudioPlayer {
         let default_synth_ref = processor.register_synth(Box::new(oscillator));
         Ok(Self {
             tempo: 120.0,
+            speed: 1f32,
+            base_frequency: 440f32,
             sink: sink_result.unwrap(),
             _stream,
             processor,
             synth_ref: default_synth_ref,
+            tuning: Box::new(EqualTemperament::new()),
             buffer: Vec::new(),
         })
     }
@@ -146,9 +154,36 @@ impl AudioPlayer {
     ///
     /// # Parameters
     ///
-    /// - `tempo`: An [`f32`] representing the new tempo of the audio player in beats per minute.
+    /// - `tempo`: A positive [`f32`] representing the new tempo of the audio player in beats per
+    ///   minute. This does not affect the tempo of MIDI audio. If this value is less than or equal
+    ///   to zero it is ignored.
     pub fn set_tempo(&mut self, tempo: f32) {
-        self.tempo = tempo;
+        if tempo > 0f32 {
+            self.tempo = tempo;
+        }
+    }
+
+    /// Sets the playback speed of the audio player, which is set to 1x by default.
+    ///
+    /// # Parameters:
+    ///
+    /// - `speed`: A positive [`f32`] representing the playback speed of the audio player. If there
+    ///   is a tempo change in a MIDI track it is scaled with respect to this value. If this value
+    ///   is less than or equal to zero it is ignored.
+    pub fn set_speed(&mut self, speed: f32) {
+        if speed > 0f32 {
+            self.speed = speed;
+        }
+    }
+
+    pub fn set_base_frequency(&mut self, base_frequency: f32) {
+        if base_frequency > 0f32 {
+            self.base_frequency = base_frequency;
+        }
+    }
+
+    pub fn set_tuning(&mut self, tuning: impl Tuning<PitchClassType> + 'static) {
+        self.tuning = Box::new(tuning);
     }
 
     /// Returns a reference to the [`AudioProcessor`] used by the audio player.
@@ -163,8 +198,12 @@ impl AudioPlayer {
     /// - `playable`: The audio to be played which must implement the [`Playable`] trait.
     /// - `duration`: A duration representing how long the audio will be played for. This duration
     ///   must implement the [`AudioDuration`] trait.
-    pub fn push(&mut self, playable: &impl Playable, duration: &impl AudioDuration) {
-        for frequency in playable.get_frequencies() {
+    pub fn push(
+        &mut self,
+        playable: &impl Playable<PitchClassType>,
+        duration: &impl AudioDuration,
+    ) {
+        for frequency in playable.get_frequencies(self.tuning.as_ref(), self.base_frequency) {
             self.processor.start_frequency(frequency, &self.synth_ref);
         }
         let mut audio_vec = self.processor.render(duration.get_duration(self.tempo));
@@ -196,12 +235,12 @@ impl AudioPlayer {
     ///   played while the arpeggio is happening.
     pub fn push_arpeggiate(
         &mut self,
-        playable: &impl Playable,
+        playable: &impl Playable<PitchClassType>,
         duration: &impl AudioDuration,
         direction: ArpeggioDirection,
         total_notes: usize,
     ) {
-        let frequencies = playable.get_frequencies();
+        let frequencies = playable.get_frequencies(self.tuning.as_ref(), self.base_frequency);
         let mut updown_ascending: bool = true;
         let mut current_index = match direction {
             ArpeggioDirection::Up => 0,
@@ -242,7 +281,12 @@ impl AudioPlayer {
     /// - `total_notes`: A [`usize`] representing the total amount of playable items that will be
     ///   played. If this value is greater than either of the `playables` and `rhythm` iterables
     ///   then they are wrapped around from the beginning.
-    pub fn push_rhythm(&mut self, playables: &[impl Playable], rhythm: Rhythm, total_notes: usize) {
+    pub fn push_rhythm(
+        &mut self,
+        playables: &[impl Playable<PitchClassType>],
+        rhythm: Rhythm,
+        total_notes: usize,
+    ) {
         if playables.is_empty() || rhythm.is_empty() {
             return;
         }
@@ -251,63 +295,6 @@ impl AudioPlayer {
             let curr_beat = &rhythm[index % rhythm.len()];
             self.push(curr_playable, curr_beat);
         }
-    }
-
-    #[cfg(feature = "midi")]
-    /// Pushes a MIDI item onto the queue of audio to be played.
-    ///
-    /// # Parameters
-    ///
-    /// - `midi`: A reference to the [`MIDI`] to be played.
-    /// - `synth`: The synthesizer that will be used to play all the tracks of the MIDI item, which
-    ///   must implement the [`Synth`] trait.
-    /// - `custom_tempo`: An [`Option<f32>`] which if defined changes the tempo of the MIDI item. If
-    ///   it is not defined then the original tempo of the MIDI item is used.
-    pub fn push_midi(
-        &mut self,
-        midi: &MIDI,
-        synth: impl Synth + Clone + 'static,
-    ) -> Result<(), InputError> {
-        if midi.is_empty() {
-            return Err(InputError {
-                message: String::from("midi object is empty"),
-            });
-        }
-        let mut synth_ref_vec: Vec<SynthRc> = Vec::new();
-        for _ in 0..midi.get_num_tracks() {
-            let oscillator = synth.clone();
-            let synth_ref = self.processor.register_synth(Box::new(oscillator));
-            synth_ref_vec.push(synth_ref);
-        }
-        let mut curr_tempo = 120;
-        for (track_index, track_item) in iter_track_items(midi) {
-            let synth = &synth_ref_vec[track_index];
-            match track_item {
-                TrackItem::Event(event) => match event {
-                    MIDIEvent::NoteOn(mut note) => {
-                        if let Some(base_frequency) = midi.get_custom_base_frequency() {
-                            note.set_base_frequency(base_frequency);
-                        }
-                        self.processor.start_frequency(note.get_frequency(), synth);
-                    }
-                    MIDIEvent::NoteOff(mut note) => {
-                        if let Some(base_frequency) = midi.get_custom_base_frequency() {
-                            note.set_base_frequency(base_frequency);
-                        }
-                        self.processor.stop_frequency(note.get_frequency(), synth);
-                    }
-                    MIDIEvent::SetTempo(tempo) => curr_tempo = tempo,
-                    MIDIEvent::SetTimeSignature(_) => {}
-                },
-                TrackItem::Rest(beat) => {
-                    let mut audio_vec = self.processor.render(
-                        beat.get_duration(midi.get_custom_tempo().unwrap_or(curr_tempo as f32)),
-                    );
-                    self.buffer.append(&mut audio_vec);
-                }
-            }
-        }
-        Ok(())
     }
 
     /// Starts playing all the audio in the queue through the current speaker.
@@ -374,6 +361,73 @@ impl AudioPlayer {
             }
         }
         file.write_all(&file_buffer)?;
+        Ok(())
+    }
+}
+
+impl AudioPlayer<TwelveTone> {
+    #[cfg(feature = "midi")]
+    /// Pushes a MIDI item onto the queue of audio to be played.
+    ///
+    /// # Parameters
+    ///
+    /// - `midi`: A reference to the [`MIDI`] to be played.
+    /// - `synth`: The synthesizer that will be used to play all the tracks of the MIDI item, which
+    ///   must implement the [`Synth`] trait.
+    /// - `custom_tempo`: An [`Option<f32>`] which if defined changes the tempo of the MIDI item. If
+    ///   it is not defined then the original tempo of the MIDI item is used.
+    pub fn push_midi(
+        &mut self,
+        midi: &MIDI,
+        synth: impl Synth + Clone + 'static,
+    ) -> Result<(), InputError> {
+        if midi.is_empty() {
+            return Err(InputError {
+                message: String::from("midi object is empty"),
+            });
+        }
+        let mut synth_ref_vec: Vec<SynthRc> = Vec::new();
+        for _ in 0..midi.get_num_tracks() {
+            let oscillator = synth.clone();
+            let synth_ref = self.processor.register_synth(Box::new(oscillator));
+            synth_ref_vec.push(synth_ref);
+        }
+        let mut curr_tempo = 120;
+        for (track_index, track_item) in iter_track_items(midi) {
+            let synth = &synth_ref_vec[track_index];
+            match track_item {
+                TrackItem::Event(event) => match event {
+                    MIDIEvent::NoteOn(mut note) => {
+                        self.processor.start_frequency(
+                            self.tuning.get_frequency(
+                                self.base_frequency,
+                                Note::from_string("A4").unwrap(),
+                                note,
+                            ),
+                            synth,
+                        );
+                    }
+                    MIDIEvent::NoteOff(mut note) => {
+                        self.processor.stop_frequency(
+                            self.tuning.get_frequency(
+                                self.base_frequency,
+                                Note::from_string("A4").unwrap(),
+                                note,
+                            ),
+                            synth,
+                        );
+                    }
+                    MIDIEvent::SetTempo(tempo) => curr_tempo = tempo,
+                    MIDIEvent::SetTimeSignature(_) => {}
+                },
+                TrackItem::Rest(beat) => {
+                    let mut audio_vec = self
+                        .processor
+                        .render(beat.get_duration(curr_tempo as f32 * self.speed));
+                    self.buffer.append(&mut audio_vec);
+                }
+            }
+        }
         Ok(())
     }
 }

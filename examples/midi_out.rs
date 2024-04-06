@@ -1,11 +1,10 @@
 use music_tools::chord::Chord;
-use music_tools::common::{Beat, Fraction, PentatonicType, ScaleType, TriadQuality};
+use music_tools::common::{Beat, Fraction, TriadQuality};
 use music_tools::midi::common::MIDIEvent;
 use music_tools::midi::parser::MIDI;
 use music_tools::midi::track::Track;
 use music_tools::note::Note;
-use music_tools::pitchclass::PitchClass;
-use music_tools::scale::Scale;
+use music_tools::scale::{HARMONIC_MINOR, MINOR};
 
 fn main() {
     let mut info_track = Track::new();
@@ -15,15 +14,20 @@ fn main() {
     info_track.push_event(MIDIEvent::SetTimeSignature(Fraction::new(3, 4)));
 
     //The melody is obtained from the C minor and harmonic minor scales
-    let minor_scale = Scale::try_new(ScaleType::Minor, PentatonicType::None).unwrap();
-    let harmonic_minor_scale =
-        Scale::try_new(ScaleType::HarmonicMinor, PentatonicType::None).unwrap();
-    let c_minor_scale = minor_scale.to_notes(PitchClass::C, 5);
-    let c_harmonic_double_scale = [
-        &harmonic_minor_scale.to_notes(PitchClass::C, 4)[0..7],
-        &harmonic_minor_scale.to_notes(PitchClass::C, 5),
-    ]
-    .concat();
+    let bottom_half = &HARMONIC_MINOR.get_semitones()[0..7];
+    let top_half = HARMONIC_MINOR
+        .get_semitones()
+        .iter()
+        .map(|semitones| semitones + 12)
+        .collect::<Vec<usize>>();
+    let harmonic_minor_scale_doubled = Chord::from_semitones(&[bottom_half, &top_half].concat())
+        .set_base_note("C4")
+        .unwrap()
+        .get_notes();
+    let c_minor_scale = Chord::from_semitones(&MINOR.get_semitones())
+        .set_base_note("C5")
+        .unwrap()
+        .get_notes();
     let c_minor_functions = [5, 3, 2, 1, 1, 2, 3, 1, 3, 5, 6, 5];
     let c_harmonic_minor_functions = [11, 11, 9, 8, 7, 5, 7, 9, 7, 9, 11, 12, 13];
     let mut melody_notes: Vec<Note> = Vec::new();
@@ -31,7 +35,7 @@ fn main() {
         melody_notes.push(c_minor_scale[function - 1]);
     }
     for function in c_harmonic_minor_functions {
-        melody_notes.push(c_harmonic_double_scale[function - 1]);
+        melody_notes.push(harmonic_minor_scale_doubled[function - 1]);
     }
     melody_notes.push(Note::from_string("Gb5").unwrap());
     melody_notes.push(Note::from_string("G5").unwrap());
@@ -72,31 +76,27 @@ fn main() {
         if index % 3 == 0 {
             if index % 6 == 0 {
                 if !(30..54).contains(&index) {
-                    beat_track.push_note(Note::new(PitchClass::C, 3), Beat::QUARTER);
+                    beat_track.push_note(Note::from_string("C3").unwrap(), Beat::QUARTER);
                 } else {
-                    beat_track.push_note(Note::new(PitchClass::D, 3), Beat::QUARTER);
+                    beat_track.push_note(Note::from_string("D3").unwrap(), Beat::QUARTER);
                 }
             } else {
-                beat_track.push_note(Note::new(PitchClass::G, 2), Beat::QUARTER);
+                beat_track.push_note(Note::from_string("G2").unwrap(), Beat::QUARTER);
             }
         } else if !(30..54).contains(&index) {
             beat_track.push_notes(
-                Vec::try_from(Chord::from_triad(
-                    TriadQuality::Minor,
-                    Some(PitchClass::C),
-                    Some(3),
-                ))
-                .unwrap(),
+                Chord::from_triad(TriadQuality::Minor)
+                    .set_base_note("C3")
+                    .unwrap()
+                    .get_notes(),
                 Beat::QUARTER,
             );
         } else {
             beat_track.push_notes(
-                Vec::try_from(Chord::from_triad(
-                    TriadQuality::Minor,
-                    Some(PitchClass::F),
-                    Some(3),
-                ))
-                .unwrap(),
+                Chord::from_triad(TriadQuality::Minor)
+                    .set_base_note("F3")
+                    .unwrap()
+                    .get_notes(),
                 Beat::QUARTER,
             );
         }

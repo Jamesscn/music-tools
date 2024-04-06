@@ -328,8 +328,8 @@ impl fmt::Display for TriadQuality {
     }
 }
 
-pub trait Tuning: Clone + PartialEq {
-    fn get_frequency<PitchClassType: PitchClass>(
+pub trait Tuning<PitchClassType: PitchClass> {
+    fn get_frequency(
         &self,
         base_frequency: f32,
         base_note: Note<PitchClassType>,
@@ -337,7 +337,7 @@ pub trait Tuning: Clone + PartialEq {
     ) -> f32;
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub struct EqualTemperament;
 
 impl EqualTemperament {
@@ -346,8 +346,8 @@ impl EqualTemperament {
     }
 }
 
-impl Tuning for EqualTemperament {
-    fn get_frequency<PitchClassType: PitchClass>(
+impl<PitchClassType: PitchClass> Tuning<PitchClassType> for EqualTemperament {
+    fn get_frequency(
         &self,
         base_frequency: f32,
         base_note: Note<PitchClassType>,
@@ -386,8 +386,8 @@ impl PythagoreanTuning {
     }
 }
 
-impl Tuning for PythagoreanTuning {
-    fn get_frequency<PitchClassType: PitchClass>(
+impl<PitchClassType: PitchClass> Tuning<PitchClassType> for PythagoreanTuning {
+    fn get_frequency(
         &self,
         base_frequency: f32,
         base_note: Note<PitchClassType>,
@@ -395,10 +395,17 @@ impl Tuning for PythagoreanTuning {
     ) -> f32 {
         let octave_difference = (note.get_value() - base_note.get_value())
             .div_floor(PitchClassType::get_num_classes() as i32);
-        let ratio_index = (note.get_pitch_class().get_value()
-            - base_note.get_pitch_class().get_value())
-        .rem_euclid(PitchClassType::get_num_classes());
+        let ratio_index = (note.get_pitch_class().get_value() as isize
+            - base_note.get_pitch_class().get_value() as isize)
+            .rem_euclid(PitchClassType::get_num_classes() as isize)
+            as usize;
         base_frequency * 2f32.powi(octave_difference) * self.ratios[ratio_index].get_as_float()
+    }
+}
+
+impl Default for PythagoreanTuning {
+    fn default() -> Self {
+        Self::new(12)
     }
 }
 

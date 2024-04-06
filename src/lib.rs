@@ -7,13 +7,13 @@
 //! This library contains modules which can be used to create, analyze and reproduce musical
 //! structures such as chords, scales and rhythms.
 
-//#[cfg(feature = "audio")]
+#[cfg(feature = "audio")]
 /// The audio module contains structures for playing frequencies and processing audio waves.
-//pub mod audio;
+pub mod audio;
 
-//#[cfg(feature = "midi")]
+#[cfg(feature = "midi")]
 /// The midi module contains a structure which can be used to work with MIDI files.
-//pub mod midi;
+pub mod midi;
 
 /// The common module contains common structures, enums and functions that are used by other
 /// modules.

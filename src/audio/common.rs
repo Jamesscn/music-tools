@@ -1,7 +1,8 @@
-use crate::chord::Chord;
-use crate::interval::Interval;
+use crate::chord::{Chord, GenericChord, NoteChord};
+use crate::common::Tuning;
+use crate::interval::{Interval, StandardInterval};
 use crate::note::Note;
-use crate::pitchclass::PitchClass;
+use crate::pitchclass::{PitchClass, TwelveTone};
 use crate::scale::Scale;
 use std::error::Error;
 use std::fmt;
@@ -46,67 +47,81 @@ pub trait Synth {
 
 /// Represents any structure that can be broken down into a set of frequencies and processed by the
 /// audio processor into an output signal.
-pub trait Playable {
+pub trait Playable<PitchClassType: PitchClass> {
     /// Returns a list of frequencies in hertz for each of the individual audio elements contained
     /// by the structure.
-    fn get_frequencies(&self) -> Vec<f32>;
+    fn get_frequencies(&self, tuning: &dyn Tuning<PitchClassType>, base_frequency: f32)
+        -> Vec<f32>;
 }
 
-impl Playable for f32 {
-    fn get_frequencies(&self) -> Vec<f32> {
+impl<PitchClassType: PitchClass> Playable<PitchClassType> for f32 {
+    fn get_frequencies(
+        &self,
+        _tuning: &dyn Tuning<PitchClassType>,
+        _base_frequency: f32,
+    ) -> Vec<f32> {
         vec![*self]
     }
 }
 
-impl Playable for Vec<f32> {
-    fn get_frequencies(&self) -> Vec<f32> {
+impl<PitchClassType: PitchClass> Playable<PitchClassType> for &[f32] {
+    fn get_frequencies(
+        &self,
+        _tuning: &dyn Tuning<PitchClassType>,
+        _base_frequency: f32,
+    ) -> Vec<f32> {
+        self.to_vec()
+    }
+}
+
+impl Playable<TwelveTone> for Note<TwelveTone> {
+    fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
+        vec![tuning.get_frequency(base_frequency, Note::from_string("A4").unwrap(), *self)]
+    }
+}
+
+impl Playable<TwelveTone> for &[Note<TwelveTone>] {
+    fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
+        self.iter()
+            .map(|note| note.get_frequencies(tuning, base_frequency)[0])
+            .collect()
+    }
+}
+
+impl Playable<TwelveTone> for GenericChord<TwelveTone> {
+    fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
         self.clone()
+            .set_base_note(Note::default())
+            .unwrap()
+            .get_notes()
+            .as_slice()
+            .get_frequencies(tuning, base_frequency)
     }
 }
 
-impl Playable for Note {
-    fn get_frequencies(&self) -> Vec<f32> {
-        vec![self.get_frequency()]
+impl Playable<TwelveTone> for NoteChord<TwelveTone> {
+    fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
+        self.get_notes()
+            .as_slice()
+            .get_frequencies(tuning, base_frequency)
     }
 }
 
-impl Playable for Chord {
-    fn get_frequencies(&self) -> Vec<f32> {
-        let default_note = Note::default();
-        let mut chord = self.clone();
-        //If the chord is missing data, middle C is chosen as the tonic
-        if chord.get_tonic().is_none() {
-            chord.set_tonic(Some(default_note.get_pitch_class()));
-        }
-        if chord.get_octave().is_none() {
-            chord.set_octave(Some(default_note.get_octave()));
-        }
-        let notes = Vec::<Note>::try_from(chord).unwrap();
-        notes.iter().map(|note| note.get_frequency()).collect()
+impl Playable<TwelveTone> for StandardInterval {
+    fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
+        Chord::from_semitones(&[0, self.get_semitones()]).get_frequencies(tuning, base_frequency)
     }
 }
 
-impl Playable for Interval {
-    fn get_frequencies(&self) -> Vec<f32> {
-        let tonic = Note::default();
-        let interval_note = tonic.offset(self.get_semitones() as i8);
-        vec![tonic.get_frequency(), interval_note.get_frequency()]
+impl Playable<TwelveTone> for TwelveTone {
+    fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
+        Note::new(*self, 4).get_frequencies(tuning, base_frequency)
     }
 }
 
-impl Playable for PitchClass {
-    fn get_frequencies(&self) -> Vec<f32> {
-        let default_note = Note::default();
-        let note = Note::new(*self, default_note.get_octave());
-        vec![note.get_frequency()]
-    }
-}
-
-impl Playable for Scale {
-    fn get_frequencies(&self) -> Vec<f32> {
-        let default_note = Note::default();
-        let notes = self.to_notes(default_note.get_pitch_class(), default_note.get_octave());
-        notes.iter().map(|note| note.get_frequency()).collect()
+impl Playable<TwelveTone> for Scale {
+    fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
+        Chord::from_semitones(&self.get_semitones()).get_frequencies(tuning, base_frequency)
     }
 }
 

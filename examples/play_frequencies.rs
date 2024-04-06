@@ -1,13 +1,16 @@
-use music_tools::audio::player::AudioPlayer;
+use music_tools::{audio::player::AudioPlayer, pitchclass::TwelveTone};
 use std::time::Duration;
 
 fn main() {
-    let mut player = AudioPlayer::try_new().unwrap();
-    player.push(&100.0, &Duration::from_secs(1));
-    player.push(&200.0, &Duration::from_secs(1));
-    player.push(&300.0, &Duration::from_secs(1));
-    player.push(&400.0, &Duration::from_secs(1));
-    player.push(&vec![400.0, 440.0], &Duration::from_secs(1));
-    player.push(&vec![400.0, 440.0, 800.0], &Duration::from_secs(1));
+    let mut player = AudioPlayer::<TwelveTone>::try_new().unwrap();
+    player.push(&100f32, &Duration::from_secs(1));
+    player.push(&200f32, &Duration::from_secs(1));
+    player.push(&300f32, &Duration::from_secs(1));
+    player.push(&400f32, &Duration::from_secs(1));
+    player.push(&[400f32, 440f32].as_slice(), &Duration::from_secs(1));
+    player.push(
+        &[400f32, 440f32, 800f32].as_slice(),
+        &Duration::from_secs(1),
+    );
     player.play();
 }
