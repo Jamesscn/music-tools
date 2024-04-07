@@ -8,12 +8,12 @@ use music_tools::scale::MAJOR;
 
 fn main() {
     let mut player = AudioPlayer::try_new().unwrap();
-    player.push_arpeggiate(&MAJOR, &Beat::QUARTER, ArpeggioDirection::UpDown, 15);
+    player.push_arpeggiate(&*MAJOR, &Beat::QUARTER, ArpeggioDirection::UpDown, 15);
     player.push(&Chord::from_triad(TriadQuality::Sus4), &Beat::HALF);
     player.push(&Chord::from_triad(TriadQuality::Major), &Beat::HALF);
     player.push(&Chord::from_triad(TriadQuality::Minor), &Beat::HALF);
-    player.push(&TRITONE, &Beat::WHOLE);
-    player.push(&PERFECT_FIFTH, &Beat::HALF);
+    player.push(&*TRITONE, &Beat::WHOLE);
+    player.push(&*PERFECT_FIFTH, &Beat::HALF);
     player.push(&A_SHARP, &Beat::QUARTER);
     player.play();
 }

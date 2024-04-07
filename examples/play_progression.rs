@@ -10,7 +10,7 @@ fn main() {
         .enumerate()
     {
         let base_note = if index < 7 { "C4" } else { "C5" };
-        let chord = Chord::from_numeral(numeral, base_note).unwrap();
+        let chord = Chord::from_numeral(numeral, base_note.try_into().unwrap()).unwrap();
         player.push_arpeggiate(&chord, &Beat::SIXTEENTH, ArpeggioDirection::Up, 8);
     }
     player.play();

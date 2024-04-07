@@ -5,6 +5,7 @@ use std::error::Error;
 use std::fmt;
 use std::hash::Hash;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::slice::{Iter, Windows};
 use std::time::Duration;
 
 /// A structure which is used to hold the exact representation of a fraction. Fractions are used in
@@ -478,6 +479,27 @@ impl fmt::Display for IncompleteChordError {
             f,
             "operation requiring a chord with {requirements} was called but the chord {given}",
         )
+    }
+}
+
+pub fn result_from_iterator<IterItem, OutputItem, ErrorItem>(
+    iterator: impl Iterator<Item = IterItem>,
+    item_map: impl Fn(IterItem) -> Result<OutputItem, ErrorItem>,
+    error_map: impl Fn(ErrorItem) -> InputError,
+) -> Result<Vec<OutputItem>, InputError> {
+    let mut errors: Vec<InputError> = Vec::new();
+    let vector = iterator
+        .filter_map(|item| match item_map(item) {
+            Err(error) => {
+                errors.push(error_map(error));
+                None
+            }
+            Ok(chord) => Some(chord),
+        })
+        .collect();
+    match errors.get(0) {
+        Some(error) => Err(error.clone()),
+        None => Ok(vector),
     }
 }
 

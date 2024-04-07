@@ -90,7 +90,7 @@ fn main() {
     let equal_temperament = EqualTemperament::new();
 
     // We also define the note that will have a reference frequency of 440 hertz.
-    let p1_4 = Note::new(SevenTone::P1, 4);
+    let p1_4 = Note::from(SevenTone::P1, 4);
 
     // Print the frequencies of the notes from P1 octave 4 to P1 octave 5 with our newly defined
     // system.

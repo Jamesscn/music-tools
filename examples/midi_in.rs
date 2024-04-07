@@ -14,7 +14,7 @@ fn main() {
     io::stdin()
         .read_line(&mut file_path)
         .expect("Could not read input!");
-    let mut midi = MIDI::import(file_path.trim()).expect("Could not import MIDI file");
+    let midi = MIDI::import(file_path.trim()).expect("Could not import MIDI file");
     let synth = WavetableOscillator::new(Waveforms::SAWTOOTH_WAVE, 1.0, 128);
     let mut player = AudioPlayer::try_new().unwrap();
 

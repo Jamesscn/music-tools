@@ -1,6 +1,6 @@
 use crate::chord::{Chord, GenericChord, NoteChord};
 use crate::common::Tuning;
-use crate::interval::{Interval, StandardInterval};
+use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::{PitchClass, TwelveTone};
 use crate::scale::Scale;
@@ -92,8 +92,7 @@ impl Playable<TwelveTone> for GenericChord<TwelveTone> {
     fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
         self.clone()
             .set_base_note(Note::default())
-            .unwrap()
-            .get_notes()
+            .to_notes()
             .as_slice()
             .get_frequencies(tuning, base_frequency)
     }
@@ -101,27 +100,27 @@ impl Playable<TwelveTone> for GenericChord<TwelveTone> {
 
 impl Playable<TwelveTone> for NoteChord<TwelveTone> {
     fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
-        self.get_notes()
+        self.to_notes()
             .as_slice()
             .get_frequencies(tuning, base_frequency)
     }
 }
 
-impl Playable<TwelveTone> for StandardInterval {
+impl Playable<TwelveTone> for Interval {
     fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
-        Chord::from_semitones(&[0, self.get_semitones()]).get_frequencies(tuning, base_frequency)
+        Chord::from_semitones(&[0, self.to_semitones()]).get_frequencies(tuning, base_frequency)
     }
 }
 
 impl Playable<TwelveTone> for TwelveTone {
     fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
-        Note::new(*self, 4).get_frequencies(tuning, base_frequency)
+        Note::from(*self, 4).get_frequencies(tuning, base_frequency)
     }
 }
 
 impl Playable<TwelveTone> for Scale {
     fn get_frequencies(&self, tuning: &dyn Tuning<TwelveTone>, base_frequency: f32) -> Vec<f32> {
-        Chord::from_semitones(&self.get_semitones()).get_frequencies(tuning, base_frequency)
+        Chord::from_semitones(&self.to_semitones()).get_frequencies(tuning, base_frequency)
     }
 }
 

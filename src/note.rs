@@ -167,7 +167,7 @@ impl<PitchClassType: PitchClass> Note<PitchClassType> {
     /// assert_eq!(b.get_frequency(), 466.16385);
     /// assert_eq!(c.get_frequency(), 130.81277);
     /// ```
-    pub fn new(pitch_class: PitchClassType, octave: i8) -> Self {
+    pub fn from(pitch_class: PitchClassType, octave: i8) -> Self {
         Self {
             pitch_class,
             octave,
@@ -254,10 +254,7 @@ impl<PitchClassType: PitchClass> Note<PitchClassType> {
             + self.pitch_class.get_value() as i32
     }
 
-    pub fn get_interval_with<IntervalType: Interval>(
-        &self,
-        note: Note<PitchClassType>,
-    ) -> Option<IntervalType> {
+    pub fn get_interval_with(&self, note: Note<PitchClassType>) -> Result<Interval, InputError> {
         let first_value = self.get_value();
         let second_value = note.get_value();
         let difference: usize = if first_value <= second_value {
@@ -265,11 +262,7 @@ impl<PitchClassType: PitchClass> Note<PitchClassType> {
         } else {
             (first_value - second_value) as usize
         };
-        IntervalType::from_semitones(difference)
-    }
-
-    pub fn offset_interval(&self, interval: impl Interval) -> Self {
-        self.offset(interval.get_semitones() as isize)
+        Interval::from_semitones(difference)
     }
 }
 
@@ -318,30 +311,20 @@ impl TryFrom<&str> for Note<TwelveTone> {
     type Error = InputError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::from_string(value)
+        Note::from_string(value)
     }
 }
 
-/*
-impl<PC: PitchClass, T: Tuning> TryFrom<Chord> for Vec<GenericNote<PC, T>> {
-    type Error = IncompleteChordError;
+impl TryFrom<String> for Note<TwelveTone> {
+    type Error = InputError;
 
-    fn try_from(value: Chord) -> Result<Self, Self::Error> {
-        if value.get_tonic().is_none() || value.get_octave().is_none() {
-            return Err(IncompleteChordError {
-                needs_tonic: true,
-                needs_octave: true,
-                has_tonic: value.get_tonic().is_some(),
-                has_octave: value.get_octave().is_some(),
-            });
-        }
-        let mut notes: Vec<Note> = Vec::new();
-        let start_note = Note::new(value.get_tonic().unwrap(), value.get_octave().unwrap());
-        for interval in value.get_intervals() {
-            let current_note = start_note.offset(interval.get_semitones() as isize);
-            notes.push(current_note);
-        }
-        Ok(notes)
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Note::from_string(&value)
     }
 }
- */
+
+impl<PitchClassType: PitchClass> From<Note<PitchClassType>> for String {
+    fn from(value: Note<PitchClassType>) -> Self {
+        value.to_string()
+    }
+}

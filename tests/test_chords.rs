@@ -8,74 +8,74 @@ use std::cmp;
 fn test_triads() {
     let test_cases = [
         (
-            Chord::from_triad(TriadQuality::Major).set_base_note("C0"),
+            Chord::from_triad(TriadQuality::Major).set_base_note("C0".try_into().unwrap()),
             ["C0", "E0", "G0"],
         ),
         (
-            Chord::from_triad(TriadQuality::Major).set_base_note("E1"),
+            Chord::from_triad(TriadQuality::Major).set_base_note("E1".try_into().unwrap()),
             ["E1", "G#1", "B1"],
         ),
         (
-            Chord::from_triad(TriadQuality::Major).set_base_note("F7"),
+            Chord::from_triad(TriadQuality::Major).set_base_note("F7".try_into().unwrap()),
             ["F7", "A7", "C8"],
         ),
         (
-            Chord::from_triad(TriadQuality::Major).set_base_note("F#8"),
+            Chord::from_triad(TriadQuality::Major).set_base_note("F#8".try_into().unwrap()),
             ["F#8", "A#8", "C#9"],
         ),
         (
-            Chord::from_triad(TriadQuality::Minor).set_base_note("A4"),
+            Chord::from_triad(TriadQuality::Minor).set_base_note("A4".try_into().unwrap()),
             ["A4", "C5", "E5"],
         ),
         (
-            Chord::from_triad(TriadQuality::Minor).set_base_note("Ab1"),
+            Chord::from_triad(TriadQuality::Minor).set_base_note("Ab1".try_into().unwrap()),
             ["Ab1", "Cb1", "Eb2"],
         ),
         (
-            Chord::from_triad(TriadQuality::Minor).set_base_note("A#1"),
+            Chord::from_triad(TriadQuality::Minor).set_base_note("A#1".try_into().unwrap()),
             ["A#1", "C#2", "E#2"],
         ),
         (
-            Chord::from_triad(TriadQuality::Minor).set_base_note("C0"),
+            Chord::from_triad(TriadQuality::Minor).set_base_note("C0".try_into().unwrap()),
             ["C0", "Eb0", "G0"],
         ),
         (
-            Chord::from_triad(TriadQuality::Augmented).set_base_note("B5"),
+            Chord::from_triad(TriadQuality::Augmented).set_base_note("B5".try_into().unwrap()),
             ["B5", "D#6", "F##6"],
         ),
         (
-            Chord::from_triad(TriadQuality::Augmented).set_base_note("E7"),
+            Chord::from_triad(TriadQuality::Augmented).set_base_note("E7".try_into().unwrap()),
             ["E7", "G#7", "B#8"],
         ),
         (
-            Chord::from_triad(TriadQuality::Diminished).set_base_note("D3"),
+            Chord::from_triad(TriadQuality::Diminished).set_base_note("D3".try_into().unwrap()),
             ["D3", "F3", "Ab3"],
         ),
         (
-            Chord::from_triad(TriadQuality::Diminished).set_base_note("G#3"),
+            Chord::from_triad(TriadQuality::Diminished).set_base_note("G#3".try_into().unwrap()),
             ["G#3", "B3", "D4"],
         ),
         (
-            Chord::from_triad(TriadQuality::Sus2).set_base_note("G0"),
+            Chord::from_triad(TriadQuality::Sus2).set_base_note("G0".try_into().unwrap()),
             ["G0", "A0", "D1"],
         ),
         (
-            Chord::from_triad(TriadQuality::Sus2).set_base_note("Gb1"),
+            Chord::from_triad(TriadQuality::Sus2).set_base_note("Gb1".try_into().unwrap()),
             ["Gb1", "Ab1", "Db2"],
         ),
         (
-            Chord::from_triad(TriadQuality::Sus4).set_base_note("A#7"),
+            Chord::from_triad(TriadQuality::Sus4).set_base_note("A#7".try_into().unwrap()),
             ["A#7", "D#8", "E#8"],
         ),
         (
-            Chord::from_triad(TriadQuality::Sus4).set_base_note("F8"),
+            Chord::from_triad(TriadQuality::Sus4).set_base_note("F8".try_into().unwrap()),
             ["F8", "Bb8", "C9"],
         ),
     ];
 
     let tuning = EqualTemperament::new();
     for test_case in test_cases {
-        let output_vec: Vec<Note> = test_case.0.unwrap().get_notes();
+        let output_vec: Vec<Note> = test_case.0.to_notes();
         let expected_vec: Vec<Note> = test_case
             .1
             .into_iter()

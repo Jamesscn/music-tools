@@ -14,20 +14,18 @@ fn main() {
     info_track.push_event(MIDIEvent::SetTimeSignature(Fraction::new(3, 4)));
 
     //The melody is obtained from the C minor and harmonic minor scales
-    let bottom_half = &HARMONIC_MINOR.get_semitones()[0..7];
+    let bottom_half = &HARMONIC_MINOR.to_semitones()[0..7];
     let top_half = HARMONIC_MINOR
-        .get_semitones()
+        .to_semitones()
         .iter()
         .map(|semitones| semitones + 12)
         .collect::<Vec<usize>>();
     let harmonic_minor_scale_doubled = Chord::from_semitones(&[bottom_half, &top_half].concat())
-        .set_base_note("C4")
-        .unwrap()
-        .get_notes();
-    let c_minor_scale = Chord::from_semitones(&MINOR.get_semitones())
-        .set_base_note("C5")
-        .unwrap()
-        .get_notes();
+        .set_base_note("C4".try_into().unwrap())
+        .to_notes();
+    let c_minor_scale = Chord::from_semitones(&MINOR.to_semitones())
+        .set_base_note("C5".try_into().unwrap())
+        .to_notes();
     let c_minor_functions = [5, 3, 2, 1, 1, 2, 3, 1, 3, 5, 6, 5];
     let c_harmonic_minor_functions = [11, 11, 9, 8, 7, 5, 7, 9, 7, 9, 11, 12, 13];
     let mut melody_notes: Vec<Note> = Vec::new();
@@ -86,17 +84,15 @@ fn main() {
         } else if !(30..54).contains(&index) {
             beat_track.push_notes(
                 Chord::from_triad(TriadQuality::Minor)
-                    .set_base_note("C3")
-                    .unwrap()
-                    .get_notes(),
+                    .set_base_note("C3".try_into().unwrap())
+                    .to_notes(),
                 Beat::QUARTER,
             );
         } else {
             beat_track.push_notes(
                 Chord::from_triad(TriadQuality::Minor)
-                    .set_base_note("F3")
-                    .unwrap()
-                    .get_notes(),
+                    .set_base_note("F3".try_into().unwrap())
+                    .to_notes(),
                 Beat::QUARTER,
             );
         }

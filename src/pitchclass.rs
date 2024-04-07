@@ -304,27 +304,38 @@ impl fmt::Display for TwelveTone {
     }
 }
 
-/*
-impl TryFrom<Chord> for Vec<TwelveTone> {
-    type Error = IncompleteChordError;
+impl TryFrom<&str> for TwelveTone {
+    type Error = InputError;
 
-    fn try_from(value: Chord) -> Result<Self, Self::Error> {
-        if value.get_tonic().is_none() {
-            return Err(IncompleteChordError {
-                needs_tonic: true,
-                needs_octave: false,
-                has_tonic: value.get_tonic().is_some(),
-                has_octave: value.get_octave().is_some(),
-            });
-        }
-        let mut pitch_classes: Vec<Box<dyn PitchClass>> = Vec::new();
-        let tonic = value.get_tonic().unwrap().as_ref();
-        for interval in value.get_intervals() {
-            pitch_classes.push(Box::new(
-                tonic.offset(interval.get_semitones() as isize), //TODO
-            ));
-        }
-        Ok(pitch_classes)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::from_string(value)
     }
 }
-*/
+
+impl TryFrom<String> for TwelveTone {
+    type Error = InputError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::from_string(&value)
+    }
+}
+
+impl TryFrom<usize> for TwelveTone {
+    type Error = InputError;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        Self::from_value(value)
+    }
+}
+
+impl From<TwelveTone> for String {
+    fn from(value: TwelveTone) -> Self {
+        value.to_string()
+    }
+}
+
+impl From<TwelveTone> for usize {
+    fn from(value: TwelveTone) -> Self {
+        value.get_value()
+    }
+}
