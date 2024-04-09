@@ -1,4 +1,4 @@
-use music_tools::audio::common::Waveforms;
+use music_tools::audio::common::SAWTOOTH_WAVE;
 use music_tools::audio::player::AudioPlayer;
 use music_tools::audio::wavetable::WavetableOscillator;
 use music_tools::common::PythagoreanTuning;
@@ -15,7 +15,7 @@ fn main() {
         .read_line(&mut file_path)
         .expect("Could not read input!");
     let midi = MIDI::import(file_path.trim()).expect("Could not import MIDI file");
-    let synth = WavetableOscillator::new(Waveforms::SAWTOOTH_WAVE, 1.0, 128);
+    let synth = WavetableOscillator::new(SAWTOOTH_WAVE, 1.0, 128);
     let mut player = AudioPlayer::try_new().unwrap();
 
     println!("Would you like to set a playback speed? (default: 1):");

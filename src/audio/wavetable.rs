@@ -1,4 +1,4 @@
-use super::common::{Synth, Waveforms};
+use super::common::{Synth, SINE_WAVE};
 
 /**
  * A structure used to play a specific wavetable at a specific frequency.
@@ -165,7 +165,7 @@ impl Synth for WavetableOscillator {
 
 impl Default for WavetableOscillator {
     fn default() -> Self {
-        Self::new(Waveforms::SINE_WAVE, 1.0, 128)
+        Self::new(SINE_WAVE, 1.0, 128)
     }
 }
 

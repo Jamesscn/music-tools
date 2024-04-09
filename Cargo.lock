@@ -395,7 +395,6 @@ version = "0.1.0"
 dependencies = [
  "apres",
  "byteorder",
- "lazy_static",
  "ordered-float",
  "regex",
  "rodio",

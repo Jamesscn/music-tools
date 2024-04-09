@@ -210,17 +210,11 @@ fn sawtooth_wave(time: f32) -> f32 {
     2.0 * time - 1.0
 }
 
-#[non_exhaustive]
-/// A structure containing common waveforms.
-pub struct Waveforms;
-
-impl Waveforms {
-    /// The sine wave function with a period of 1 unit of time.
-    pub const SINE_WAVE: fn(f32) -> f32 = sine_wave;
-    /// The square wave function with a period of 1 unit of time.
-    pub const SQUARE_WAVE: fn(f32) -> f32 = square_wave;
-    /// The triangle wave function with a period of 1 unit of time.
-    pub const TRIANGLE_WAVE: fn(f32) -> f32 = triangle_wave;
-    /// The sawtooth wave function with a period of 1 unit of time.
-    pub const SAWTOOTH_WAVE: fn(f32) -> f32 = sawtooth_wave;
-}
+/// The sine wave function with a period of 1 unit of time.
+pub const SINE_WAVE: fn(f32) -> f32 = sine_wave;
+/// The square wave function with a period of 1 unit of time.
+pub const SQUARE_WAVE: fn(f32) -> f32 = square_wave;
+/// The triangle wave function with a period of 1 unit of time.
+pub const TRIANGLE_WAVE: fn(f32) -> f32 = triangle_wave;
+/// The sawtooth wave function with a period of 1 unit of time.
+pub const SAWTOOTH_WAVE: fn(f32) -> f32 = sawtooth_wave;

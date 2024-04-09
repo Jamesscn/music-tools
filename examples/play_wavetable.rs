@@ -1,4 +1,4 @@
-use music_tools::audio::common::Waveforms;
+use music_tools::audio::common::{SINE_WAVE, SQUARE_WAVE, TRIANGLE_WAVE};
 use music_tools::audio::player::AudioPlayer;
 use music_tools::audio::wavetable::WavetableOscillator;
 use music_tools::common::Beat;
@@ -10,11 +10,11 @@ fn main() {
     for index in 0..32 {
         match index % 4 {
             0 => {
-                let sine_table = WavetableOscillator::new(Waveforms::SINE_WAVE, 1.0, 128);
+                let sine_table = WavetableOscillator::new(SINE_WAVE, 1.0, 128);
                 player.set_synth(sine_table);
             }
             1 => {
-                let triangle_table = WavetableOscillator::new(Waveforms::TRIANGLE_WAVE, 1.0, 128);
+                let triangle_table = WavetableOscillator::new(TRIANGLE_WAVE, 1.0, 128);
                 player.set_synth(triangle_table);
             }
             2 => {
@@ -22,7 +22,7 @@ fn main() {
                 player.set_synth(saw_table);
             }
             _ => {
-                let square_table = WavetableOscillator::new(Waveforms::SQUARE_WAVE, 1.0, 128);
+                let square_table = WavetableOscillator::new(SQUARE_WAVE, 1.0, 128);
                 player.set_synth(square_table);
             }
         }

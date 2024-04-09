@@ -1,11 +1,10 @@
 use crate::common::InputError;
-use lazy_static::lazy_static;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt;
 use std::hash::Hash;
 use std::str::FromStr;
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard, OnceLock};
 
 //TODO: add assumptions
 
@@ -32,24 +31,17 @@ impl Interval {
             full_name: full_name.into(),
             short_name: short_name.into(),
         };
-        match INTERVALS.try_lock() {
-            Ok(ref mut mutex) => {
-                mutex.insert(semitones, interval.clone());
-                Ok(interval)
-            }
-            Err(_) => Err(InputError {
-                message: String::from("could not lock mutex while creating interval"),
-            }),
-        }
+        let ref mut mutex = Self::static_intervals()?;
+        mutex.insert(semitones, interval.clone());
+        Ok(interval)
     }
 
     pub fn from_semitones(semitones: impl Into<usize>) -> Result<Self, InputError> {
         let semitones = semitones.into();
-        Ok(INTERVALS.try_lock().map_err(|_| InputError {
-            message: String::from("could not log mutex while fetching interval")
-        })?.get(&semitones).ok_or(InputError {
+        let ref mut mutex = Self::static_intervals()?;
+        mutex.get(&semitones).ok_or(InputError {
             message: format!("there is no interval for {semitones} semitones, try registering one with Interval::new()")
-        })?.clone())
+        }).map(|interval| interval.clone())
     }
 
     pub fn from_string(string: &str) -> Result<Self, InputError> {
@@ -73,7 +65,7 @@ impl Interval {
 
 impl Default for Interval {
     fn default() -> Self {
-        PERFECT_UNISON.clone()
+        Self::PERFECT_UNISON()
     }
 }
 
@@ -161,200 +153,279 @@ impl FromIterator<Interval> for Vec<usize> {
     }
 }
 
-lazy_static! {
+#[allow(non_snake_case)]
+impl Interval {
     /// The interval between two identical notes.
-    pub static ref PERFECT_UNISON: Interval = Interval {
-        semitones: 0_usize,
-        full_name: "Perfect Unison".to_string(),
-        short_name: "P1".to_string()
-    };
+    pub fn PERFECT_UNISON() -> Self {
+        Self {
+            semitones: 0_usize,
+            full_name: "Perfect Unison".to_string(),
+            short_name: "P1".to_string(),
+        }
+    }
     /// The interval between two notes separated a semitone.
-    pub static ref MINOR_SECOND: Interval = Interval {
-        semitones: 1_usize,
-        full_name: "Minor Second".to_string(),
-        short_name: "m2".to_string()
-    };
+    pub fn MINOR_SECOND() -> Self {
+        Self {
+            semitones: 1_usize,
+            full_name: "Minor Second".to_string(),
+            short_name: "m2".to_string(),
+        }
+    }
     /// The interval between two notes separated by two semitones.
-    pub static ref MAJOR_SECOND: Interval = Interval {
-        semitones: 2_usize,
-        full_name: "Major Second".to_string(),
-        short_name: "M2".to_string()
-    };
+    pub fn MAJOR_SECOND() -> Self {
+        Self {
+            semitones: 2_usize,
+            full_name: "Major Second".to_string(),
+            short_name: "M2".to_string(),
+        }
+    }
     /// The interval between two notes separated by three semitones.
-    pub static ref MINOR_THIRD: Interval = Interval {
-        semitones: 3_usize,
-        full_name: "Minor Third".to_string(),
-        short_name: "m3".to_string()
-    };
+    pub fn MINOR_THIRD() -> Self {
+        Self {
+            semitones: 3_usize,
+            full_name: "Minor Third".to_string(),
+            short_name: "m3".to_string(),
+        }
+    }
     /// The interval between two notes separated by four semitones.
-    pub static ref MAJOR_THIRD: Interval = Interval {
-        semitones: 4_usize,
-        full_name: "Major Third".to_string(),
-        short_name: "M3".to_string()
-    };
+    pub fn MAJOR_THIRD() -> Self {
+        Self {
+            semitones: 4_usize,
+            full_name: "Major Third".to_string(),
+            short_name: "M3".to_string(),
+        }
+    }
     /// The interval between two notes separated by five semitones.
-    pub static ref PERFECT_FOURTH: Interval = Interval {
-        semitones: 5_usize,
-        full_name: "Perfect Fourth".to_string(),
-        short_name: "P4".to_string()
-    };
+    pub fn PERFECT_FOURTH() -> Self {
+        Self {
+            semitones: 5_usize,
+            full_name: "Perfect Fourth".to_string(),
+            short_name: "P4".to_string(),
+        }
+    }
     /// The interval between two notes separated by six semitones, which is also equivalent to the
     /// tritone and the augmented fourth.
-    pub static ref DIMINISHED_FIFTH: Interval = Interval {
-        semitones: 6_usize,
-        full_name: "Diminished Fifth".to_string(),
-        short_name: "d5".to_string()
-    };
+    pub fn DIMINISHED_FIFTH() -> Self {
+        Self {
+            semitones: 6_usize,
+            full_name: "Diminished Fifth".to_string(),
+            short_name: "d5".to_string(),
+        }
+    }
     /// The interval between two notes separated by six semitones, which is also equivalent to the
     /// diminished fifth and the augmented fourth.
-    pub static ref TRITONE: Interval = Interval {
-        semitones: 6_usize,
-        full_name: "Tritone".to_string(),
-        short_name: "TT".to_string()
-    };
+    pub fn TRITONE() -> Self {
+        Self {
+            semitones: 6_usize,
+            full_name: "Tritone".to_string(),
+            short_name: "TT".to_string(),
+        }
+    }
     /// The interval between two notes separated by six semitones, which is also equivalent to the
     /// tritone and the diminished fifth.
-    pub static ref AUGMENTED_FOURTH: Interval = Interval {
-        semitones: 6_usize,
-        full_name: "Augmented Fourth".to_string(),
-        short_name: "A4".to_string()
-    };
+    pub fn AUGMENTED_FOURTH() -> Self {
+        Self {
+            semitones: 6_usize,
+            full_name: "Augmented Fourth".to_string(),
+            short_name: "A4".to_string(),
+        }
+    }
     /// The interval between two notes separated by seven semitones.
-    pub static ref PERFECT_FIFTH: Interval = Interval {
-        semitones: 7_usize,
-        full_name: "Perfect Fifth".to_string(),
-        short_name: "P5".to_string()
-    };
+    pub fn PERFECT_FIFTH() -> Self {
+        Self {
+            semitones: 7_usize,
+            full_name: "Perfect Fifth".to_string(),
+            short_name: "P5".to_string(),
+        }
+    }
     /// The interval between two notes separated by eight semitones.
-    pub static ref MINOR_SIXTH: Interval = Interval {
-        semitones: 8_usize,
-        full_name: "Minor Sixth".to_string(),
-        short_name: "m6".to_string()
-    };
+    pub fn MINOR_SIXTH() -> Self {
+        Self {
+            semitones: 8_usize,
+            full_name: "Minor Sixth".to_string(),
+            short_name: "m6".to_string(),
+        }
+    }
     /// The interval between two notes separated by nine semitones.
-    pub static ref MAJOR_SIXTH: Interval = Interval {
-        semitones: 9_usize,
-        full_name: "Major Sixth".to_string(),
-        short_name: "M6".to_string()
-    };
+    pub fn MAJOR_SIXTH() -> Self {
+        Self {
+            semitones: 9_usize,
+            full_name: "Major Sixth".to_string(),
+            short_name: "M6".to_string(),
+        }
+    }
     /// The interval between two notes separated by ten semitones.
-    pub static ref MINOR_SEVENTH: Interval = Interval {
-        semitones: 10_usize,
-        full_name: "Minor Seventh".to_string(),
-        short_name: "m7".to_string()
-    };
+    pub fn MINOR_SEVENTH() -> Self {
+        Self {
+            semitones: 10_usize,
+            full_name: "Minor Seventh".to_string(),
+            short_name: "m7".to_string(),
+        }
+    }
     /// The interval between two notes separated by eleven semitones.
-    pub static ref MAJOR_SEVENTH: Interval = Interval {
-        semitones: 11_usize,
-        full_name: "Major Seventh".to_string(),
-        short_name: "M7".to_string()
-    };
+    pub fn MAJOR_SEVENTH() -> Self {
+        Self {
+            semitones: 11_usize,
+            full_name: "Major Seventh".to_string(),
+            short_name: "M7".to_string(),
+        }
+    }
     /// The interval between two notes separated by twelve semitones or an octave.
-    pub static ref PERFECT_OCTAVE: Interval = Interval {
-        semitones: 12_usize,
-        full_name: "Perfect Octave".to_string(),
-        short_name: "P8".to_string()
-    };
+    pub fn PERFECT_OCTAVE() -> Self {
+        Self {
+            semitones: 12_usize,
+            full_name: "Perfect Octave".to_string(),
+            short_name: "P8".to_string(),
+        }
+    }
     /// The interval between two notes separated by thirteen semitones.
-    pub static ref MINOR_NINTH: Interval = Interval {
-        semitones: 13_usize,
-        full_name: "Minor Ninth".to_string(),
-        short_name: "m9".to_string()
-    };
+    pub fn MINOR_NINTH() -> Self {
+        Self {
+            semitones: 13_usize,
+            full_name: "Minor Ninth".to_string(),
+            short_name: "m9".to_string(),
+        }
+    }
     /// The interval between two notes separated by fourteen semitones.
-    pub static ref MAJOR_NINTH: Interval = Interval {
-        semitones: 14_usize,
-        full_name: "Major Ninth".to_string(),
-        short_name: "M9".to_string()
-    };
+    pub fn MAJOR_NINTH() -> Self {
+        Self {
+            semitones: 14_usize,
+            full_name: "Major Ninth".to_string(),
+            short_name: "M9".to_string(),
+        }
+    }
     /// The interval between two notes separated by fifteen semitones.
-    pub static ref MINOR_TENTH: Interval = Interval {
-        semitones: 15_usize,
-        full_name: "Minor Tenth".to_string(),
-        short_name: "m10".to_string()
-    };
+    pub fn MINOR_TENTH() -> Self {
+        Self {
+            semitones: 15_usize,
+            full_name: "Minor Tenth".to_string(),
+            short_name: "m10".to_string(),
+        }
+    }
     /// The interval between two notes separated by sixteen semitones.
-    pub static ref MAJOR_TENTH: Interval = Interval {
-        semitones: 16_usize,
-        full_name: "Major Tenth".to_string(),
-        short_name: "M10".to_string()
-    };
+    pub fn MAJOR_TENTH() -> Self {
+        Self {
+            semitones: 16_usize,
+            full_name: "Major Tenth".to_string(),
+            short_name: "M10".to_string(),
+        }
+    }
     /// The interval between two notes separated by seventeen semitones.
-    pub static ref PERFECT_ELEVENTH: Interval = Interval {
-        semitones: 17_usize,
-        full_name: "Perfect Eleventh".to_string(),
-        short_name: "P11".to_string()
-    };
+    pub fn PERFECT_ELEVENTH() -> Self {
+        Self {
+            semitones: 17_usize,
+            full_name: "Perfect Eleventh".to_string(),
+            short_name: "P11".to_string(),
+        }
+    }
     /// The interval between two notes separated by eighteen semitones, which is also equivalent to
     /// the augmented eleventh.
-    pub static ref DIMINISHED_TWELFTH: Interval = Interval {
-        semitones: 18_usize,
-        full_name: "Diminished Twelfth".to_string(),
-        short_name: "d12".to_string()
-    };
+    pub fn DIMINISHED_TWELFTH() -> Self {
+        Self {
+            semitones: 18_usize,
+            full_name: "Diminished Twelfth".to_string(),
+            short_name: "d12".to_string(),
+        }
+    }
     /// The interval between two notes separated by eighteen semitones, which is also equivalent to
     /// the diminished twelfth.
-    pub static ref AUGMENTED_ELEVENTH: Interval = Interval {
-        semitones: 18_usize,
-        full_name: "Augmented Eleventh".to_string(),
-        short_name: "A11".to_string()
-    };
+    pub fn AUGMENTED_ELEVENTH() -> Self {
+        Self {
+            semitones: 18_usize,
+            full_name: "Augmented Eleventh".to_string(),
+            short_name: "A11".to_string(),
+        }
+    }
     /// The interval between two notes separated by nineteen semitones.
-    pub static ref PERFECT_TWELFTH: Interval = Interval {
-        semitones: 19_usize,
-        full_name: "Perfect Twelfth".to_string(),
-        short_name: "P12".to_string() };
+    pub fn PERFECT_TWELFTH() -> Self {
+        Self {
+            semitones: 19_usize,
+            full_name: "Perfect Twelfth".to_string(),
+            short_name: "P12".to_string(),
+        }
+    }
     /// The interval between two notes separated by twenty semitones.
-    pub static ref MINOR_THIRTEENTH: Interval = Interval {
-        semitones: 20_usize,
-        full_name: "Minor Thirteenth".to_string(),
-        short_name: "m13".to_string() };
+    pub fn MINOR_THIRTEENTH() -> Self {
+        Self {
+            semitones: 20_usize,
+            full_name: "Minor Thirteenth".to_string(),
+            short_name: "m13".to_string(),
+        }
+    }
     /// The interval between two notes separated by twenty one semitones.
-    pub static ref MAJOR_THIRTEENTH: Interval = Interval {
-        semitones: 21_usize,
-        full_name: "Major Thirteenth".to_string(),
-        short_name: "M13".to_string() };
+    pub fn MAJOR_THIRTEENTH() -> Self {
+        Self {
+            semitones: 21_usize,
+            full_name: "Major Thirteenth".to_string(),
+            short_name: "M13".to_string(),
+        }
+    }
     /// The interval between two notes separated by twenty two semitones.
-    pub static ref MINOR_FOURTEENTH: Interval = Interval {
-        semitones: 22_usize,
-        full_name: "Minor Fourteenth".to_string(),
-        short_name: "m14".to_string() };
+    pub fn MINOR_FOURTEENTH() -> Self {
+        Self {
+            semitones: 22_usize,
+            full_name: "Minor Fourteenth".to_string(),
+            short_name: "m14".to_string(),
+        }
+    }
     /// The interval between two notes separated by twenty three semitones.
-    pub static ref MAJOR_FOURTEENTH: Interval = Interval {
-        semitones: 23_usize,
-        full_name: "Major Fourteenth".to_string(),
-        short_name: "M14".to_string() };
+    pub fn MAJOR_FOURTEENTH() -> Self {
+        Self {
+            semitones: 23_usize,
+            full_name: "Major Fourteenth".to_string(),
+            short_name: "M14".to_string(),
+        }
+    }
     /// The interval between two notes separated by twenty four semitones or two octaves.
-    pub static ref PERFECT_FIFTEENTH: Interval = Interval {
-        semitones: 24_usize,
-        full_name: "Perfect Fifteenth".to_string(),
-        short_name: "P15".to_string()
-    };
-    static ref INTERVALS: Mutex<HashMap<usize, Interval>> = Mutex::new([
-        &*PERFECT_UNISON,
-        &*MINOR_SECOND,
-        &*MAJOR_SECOND,
-        &*MINOR_THIRD,
-        &*MAJOR_THIRD,
-        &*PERFECT_FOURTH,
-        &*TRITONE,
-        &*PERFECT_FIFTH,
-        &*MINOR_SIXTH,
-        &*MAJOR_SIXTH,
-        &*MINOR_SEVENTH,
-        &*MAJOR_SEVENTH,
-        &*PERFECT_OCTAVE,
-        &*MINOR_NINTH,
-        &*MAJOR_NINTH,
-        &*MINOR_TENTH,
-        &*MAJOR_TENTH,
-        &*PERFECT_ELEVENTH,
-        &*AUGMENTED_ELEVENTH,
-        &*PERFECT_TWELFTH,
-        &*MINOR_THIRTEENTH,
-        &*MAJOR_THIRTEENTH,
-        &*MINOR_FOURTEENTH,
-        &*MAJOR_FOURTEENTH,
-        &*PERFECT_FIFTEENTH,
-    ].iter().enumerate().map(|(index, interval)| (index, (*interval).clone())).collect::<HashMap<usize, Interval>>());
+    pub fn PERFECT_FIFTEENTH() -> Self {
+        Self {
+            semitones: 24_usize,
+            full_name: "Perfect Fifteenth".to_string(),
+            short_name: "P15".to_string(),
+        }
+    }
+    fn static_intervals() -> Result<MutexGuard<'static, HashMap<usize, Interval>>, InputError> {
+        INTERVALS
+            .get_or_init(|| {
+                Mutex::new(
+                    [
+                        Interval::PERFECT_UNISON(),
+                        Interval::MINOR_SECOND(),
+                        Interval::MAJOR_SECOND(),
+                        Interval::MINOR_THIRD(),
+                        Interval::MAJOR_THIRD(),
+                        Interval::PERFECT_FOURTH(),
+                        Interval::TRITONE(),
+                        Interval::PERFECT_FIFTH(),
+                        Interval::MINOR_SIXTH(),
+                        Interval::MAJOR_SIXTH(),
+                        Interval::MINOR_SEVENTH(),
+                        Interval::MAJOR_SEVENTH(),
+                        Interval::PERFECT_OCTAVE(),
+                        Interval::MINOR_NINTH(),
+                        Interval::MAJOR_NINTH(),
+                        Interval::MINOR_TENTH(),
+                        Interval::MAJOR_TENTH(),
+                        Interval::PERFECT_ELEVENTH(),
+                        Interval::AUGMENTED_ELEVENTH(),
+                        Interval::PERFECT_TWELFTH(),
+                        Interval::MINOR_THIRTEENTH(),
+                        Interval::MAJOR_THIRTEENTH(),
+                        Interval::MINOR_FOURTEENTH(),
+                        Interval::MAJOR_FOURTEENTH(),
+                        Interval::PERFECT_FIFTEENTH(),
+                    ]
+                    .iter()
+                    .enumerate()
+                    .map(|(index, interval)| (index, (*interval).clone()))
+                    .collect::<HashMap<usize, Interval>>(),
+                )
+            })
+            .try_lock()
+            .map_err(|_| InputError {
+                message: String::from("could not lock mutex while accesing intervals"),
+            })
+    }
 }
+
+static INTERVALS: OnceLock<Mutex<HashMap<usize, Interval>>> = OnceLock::new();

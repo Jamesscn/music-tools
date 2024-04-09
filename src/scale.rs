@@ -3,7 +3,6 @@ use crate::common::{result_from_iterator, InputError};
 use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::{PitchClass, TwelveTone};
-use lazy_static::lazy_static;
 use std::fmt;
 use std::hash::Hash;
 use std::str::FromStr;
@@ -185,7 +184,7 @@ impl Scale {
 
 impl Default for Scale {
     fn default() -> Self {
-        MAJOR.clone()
+        Self::MAJOR()
     }
 }
 
@@ -253,409 +252,508 @@ impl From<Scale> for Vec<usize> {
     }
 }
 
-lazy_static! {
+#[allow(non_snake_case)]
+impl Scale {
     /// The major scale, which is the same as the Ionian mode.
-    pub static ref MAJOR: Scale = Scale {
-        semitones: vec![0, 2, 4, 5, 7, 9, 11, 12],
-        diatonic_chords: vec![
-            "Imaj7".to_string(),
-            "ii7".to_string(),
-            "iii7".to_string(),
-            "IVmaj7".to_string(),
-            "V7".to_string(),
-            "vi7".to_string(),
-            "vii°7".to_string(),
-        ],
-        name: "Major".to_string(),
-    };
+    pub fn MAJOR() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 5, 7, 9, 11, 12],
+            diatonic_chords: vec![
+                "Imaj7".to_string(),
+                "ii7".to_string(),
+                "iii7".to_string(),
+                "IVmaj7".to_string(),
+                "V7".to_string(),
+                "vi7".to_string(),
+                "vii°7".to_string(),
+            ],
+            name: "Major".to_string(),
+        }
+    }
     /// The scale of the Ionian mode, which is the first mode and is the same as the major scale.
-    pub static ref IONIAN: Scale = Scale {
-        semitones: vec![0, 2, 4, 5, 7, 9, 11, 12],
-        diatonic_chords: vec![
-            "Imaj7".to_string(),
-            "ii7".to_string(),
-            "iii7".to_string(),
-            "IVmaj7".to_string(),
-            "V7".to_string(),
-            "vi7".to_string(),
-            "vii°7".to_string(),
-        ],
-        name: "Ionian".to_string(),
-    };
+    pub fn IONIAN() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 5, 7, 9, 11, 12],
+            diatonic_chords: vec![
+                "Imaj7".to_string(),
+                "ii7".to_string(),
+                "iii7".to_string(),
+                "IVmaj7".to_string(),
+                "V7".to_string(),
+                "vi7".to_string(),
+                "vii°7".to_string(),
+            ],
+            name: "Ionian".to_string(),
+        }
+    }
     /// The scale of the Dorian mode, which is the second mode and is equal to natural minor scale
     /// with a major sixth instead of a minor sixth.
-    pub static ref DORIAN: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 7, 9, 10, 12],
-        diatonic_chords: vec![
-            "i7".to_string(),
-            "ii7".to_string(),
-            "bIIImaj7".to_string(),
-            "IV7".to_string(),
-            "v7".to_string(),
-            "vi°7".to_string(),
-            "bVIImaj7".to_string(),
-        ],
-        name: "Dorian".to_string(),
-    };
+    pub fn DORIAN() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 7, 9, 10, 12],
+            diatonic_chords: vec![
+                "i7".to_string(),
+                "ii7".to_string(),
+                "bIIImaj7".to_string(),
+                "IV7".to_string(),
+                "v7".to_string(),
+                "vi°7".to_string(),
+                "bVIImaj7".to_string(),
+            ],
+            name: "Dorian".to_string(),
+        }
+    }
     /// The scale of the Phrygian mode, which is the third mode and is equal to the natural minor
     /// scale with a minor second instead of a major second.
-    pub static ref PHRYGIAN: Scale = Scale {
-        semitones: vec![0, 1, 3, 5, 7, 8, 10, 12],
-        diatonic_chords: vec![
-            "i7".to_string(),
-            "bIImaj7".to_string(),
-            "bIII7".to_string(),
-            "iv7".to_string(),
-            "v°7".to_string(),
-            "bVImaj7".to_string(),
-            "bvii7".to_string(),
-        ],
-        name: "Phrygian".to_string(),
-    };
+    pub fn PHRYGIAN() -> Self {
+        Self {
+            semitones: vec![0, 1, 3, 5, 7, 8, 10, 12],
+            diatonic_chords: vec![
+                "i7".to_string(),
+                "bIImaj7".to_string(),
+                "bIII7".to_string(),
+                "iv7".to_string(),
+                "v°7".to_string(),
+                "bVImaj7".to_string(),
+                "bvii7".to_string(),
+            ],
+            name: "Phrygian".to_string(),
+        }
+    }
     /// The scale of the Lydian mode, which is the fourth mode and is equal to the major scale with
     /// an augmented fourth instead of a perfect fourth.
-    pub static ref LYDIAN: Scale = Scale {
-        semitones: vec![0, 2, 4, 6, 7, 9, 11, 12],
-        diatonic_chords: vec![
-            "Imaj7".to_string(),
-            "II7".to_string(),
-            "iii7".to_string(),
-            "#iv°7".to_string(),
-            "Vmaj7".to_string(),
-            "vi7".to_string(),
-            "vii7".to_string(),
-        ],
-        name: "Lydian".to_string(),
-    };
+    pub fn LYDIAN() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 6, 7, 9, 11, 12],
+            diatonic_chords: vec![
+                "Imaj7".to_string(),
+                "II7".to_string(),
+                "iii7".to_string(),
+                "#iv°7".to_string(),
+                "Vmaj7".to_string(),
+                "vi7".to_string(),
+                "vii7".to_string(),
+            ],
+            name: "Lydian".to_string(),
+        }
+    }
     /// The scale of the Mixolydian mode, which is the fifth mode and is equal to the major scale
     /// with a minor seventh instead of a major seventh.
-    pub static ref MIXOLYDIAN: Scale = Scale {
-        semitones: vec![0, 2, 4, 5, 7, 9, 10, 12],
-        diatonic_chords: vec![
-            "I7".to_string(),
-            "ii7".to_string(),
-            "iii°7".to_string(),
-            "IVmaj7".to_string(),
-            "v7".to_string(),
-            "vi7".to_string(),
-            "bVIImaj7".to_string(),
-        ],
-        name: "Mixolydian".to_string(),
-    };
+    pub fn MIXOLYDIAN() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 5, 7, 9, 10, 12],
+            diatonic_chords: vec![
+                "I7".to_string(),
+                "ii7".to_string(),
+                "iii°7".to_string(),
+                "IVmaj7".to_string(),
+                "v7".to_string(),
+                "vi7".to_string(),
+                "bVIImaj7".to_string(),
+            ],
+            name: "Mixolydian".to_string(),
+        }
+    }
     /// The modern minor scale, which differs from the natural minor scale and the Aeolian mode
     /// only in that it's fifth diatonic chord is major instead of minor.
-    pub static ref MINOR: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 7, 8, 10, 12],
-        diatonic_chords: vec![
-            "i7".to_string(),
-            "ii°7".to_string(),
-            "bIIImaj7".to_string(),
-            "iv7".to_string(),
-            "Vmaj7".to_string(),
-            "bVImaj7".to_string(),
-            "bVII7".to_string(),
-        ],
-        name: "Minor".to_string(),
-    };
+    pub fn MINOR() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 7, 8, 10, 12],
+            diatonic_chords: vec![
+                "i7".to_string(),
+                "ii°7".to_string(),
+                "bIIImaj7".to_string(),
+                "iv7".to_string(),
+                "Vmaj7".to_string(),
+                "bVImaj7".to_string(),
+                "bVII7".to_string(),
+            ],
+            name: "Minor".to_string(),
+        }
+    }
     /// The natural minor scale, which is the same as the Aeolian mode.
-    pub static ref NATURAL_MINOR: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 7, 8, 10, 12],
-        diatonic_chords: vec![
-            "i7".to_string(),
-            "ii°7".to_string(),
-            "bIIImaj7".to_string(),
-            "iv7".to_string(),
-            "v7".to_string(),
-            "bVImaj7".to_string(),
-            "bVII7".to_string(),
-        ],
-        name: "Natural minor".to_string(),
-    };
+    pub fn NATURAL_MINOR() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 7, 8, 10, 12],
+            diatonic_chords: vec![
+                "i7".to_string(),
+                "ii°7".to_string(),
+                "bIIImaj7".to_string(),
+                "iv7".to_string(),
+                "v7".to_string(),
+                "bVImaj7".to_string(),
+                "bVII7".to_string(),
+            ],
+            name: "Natural minor".to_string(),
+        }
+    }
     /// The descending melodic minor scale, which is the same as the natural minor scale but is
     /// intended to be used when playing the melodic minor scale in a descending manner.
-    pub static ref DESCENDING_MELODIC_MINOR: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 7, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Descending melodic minor".to_string(),
-    };
+    pub fn DESCENDING_MELODIC_MINOR() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 7, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Descending melodic minor".to_string(),
+        }
+    }
     /// The scale of the Aeolian mode, which is the sixth mode and is the same as the natural minor
     /// scale.
-    pub static ref AEOLIAN: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 7, 8, 10, 12],
-        diatonic_chords: vec![
-            "i7".to_string(),
-            "ii°7".to_string(),
-            "bIIImaj7".to_string(),
-            "iv7".to_string(),
-            "v7".to_string(),
-            "bVImaj7".to_string(),
-            "bVII7".to_string(),
-        ],
-        name: "Aeolian".to_string(),
-    };
+    pub fn AEOLIAN() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 7, 8, 10, 12],
+            diatonic_chords: vec![
+                "i7".to_string(),
+                "ii°7".to_string(),
+                "bIIImaj7".to_string(),
+                "iv7".to_string(),
+                "v7".to_string(),
+                "bVImaj7".to_string(),
+                "bVII7".to_string(),
+            ],
+            name: "Aeolian".to_string(),
+        }
+    }
     /// The scale of the Locrian mode, which is the seventh mode and is equal to the natural minor
     /// scale with a minor second instead of a major second and a diminished fifth instead of a
     /// perfect fifth.
-    pub static ref LOCRIAN: Scale = Scale {
-        semitones: vec![0, 1, 3, 5, 6, 8, 10, 12],
-        diatonic_chords: vec![
-            "i°7".to_string(),
-            "bIImaj7".to_string(),
-            "biii7".to_string(),
-            "iv7".to_string(),
-            "bVmaj7".to_string(),
-            "bVI7".to_string(),
-            "bvii7".to_string(),
-        ],
-        name: "Locrian".to_string(),
-    };
+    pub fn LOCRIAN() -> Self {
+        Self {
+            semitones: vec![0, 1, 3, 5, 6, 8, 10, 12],
+            diatonic_chords: vec![
+                "i°7".to_string(),
+                "bIImaj7".to_string(),
+                "biii7".to_string(),
+                "iv7".to_string(),
+                "bVmaj7".to_string(),
+                "bVI7".to_string(),
+                "bvii7".to_string(),
+            ],
+            name: "Locrian".to_string(),
+        }
+    }
     /// The harmonic minor scale, which is equal to the natural minor scale with a major seventh
     /// instead of a minor seventh.
-    pub static ref HARMONIC_MINOR: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 7, 8, 11, 12],
-        diatonic_chords: vec![],
-        name: "Harmonic minor".to_string(),
-    };
+    pub fn HARMONIC_MINOR() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 7, 8, 11, 12],
+            diatonic_chords: vec![],
+            name: "Harmonic minor".to_string(),
+        }
+    }
     /// The Aeolian ♯7 scale, which is the same as the harmonic minor scale.
-    pub static ref AEOLIAN_SHARP_SEVEN: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 7, 8, 11, 12],
-        diatonic_chords: vec![],
-        name: "Aeolian ♯7".to_string(),
-    };
+    pub fn AEOLIAN_SHARP_SEVEN() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 7, 8, 11, 12],
+            diatonic_chords: vec![],
+            name: "Aeolian ♯7".to_string(),
+        }
+    }
     /// The Locrian ♮6 scale, which is the second mode of the harmonic minor scale and the same as
     /// the Locrian scale with a natural sixth.
-    pub static ref LOCRIAN_NATURAL_SIX: Scale = Scale {
-        semitones: vec![0, 1, 3, 5, 6, 9, 10, 12],
-        diatonic_chords: vec![],
-        name: "Locrian ♮6".to_string(),
-    };
+    pub fn LOCRIAN_NATURAL_SIX() -> Self {
+        Self {
+            semitones: vec![0, 1, 3, 5, 6, 9, 10, 12],
+            diatonic_chords: vec![],
+            name: "Locrian ♮6".to_string(),
+        }
+    }
     /// The Ionian ♯5 scale, which is the third mode of the harmonic minor scale and the same as
     /// the Ionian scale with a sharp fifth.
-    pub static ref IONIAN_SHARP_FIVE: Scale = Scale {
-        semitones: vec![0, 2, 4, 5, 8, 9, 11, 12],
-        diatonic_chords: vec![],
-        name: "Ionian ♯5".to_string(),
-    };
+    pub fn IONIAN_SHARP_FIVE() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 5, 8, 9, 11, 12],
+            diatonic_chords: vec![],
+            name: "Ionian ♯5".to_string(),
+        }
+    }
     /// The Dorian ♯4 scale, which is the fourth mode of the harmonic minor scale and the same as
     /// the Dorian scale with a sharp fourth.
-    pub static ref DORIAN_SHARP_FOUR: Scale = Scale {
-        semitones: vec![0, 2, 3, 6, 7, 9, 10, 12],
-        diatonic_chords: vec![],
-        name: "Dorian ♯4".to_string(),
-    };
+    pub fn DORIAN_SHARP_FOUR() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 6, 7, 9, 10, 12],
+            diatonic_chords: vec![],
+            name: "Dorian ♯4".to_string(),
+        }
+    }
     /// The Romanian minor scale, which is the same as the Dorian ♯4 scale.
-    pub static ref ROMANIAN_MINOR: Scale = Scale {
-        semitones: vec![0, 2, 3, 6, 7, 9, 10, 12],
-        diatonic_chords: vec![],
-        name: "Romanian minor".to_string(),
-    };
+    pub fn ROMANIAN_MINOR() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 6, 7, 9, 10, 12],
+            diatonic_chords: vec![],
+            name: "Romanian minor".to_string(),
+        }
+    }
     /// The Ukranian dorian scale, which is the same as the Dorian ♯4 scale.
-    pub static ref UKRANIAN_DORIAN: Scale = Scale {
-        semitones: vec![0, 2, 3, 6, 7, 9, 10, 12],
-        diatonic_chords: vec![],
-        name: "Ukranian dorian".to_string(),
-    };
+    pub fn UKRANIAN_DORIAN() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 6, 7, 9, 10, 12],
+            diatonic_chords: vec![],
+            name: "Ukranian dorian".to_string(),
+        }
+    }
     /// The Phrygian dominant scale, which is the fifth mode of the harmonic minor scale and is the
     /// equal to the Phrygian scale with a major third instead of a minor third.
-    pub static ref PHRYGIAN_DOMINANT: Scale = Scale {
-        semitones: vec![0, 1, 4, 5, 7, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Phrygian dominant".to_string(),
-    };
+    pub fn PHRYGIAN_DOMINANT() -> Self {
+        Self {
+            semitones: vec![0, 1, 4, 5, 7, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Phrygian dominant".to_string(),
+        }
+    }
     /// The Lydian ♯2 scale, which is the sixth mode of the harmonic minor scale and the same as
     /// the Lydian scale with a sharp second.
-    pub static ref LYDIAN_SHARP_TWO: Scale = Scale {
-        semitones: vec![0, 3, 4, 6, 7, 9, 11, 12],
-        diatonic_chords: vec![],
-        name: "Lydian ♯2".to_string(),
-    };
+    pub fn LYDIAN_SHARP_TWO() -> Self {
+        Self {
+            semitones: vec![0, 3, 4, 6, 7, 9, 11, 12],
+            diatonic_chords: vec![],
+            name: "Lydian ♯2".to_string(),
+        }
+    }
     /// The altered diminished scale, which is the seventh mode of the harmonic minor scale and the
     /// same as the Locrian scale with a flat fourth and a double flat seventh.
-    pub static ref ALTERED_DIMINISHED: Scale = Scale {
-        semitones: vec![0, 1, 3, 4, 6, 8, 9, 12],
-        diatonic_chords: vec![],
-        name: "Altered diminished".to_string(),
-    };
+    pub fn ALTERED_DIMINISHED() -> Self {
+        Self {
+            semitones: vec![0, 1, 3, 4, 6, 8, 9, 12],
+            diatonic_chords: vec![],
+            name: "Altered diminished".to_string(),
+        }
+    }
     /// The Super locrian ♭♭7 scale, which is the same as the altered diminished scale.
-    pub static ref SUPER_LOCRIAN_DOUBLE_FLAT_SEVEN: Scale = Scale {
-        semitones: vec![0, 1, 3, 4, 6, 8, 9, 12],
-        diatonic_chords: vec![],
-        name: "Super locrian ♭♭7".to_string(),
-    };
+    pub fn SUPER_LOCRIAN_DOUBLE_FLAT_SEVEN() -> Self {
+        Self {
+            semitones: vec![0, 1, 3, 4, 6, 8, 9, 12],
+            diatonic_chords: vec![],
+            name: "Super locrian ♭♭7".to_string(),
+        }
+    }
     /// The ascending melodic minor scale, which is equal to the natural minor scale with a major
     /// sixth and major seventh, and is intended to be used when playing the melodic minor scale in
     /// an ascending manner. Also known as just the melodic minor scale.
-    pub static ref ASCENDING_MELODIC_MINOR: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 7, 9, 11, 12],
-        diatonic_chords: vec![],
-        name: "Ascending melodic minor".to_string(),
-    };
+    pub fn ASCENDING_MELODIC_MINOR() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 7, 9, 11, 12],
+            diatonic_chords: vec![],
+            name: "Ascending melodic minor".to_string(),
+        }
+    }
     /// The melodic minor scale, which is the same as the ascending melodic minor scale.
-    pub static ref MELODIC_MINOR: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 7, 9, 11, 12],
-        diatonic_chords: vec![],
-        name: "Melodic minor".to_string(),
-    };
+    pub fn MELODIC_MINOR() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 7, 9, 11, 12],
+            diatonic_chords: vec![],
+            name: "Melodic minor".to_string(),
+        }
+    }
     /// The jazz minor scale, which is the same as the ascending melodic minor scale.
-    pub static ref JAZZ_MINOR: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 7, 9, 11, 12],
-        diatonic_chords: vec![],
-        name: "Jazz minor".to_string(),
-    };
+    pub fn JAZZ_MINOR() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 7, 9, 11, 12],
+            diatonic_chords: vec![],
+            name: "Jazz minor".to_string(),
+        }
+    }
     /// The Dorian ♭2 scale, which is the second mode of the melodic minor scale and the same as
     /// the Dorian scale but with a flat second.
-    pub static ref DORIAN_FLAT_TWO: Scale = Scale {
-        semitones: vec![0, 1, 3, 5, 7, 9, 10, 12],
-        diatonic_chords: vec![],
-        name: "Dorian ♭2".to_string(),
-    };
+    pub fn DORIAN_FLAT_TWO() -> Self {
+        Self {
+            semitones: vec![0, 1, 3, 5, 7, 9, 10, 12],
+            diatonic_chords: vec![],
+            name: "Dorian ♭2".to_string(),
+        }
+    }
     /// The Phrygian ♯6 scale, which is the same as the Dorian ♭2 scale.
-    pub static ref PHRYGIAN_SHARP_SIX: Scale = Scale {
-        semitones: vec![0, 1, 3, 5, 7, 9, 10, 12],
-        diatonic_chords: vec![],
-        name: "Phrygian ♯6".to_string(),
-    };
+    pub fn PHRYGIAN_SHARP_SIX() -> Self {
+        Self {
+            semitones: vec![0, 1, 3, 5, 7, 9, 10, 12],
+            diatonic_chords: vec![],
+            name: "Phrygian ♯6".to_string(),
+        }
+    }
     /// The Lyidan augmented scale, which is the third mode of the melodic minor scale and the
     /// same as the major scale with a raised fourth and fifth.
-    pub static ref LYDIAN_AUGMENTED: Scale = Scale {
-        semitones: vec![0, 2, 4, 6, 8, 9, 11, 12],
-        diatonic_chords: vec![],
-        name: "Lyidan augmented".to_string(),
-    };
+    pub fn LYDIAN_AUGMENTED() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 6, 8, 9, 11, 12],
+            diatonic_chords: vec![],
+            name: "Lyidan augmented".to_string(),
+        }
+    }
     /// The Lydian dominant scale, which is the fourth mode of the melodic minor scale and the same
     /// as the mixolydian scale with a sharp fourth.
-    pub static ref LYDIAN_DOMINANT: Scale = Scale {
-        semitones: vec![0, 2, 4, 6, 7, 9, 10, 12],
-        diatonic_chords: vec![],
-        name: "Lydian dominant".to_string(),
-    };
+    pub fn LYDIAN_DOMINANT() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 6, 7, 9, 10, 12],
+            diatonic_chords: vec![],
+            name: "Lydian dominant".to_string(),
+        }
+    }
     /// The overtone scale, which is the same as the Lydian dominant scale.
-    pub static ref OVERTONE: Scale = Scale {
-        semitones: vec![0, 2, 4, 6, 7, 9, 10, 12],
-        diatonic_chords: vec![],
-        name: "Overtone".to_string(),
-    };
+    pub fn OVERTONE() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 6, 7, 9, 10, 12],
+            diatonic_chords: vec![],
+            name: "Overtone".to_string(),
+        }
+    }
     /// The acoustic scale, which is the same as the Lydian dominant scale.
-    pub static ref ACOUSTIC: Scale = Scale {
-        semitones: vec![0, 2, 4, 6, 7, 9, 10, 12],
-        diatonic_chords: vec![],
-        name: "Acoustic".to_string(),
-    };
+    pub fn ACOUSTIC() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 6, 7, 9, 10, 12],
+            diatonic_chords: vec![],
+            name: "Acoustic".to_string(),
+        }
+    }
     /// The Mixolydian ♯4 scale, which is the same as the Lydian dominant scale.
-    pub static ref MIXOLYDIAN_SHARP_FOUR: Scale = Scale {
-        semitones: vec![0, 2, 4, 6, 7, 9, 10, 12],
-        diatonic_chords: vec![],
-        name: "Mixolydian ♯4".to_string(),
-    };
+    pub fn MIXOLYDIAN_SHARP_FOUR() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 6, 7, 9, 10, 12],
+            diatonic_chords: vec![],
+            name: "Mixolydian ♯4".to_string(),
+        }
+    }
     /// The Mixolydian ♭6 scale, which is the fifth mode of the melodic minor scale and the same as
     /// the major scale with a flat sixth and seventh.
-    pub static ref MIXOLYDIAN_FLAT_SIX: Scale = Scale {
-        semitones: vec![0, 2, 4, 5, 7, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Mixolydian ♭6".to_string(),
-    };
+    pub fn MIXOLYDIAN_FLAT_SIX() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 5, 7, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Mixolydian ♭6".to_string(),
+        }
+    }
     /// The Aeolian dominant scale, which is the same as the Mixolydian ♭6 scale.
-    pub static ref AEOLIAN_DOMINANT: Scale = Scale {
-        semitones: vec![0, 2, 4, 5, 7, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Aeolian dominant".to_string(),
-    };
+    pub fn AEOLIAN_DOMINANT() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 5, 7, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Aeolian dominant".to_string(),
+        }
+    }
     /// The descending melodic major scale, which is the same as the Mixolydian ♭6 scale.
-    pub static ref DESCENDING_MELODIC_MAJOR: Scale = Scale {
-        semitones: vec![0, 2, 4, 5, 7, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Descending melodic minor".to_string(),
-    };
+    pub fn DESCENDING_MELODIC_MAJOR() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 5, 7, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Descending melodic minor".to_string(),
+        }
+    }
     /// The hindu scale, which is the same as the Mixolydian ♭6 scale.
-    pub static ref HINDU: Scale = Scale {
-        semitones: vec![0, 2, 4, 5, 7, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Hindu".to_string(),
-    };
+    pub fn HINDU() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 5, 7, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Hindu".to_string(),
+        }
+    }
     /// The Locrian ♯2 scale, which is the sixth mode of the melodic minor scale and the same as
     /// the locrian scale with a natural second.
-    pub static ref LOCRIAN_SHARP_TWO: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 6, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Locrian ♯2".to_string(),
-    };
+    pub fn LOCRIAN_SHARP_TWO() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 6, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Locrian ♯2".to_string(),
+        }
+    }
     /// The Aeolian ♭5 scale, which is the same as the Locrian ♯2 scale.
-    pub static ref AEOLIAN_FLAT_FIVE: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 6, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Aeolian ♭5".to_string(),
-    };
+    pub fn AEOLIAN_FLAT_FIVE() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 6, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Aeolian ♭5".to_string(),
+        }
+    }
     /// The half diminished scale, which is the same as the Locrian ♯2 scale.
-    pub static ref HALF_DIMINISHED: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 6, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Half diminished".to_string(),
-    };
+    pub fn HALF_DIMINISHED() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 6, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Half diminished".to_string(),
+        }
+    }
     /// The altered scale, which is the seventh mode of the melodic minor scale and the same as the
     /// major scale with all four altered extensions of the major mode.
-    pub static ref ALTERED: Scale = Scale {
-        semitones: vec![0, 1, 3, 4, 6, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Altered".to_string(),
-    };
+    pub fn ALTERED() -> Self {
+        Self {
+            semitones: vec![0, 1, 3, 4, 6, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Altered".to_string(),
+        }
+    }
     /// The altered dominant scale, which is the same as the altered scale.
-    pub static ref ALTERED_DOMINANT: Scale = Scale {
-        semitones: vec![0, 1, 3, 4, 6, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Altered dominant".to_string(),
-    };
+    pub fn ALTERED_DOMINANT() -> Self {
+        Self {
+            semitones: vec![0, 1, 3, 4, 6, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Altered dominant".to_string(),
+        }
+    }
     /// The super locrian scale, which is the same as the altered scale.
-    pub static ref SUPER_LOCRIAN: Scale = Scale {
-        semitones: vec![0, 1, 3, 4, 6, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Super locrian".to_string(),
-    };
+    pub fn SUPER_LOCRIAN() -> Self {
+        Self {
+            semitones: vec![0, 1, 3, 4, 6, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Super locrian".to_string(),
+        }
+    }
     /// The diminished scale, which contains an alternating pattern of whole tones followed by
     /// semitones, starting with a whole tone.
-    pub static ref DIMINISHED: Scale = Scale {
-        semitones: vec![0, 2, 3, 5, 6, 8, 9, 11, 12],
-        diatonic_chords: vec![],
-        name: "Diminished".to_string(),
-    };
+    pub fn DIMINISHED() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 5, 6, 8, 9, 11, 12],
+            diatonic_chords: vec![],
+            name: "Diminished".to_string(),
+        }
+    }
     /// The dominant diminished scale, which contains an alternating pattern of semitones followed
     /// by whole tones, starting with a semitone.
-    pub static ref DOMINANT_DIMINISHED: Scale = Scale {
-        semitones: vec![0, 1, 3, 4, 6, 7, 9, 10, 12],
-        diatonic_chords: vec![],
-        name: "Dominant diminished".to_string(),
-    };
+    pub fn DOMINANT_DIMINISHED() -> Self {
+        Self {
+            semitones: vec![0, 1, 3, 4, 6, 7, 9, 10, 12],
+            diatonic_chords: vec![],
+            name: "Dominant diminished".to_string(),
+        }
+    }
     /// A nonatonic blues scale, which is derived from the major scale with an added flat third and
     /// an added flat seventh of the key.
-    pub static ref NONATONIC_BLUES: Scale = Scale {
-        semitones: vec![0, 2, 3, 4, 5, 7, 9, 10, 11, 12],
-        diatonic_chords: vec![],
-        name: "Nonatonic blues".to_string(),
-    };
+    pub fn NONATONIC_BLUES() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 4, 5, 7, 9, 10, 11, 12],
+            diatonic_chords: vec![],
+            name: "Nonatonic blues".to_string(),
+        }
+    }
     /// The major blues scale, which is a hexatonic scale derived from the major pentatonic scale
     /// with an added flat third of the key.
-    pub static ref MAJOR_BLUES: Scale = Scale {
-        semitones: vec![0, 2, 3, 4, 7, 9, 12],
-        diatonic_chords: vec![],
-        name: "Major blues".to_string(),
-    };
+    pub fn MAJOR_BLUES() -> Self {
+        Self {
+            semitones: vec![0, 2, 3, 4, 7, 9, 12],
+            diatonic_chords: vec![],
+            name: "Major blues".to_string(),
+        }
+    }
     /// The minor blues scale, which is a hexatonic scale derived from the minor pentatonic scale
     /// with an added flat fifth of the key.
-    pub static ref MINOR_BLUES: Scale = Scale {
-        semitones: vec![0, 3, 5, 6, 7, 10, 12],
-        diatonic_chords: vec![],
-        name: "Minor blues".to_string(),
-    };
+    pub fn MINOR_BLUES() -> Self {
+        Self {
+            semitones: vec![0, 3, 5, 6, 7, 10, 12],
+            diatonic_chords: vec![],
+            name: "Minor blues".to_string(),
+        }
+    }
     /// The whole tone scale, which is a hexatonic scale where each tone or pitch class is
     /// separated by a whole note or two semitones.
-    pub static ref WHOLE: Scale = Scale {
-        semitones: vec![0, 2, 4, 6, 8, 10, 12],
-        diatonic_chords: vec![],
-        name: "Whole".to_string(),
-    };
+    pub fn WHOLE() -> Self {
+        Self {
+            semitones: vec![0, 2, 4, 6, 8, 10, 12],
+            diatonic_chords: vec![],
+            name: "Whole".to_string(),
+        }
+    }
     /// The chromatic scale, which consists of all twelve pitch classes separated by a semitone.
-    pub static ref CHROMATIC: Scale = Scale {
-        semitones: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-        diatonic_chords: vec![],
-        name: "Chromatic".to_string(),
-    };
+    pub fn CHROMATIC() -> Self {
+        Self {
+            semitones: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            diatonic_chords: vec![],
+            name: "Chromatic".to_string(),
+        }
+    }
 }

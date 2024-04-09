@@ -1,23 +1,23 @@
 use music_tools::chord::Chord;
 use music_tools::note::Note;
-use music_tools::scale::{MAJOR_BLUES, MINOR_BLUES, NONATONIC_BLUES};
+use music_tools::scale::Scale;
 use std::cmp;
 
 #[test]
 fn test_scale_notes() {
     let test_cases = [
         (
-            Chord::from_semitones(&MAJOR_BLUES.to_semitones())
+            Chord::from_semitones(&Scale::MAJOR_BLUES().to_semitones())
                 .set_base_note("C4".try_into().unwrap()),
             vec!["C4", "D4", "E♭4", "E4", "G4", "A4", "C5"],
         ),
         (
-            Chord::from_semitones(&MINOR_BLUES.to_semitones())
+            Chord::from_semitones(&Scale::MINOR_BLUES().to_semitones())
                 .set_base_note("A4".try_into().unwrap()),
             vec!["A4", "C5", "D5", "E♭5", "E5", "G5", "A5"],
         ),
         (
-            Chord::from_semitones(&NONATONIC_BLUES.to_semitones())
+            Chord::from_semitones(&Scale::NONATONIC_BLUES().to_semitones())
                 .set_base_note("A4".try_into().unwrap()),
             vec![
                 "A4", "B4", "C5", "D♭5", "D5", "E5", "G♭5", "G5", "A♭5", "A5",

@@ -1,5 +1,5 @@
 use crate::common::{result_from_iterator, InputError, TriadQuality};
-use crate::interval::{Interval, MAJOR_SEVENTH, MINOR_SEVENTH};
+use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::{PitchClass, TwelveTone};
 use crate::scale::Scale;
@@ -347,9 +347,9 @@ impl Chord {
         let chord_base_note = base_note.offset(increment);
         let mut chord = Chord::from_triad(triad_quality);
         if seventh == "maj7" {
-            chord.add_semitone(Into::<usize>::into(MAJOR_SEVENTH.clone()) as isize);
+            chord.add_semitone(Into::<usize>::into(Interval::MAJOR_SEVENTH()) as isize);
         } else if seventh == "7" {
-            chord.add_semitone(Into::<usize>::into(MINOR_SEVENTH.clone()) as isize);
+            chord.add_semitone(Into::<usize>::into(Interval::MINOR_SEVENTH()) as isize);
         }
         Ok(chord.set_base_note(chord_base_note))
     }

@@ -4,7 +4,7 @@ use music_tools::midi::common::MIDIEvent;
 use music_tools::midi::parser::MIDI;
 use music_tools::midi::track::Track;
 use music_tools::note::Note;
-use music_tools::scale::{HARMONIC_MINOR, MINOR};
+use music_tools::scale::Scale;
 
 fn main() {
     let mut info_track = Track::new();
@@ -14,8 +14,8 @@ fn main() {
     info_track.push_event(MIDIEvent::SetTimeSignature(Fraction::new(3, 4)));
 
     //The melody is obtained from the C minor and harmonic minor scales
-    let bottom_half = &HARMONIC_MINOR.to_semitones()[0..7];
-    let top_half = HARMONIC_MINOR
+    let bottom_half = &Scale::HARMONIC_MINOR().to_semitones()[0..7];
+    let top_half = Scale::HARMONIC_MINOR()
         .to_semitones()
         .iter()
         .map(|semitones| semitones + 12)
@@ -23,7 +23,7 @@ fn main() {
     let harmonic_minor_scale_doubled = Chord::from_semitones(&[bottom_half, &top_half].concat())
         .set_base_note("C4".try_into().unwrap())
         .to_notes();
-    let c_minor_scale = Chord::from_semitones(&MINOR.to_semitones())
+    let c_minor_scale = Chord::from_semitones(&Scale::MINOR().to_semitones())
         .set_base_note("C5".try_into().unwrap())
         .to_notes();
     let c_minor_functions = [5, 3, 2, 1, 1, 2, 3, 1, 3, 5, 6, 5];
