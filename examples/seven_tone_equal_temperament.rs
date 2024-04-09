@@ -1,11 +1,12 @@
 // In this example we create a seven tone equal temperament system of notes. To do this a new pitch
 // class system is defined with only seven tones (P1, P2, P3, P4, P5, P6 and P7).
 use music_tools::{
+    audio::{common::Playable, player::AudioPlayer},
     common::{EqualTemperament, Tuning},
     note::Note,
     pitchclass::PitchClass,
 };
-use std::fmt;
+use std::{fmt, time::Duration};
 
 // This enum holds the seven tones of our pitch class system we will use.
 #[derive(Copy, Clone, Debug)]
@@ -84,6 +85,13 @@ impl fmt::Display for SevenTone {
     }
 }
 
+//We define playable to allow this to be played by an AudioPlayer.
+impl Playable<SevenTone> for Note<SevenTone> {
+    fn get_frequencies(&self, tuning: &dyn Tuning<SevenTone>, base_frequency: f32) -> Vec<f32> {
+        vec![tuning.get_frequency(base_frequency, Note::from(SevenTone::P1, 4), *self)]
+    }
+}
+
 fn main() {
     // Defining that we want to use equal temperament is as simple as instantiating the
     // EqualTemperament structure and telling it we have 7 pitch classes.
@@ -94,6 +102,7 @@ fn main() {
 
     // Print the frequencies of the notes from P1 octave 4 to P1 octave 5 with our newly defined
     // system.
+    let mut player = AudioPlayer::try_new().unwrap();
     for i in 0..8 {
         let current_note = p1_4.offset(i);
         println!(
@@ -104,5 +113,7 @@ fn main() {
             // use that to calculate the frequency of the current note.
             equal_temperament.get_frequency(440f32, p1_4, current_note)
         );
+        player.push(&current_note, &Duration::from_millis(400));
     }
+    player.play();
 }

@@ -5,6 +5,7 @@ use crate::pitchclass::{PitchClass, TwelveTone};
 use crate::scale::Scale;
 use regex::Regex;
 use std::fmt;
+use std::hash::Hash;
 use std::marker::PhantomData;
 
 pub trait ChordTrait {
@@ -407,6 +408,31 @@ impl<PitchClassType: PitchClass> NoteChord<PitchClassType> {
 impl<PitchClassType: PitchClass> Default for GenericChord<PitchClassType> {
     fn default() -> Self {
         Chord::new()
+    }
+}
+
+impl<PitchClassType: PitchClass> PartialEq for GenericChord<PitchClassType> {
+    fn eq(&self, other: &Self) -> bool {
+        self.to_semitones() == other.to_semitones()
+    }
+}
+
+impl<PitchClassType: PitchClass> PartialEq for NoteChord<PitchClassType> {
+    fn eq(&self, other: &Self) -> bool {
+        self.base_note == other.base_note && self.to_semitones() == other.to_semitones()
+    }
+}
+
+impl<PitchClassType: PitchClass> Hash for GenericChord<PitchClassType> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.to_semitones().hash(state);
+    }
+}
+
+impl<PitchClassType: PitchClass> Hash for NoteChord<PitchClassType> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.base_note.hash(state);
+        self.to_semitones().hash(state);
     }
 }
 

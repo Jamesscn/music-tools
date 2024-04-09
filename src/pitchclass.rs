@@ -2,6 +2,7 @@ use crate::common::InputError;
 use regex::Regex;
 use std::fmt;
 use std::hash::Hash;
+use std::str::FromStr;
 
 pub trait PitchClass: fmt::Display + Clone {
     fn get_num_classes() -> usize;
@@ -317,6 +318,14 @@ impl TryFrom<String> for TwelveTone {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Self::from_string(&value)
+    }
+}
+
+impl FromStr for TwelveTone {
+    type Err = InputError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::from_string(s)
     }
 }
 

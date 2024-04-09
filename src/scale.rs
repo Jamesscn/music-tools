@@ -6,12 +6,13 @@ use crate::pitchclass::{PitchClass, TwelveTone};
 use lazy_static::lazy_static;
 use std::fmt;
 use std::hash::Hash;
+use std::str::FromStr;
 
 //TODO: add assumptions (0 and 12 always stored in semitones)
 
 /// A structure used to represent a scale of notes, or a major or minor pentatonic variation of a
 /// scale in the twelve tone system.
-#[derive(Clone, Debug, Eq)]
+#[derive(Clone, Debug)]
 pub struct Scale {
     semitones: Vec<usize>,
     diatonic_chords: Vec<String>,
@@ -23,13 +24,13 @@ impl Scale {
         semitones: &[impl Into<usize> + Clone],
         diatonic_chords: &[impl Into<String> + Clone],
         name: impl Into<String>,
-    ) -> Scale {
+    ) -> Self {
         let mut semitones: Vec<usize> = semitones
             .iter()
             .map(|semitone| semitone.clone().into())
             .collect();
         semitones.sort();
-        Scale {
+        Self {
             semitones,
             diatonic_chords: diatonic_chords
                 .iter()
@@ -136,7 +137,7 @@ impl Scale {
         let mut pentatonic_major_semitones = self.to_semitones();
         pentatonic_major_semitones.remove(6);
         pentatonic_major_semitones.remove(3);
-        Ok(Scale {
+        Ok(Self {
             semitones: pentatonic_major_semitones,
             diatonic_chords: self.diatonic_chords.clone(),
             name: format!("{} pentatonic major", self.name),
@@ -152,7 +153,7 @@ impl Scale {
         let mut pentatonic_minor_semitones = self.to_semitones();
         pentatonic_minor_semitones.remove(5);
         pentatonic_minor_semitones.remove(1);
-        Ok(Scale {
+        Ok(Self {
             semitones: pentatonic_minor_semitones,
             diatonic_chords: self.diatonic_chords.clone(),
             name: format!("{} pentatonic minor", self.name),
@@ -194,6 +195,8 @@ impl PartialEq for Scale {
     }
 }
 
+impl Eq for Scale {}
+
 impl Hash for Scale {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.semitones.hash(state);
@@ -219,6 +222,14 @@ impl TryFrom<String> for Scale {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Self::from_string(&value)
+    }
+}
+
+impl FromStr for Scale {
+    type Err = InputError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::from_string(s)
     }
 }
 

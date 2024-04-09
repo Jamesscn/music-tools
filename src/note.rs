@@ -5,6 +5,7 @@ use regex::Regex;
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::Hash;
+use std::str::FromStr;
 
 /// A structure which is used to represent a note with a pitch class and an octave.
 #[derive(Copy, Clone, Debug)]
@@ -178,7 +179,7 @@ impl<PitchClassType: PitchClass> Note<PitchClassType> {
         note: Self,
         pitch_class: NewPitchClassType,
     ) -> Note<NewPitchClassType> {
-        Note {
+        Note::<NewPitchClassType> {
             pitch_class,
             octave: note.octave,
         }
@@ -275,33 +276,33 @@ impl Default for Note<TwelveTone> {
     }
 }
 
-impl<PC: PitchClass> PartialEq for Note<PC> {
+impl<PitchClassType: PitchClass> PartialEq for Note<PitchClassType> {
     fn eq(&self, other: &Self) -> bool {
         self.get_value() == other.get_value()
     }
 }
 
-impl<PC: PitchClass> Eq for Note<PC> {}
+impl<PitchClassType: PitchClass> Eq for Note<PitchClassType> {}
 
-impl<PC: PitchClass> PartialOrd for Note<PC> {
+impl<PitchClassType: PitchClass> PartialOrd for Note<PitchClassType> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<PC: PitchClass> Ord for Note<PC> {
+impl<PitchClassType: PitchClass> Ord for Note<PitchClassType> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_value().cmp(&other.get_value())
     }
 }
 
-impl<PC: PitchClass> Hash for Note<PC> {
+impl<PitchClassType: PitchClass> Hash for Note<PitchClassType> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.get_value().hash(state);
     }
 }
 
-impl<PC: PitchClass> fmt::Display for Note<PC> {
+impl<PitchClassType: PitchClass> fmt::Display for Note<PitchClassType> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}{}", self.pitch_class, self.octave)
     }
@@ -311,7 +312,7 @@ impl TryFrom<&str> for Note<TwelveTone> {
     type Error = InputError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Note::from_string(value)
+        Self::from_string(value)
     }
 }
 
@@ -319,7 +320,15 @@ impl TryFrom<String> for Note<TwelveTone> {
     type Error = InputError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Note::from_string(&value)
+        Self::from_string(&value)
+    }
+}
+
+impl FromStr for Note<TwelveTone> {
+    type Err = InputError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::from_string(s)
     }
 }
 

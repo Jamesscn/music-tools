@@ -4,6 +4,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt;
 use std::hash::Hash;
+use std::str::FromStr;
 use std::sync::Mutex;
 
 //TODO: add assumptions
@@ -12,7 +13,7 @@ use std::sync::Mutex;
 /// octave. This does not cover every single possible interval and there may be a need to
 /// create custom implementations of intervals, in such cases one can use the [`Interval::new()`]
 /// function, which will allow you to register a new interval globally.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug)]
 pub struct Interval {
     semitones: usize,
     full_name: String,
@@ -70,21 +71,35 @@ impl Interval {
     }
 }
 
+impl Default for Interval {
+    fn default() -> Self {
+        PERFECT_UNISON.clone()
+    }
+}
+
+impl PartialEq for Interval {
+    fn eq(&self, other: &Self) -> bool {
+        self.semitones == other.semitones
+    }
+}
+
+impl Eq for Interval {}
+
 impl PartialOrd for Interval {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
+        Some(self.semitones.cmp(&other.semitones))
     }
 }
 
 impl Ord for Interval {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.to_semitones().cmp(&other.to_semitones())
+        self.semitones.cmp(&other.semitones)
     }
 }
 
 impl Hash for Interval {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.to_semitones().hash(state);
+        self.semitones.hash(state);
     }
 }
 
@@ -107,6 +122,14 @@ impl TryFrom<String> for Interval {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Self::from_string(&value)
+    }
+}
+
+impl FromStr for Interval {
+    type Err = InputError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::from_string(s)
     }
 }
 

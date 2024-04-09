@@ -1,17 +1,15 @@
 use super::common::Synth;
 use ordered_float::OrderedFloat;
-use std::cell::RefCell;
 use std::collections::HashSet;
-use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-/// A reference counter to a synthesizer, which is used to keep track of which synths are registered
-/// in the audio processor.
-pub type SynthRc = Rc<RefCell<Box<dyn Synth>>>;
+pub type SynthRef = Arc<Mutex<Box<dyn Synth + Sync + Send>>>;
 
 /// A structure used to generate a single audio signal given multiple frequencies and synthesizers.
+#[derive(Clone)]
 pub struct AudioProcessor {
-    frequencies: Vec<(SynthRc, HashSet<OrderedFloat<f32>>)>,
+    frequencies: Vec<(SynthRef, HashSet<OrderedFloat<f32>>)>,
     current_sample: Option<f32>,
     sample_rate: u32,
     volume: f32,
@@ -20,7 +18,12 @@ pub struct AudioProcessor {
 impl AudioProcessor {
     /// Creates a new audio processor with the default settings.
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            frequencies: Vec::new(),
+            current_sample: None,
+            sample_rate: 44100,
+            volume: 1.0,
+        }
     }
 
     /// Adjusts the volume of all the synthesizers registered.
@@ -42,7 +45,7 @@ impl AudioProcessor {
             let mut sample = 0.0;
             let mut active_synths = 0;
             for (synth, _) in self.frequencies.iter_mut() {
-                let synth_sample = synth.borrow_mut().get_sample();
+                let synth_sample = synth.lock().unwrap().get_sample();
                 sample += synth_sample;
                 active_synths += 1;
             }
@@ -55,7 +58,7 @@ impl AudioProcessor {
     /// Tells the audio processor to advance to the next sample.
     pub fn advance_sample(&mut self) {
         for (synth, _) in self.frequencies.iter_mut() {
-            synth.borrow_mut().advance_sample(self.sample_rate);
+            synth.lock().unwrap().advance_sample(self.sample_rate);
         }
         self.current_sample = None;
     }
@@ -81,10 +84,10 @@ impl AudioProcessor {
     /// # Parameters
     ///
     /// - `synth`: A [`Box<dyn Synth>`] which is a boxed synthesizer to store.
-    pub fn register_synth(&mut self, synth: Box<dyn Synth>) -> SynthRc {
-        let reference = Rc::new(RefCell::new(synth));
-        self.frequencies.push((reference, HashSet::new()));
-        self.frequencies.last().unwrap().0.clone()
+    pub fn register_synth(&mut self, synth: impl Synth + Sync + Send + 'static) -> SynthRef {
+        self.frequencies
+            .push((Arc::new(Mutex::new(Box::new(synth))), HashSet::new()));
+        Arc::clone(&self.frequencies.last().unwrap().0)
     }
 
     /// Unregisters or drops a synthesizer stored in the processor given its [`SynthRc`] reference.
@@ -92,9 +95,9 @@ impl AudioProcessor {
     /// # Parameters
     ///
     /// - `synth`: A reference to the [`SynthRc`] of the synthesizer to drop.
-    pub fn unregister_synth(&mut self, synth: &SynthRc) {
+    pub fn unregister_synth(&mut self, synth: &SynthRef) {
         for (index, (stored_synth, _)) in self.frequencies.iter().enumerate() {
-            if Rc::ptr_eq(stored_synth, synth) {
+            if Arc::ptr_eq(stored_synth, synth) {
                 self.frequencies.remove(index);
                 return;
             }
@@ -112,11 +115,12 @@ impl AudioProcessor {
     ///
     /// - `frequency`: An [`f32`] representing the frequency in hertz that will be played.
     /// - `synth`: A reference to the [`SynthRc`] of the synthesizer that will play the frequency.
-    pub fn start_frequency(&mut self, frequency: f32, synth: &SynthRc) {
+    pub fn start_frequency(&mut self, frequency: f32, synth: &SynthRef) {
         for (stored_synth, set) in self.frequencies.iter_mut() {
-            if Rc::ptr_eq(stored_synth, synth) {
-                stored_synth.borrow_mut().add_voice(frequency);
-                set.insert(OrderedFloat(frequency));
+            if Arc::ptr_eq(stored_synth, synth) {
+                if set.insert(OrderedFloat(frequency)) {
+                    stored_synth.lock().unwrap().add_voice(frequency);
+                }
                 return;
             }
         }
@@ -128,11 +132,12 @@ impl AudioProcessor {
     ///
     /// - `frequency`: An [`f32`] representing the frequency in hertz that will stop being played.
     /// - `synth`: A reference to the [`SynthRc`] of the synthesizer that is playing the frequency.
-    pub fn stop_frequency(&mut self, frequency: f32, synth: &SynthRc) {
+    pub fn stop_frequency(&mut self, frequency: f32, synth: &SynthRef) {
         for (stored_synth, set) in self.frequencies.iter_mut() {
-            if Rc::ptr_eq(stored_synth, synth) {
-                stored_synth.borrow_mut().remove_voice(frequency);
-                set.insert(OrderedFloat(frequency));
+            if Arc::ptr_eq(stored_synth, synth) {
+                if set.remove(&OrderedFloat(frequency)) {
+                    stored_synth.lock().unwrap().remove_voice(frequency);
+                }
                 return;
             }
         }
@@ -140,8 +145,9 @@ impl AudioProcessor {
 
     /// Stops playing all frequencies across all the registered synthesizers.
     pub fn stop_all_frequencies(&mut self) {
-        for (synth, _) in self.frequencies.iter_mut() {
-            synth.borrow_mut().clear_voices();
+        for (synth, set) in self.frequencies.iter_mut() {
+            synth.lock().unwrap().clear_voices();
+            set.clear();
         }
     }
 
@@ -164,12 +170,7 @@ impl AudioProcessor {
 
 impl Default for AudioProcessor {
     fn default() -> Self {
-        Self {
-            frequencies: Vec::new(),
-            current_sample: None,
-            sample_rate: 44100,
-            volume: 1.0,
-        }
+        Self::new()
     }
 }
 

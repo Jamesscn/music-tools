@@ -65,6 +65,8 @@ fn main() {
         println!("Using Pythagorean tuning...");
     }
 
-    player.push_midi(&midi, synth).expect("could not play midi");
+    player
+        .push_midi(&midi, &[synth])
+        .expect("could not play midi");
     player.play();
 }

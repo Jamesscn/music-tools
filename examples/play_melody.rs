@@ -1,11 +1,11 @@
 use music_tools::audio::player::AudioPlayer;
-use music_tools::common::{Beat, Rhythm};
+use music_tools::common::Beat;
 use music_tools::note::Note;
 
 fn main() {
     let mut player = AudioPlayer::try_new().unwrap();
     player.set_tempo(160.0);
-    let rhythm = Rhythm::from([
+    let rhythm = Vec::from([
         Beat::QUARTER_DOTTED,
         Beat::QUARTER_DOTTED,
         Beat::QUARTER,

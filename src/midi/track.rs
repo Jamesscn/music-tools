@@ -21,7 +21,7 @@ impl fmt::Display for TrackItem {
 
 /// This structure is used to store a track with MIDI data and a sequence of [`TrackItem`], which
 /// can either be a MIDI event or a pause between consecutive MIDI events.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Track {
     accumulated_beats: Beat,
     empty: bool,
@@ -30,7 +30,11 @@ pub struct Track {
 
 impl Track {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            accumulated_beats: Beat::new(0, 1),
+            empty: true,
+            items: Vec::new(),
+        }
     }
 
     pub fn push_note<'a>(&mut self, note: impl Into<Note>, duration: Beat) {
@@ -69,11 +73,7 @@ impl Track {
 
 impl Default for Track {
     fn default() -> Self {
-        Self {
-            accumulated_beats: Beat::new(0, 1),
-            empty: true,
-            items: Vec::new(),
-        }
+        Self::new()
     }
 }
 

@@ -32,6 +32,14 @@ impl WavetableVoice {
     }
 }
 
+impl PartialEq for WavetableVoice {
+    fn eq(&self, other: &Self) -> bool {
+        self.frequency == other.frequency
+    }
+}
+
+impl Eq for WavetableVoice {}
+
 /// A structure which holds a wavetable oscillator.
 ///
 /// A wavetable oscillator is used to store the shape of a wave in a table or an array which can
@@ -97,6 +105,10 @@ impl WavetableOscillator {
             volume: 0.2,
         }
     }
+
+    pub fn get_wavetable(&self) -> Vec<f32> {
+        self.wavetable.clone()
+    }
 }
 
 impl Synth for WavetableOscillator {
@@ -156,6 +168,14 @@ impl Default for WavetableOscillator {
         Self::new(Waveforms::SINE_WAVE, 1.0, 128)
     }
 }
+
+impl PartialEq for WavetableOscillator {
+    fn eq(&self, other: &Self) -> bool {
+        self.wavetable == other.wavetable
+    }
+}
+
+impl Eq for WavetableOscillator {}
 
 impl From<&[f32]> for WavetableOscillator {
     fn from(value: &[f32]) -> Self {

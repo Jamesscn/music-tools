@@ -1,8 +1,7 @@
 use super::common::{ArpeggioDirection, AudioPlayError, Playable, Synth};
-use super::processor::{AudioProcessor, SynthRc};
+use super::processor::{AudioProcessor, SynthRef};
 use super::wavetable::WavetableOscillator;
-use crate::common::{AudioDuration, EqualTemperament, InputError, Rhythm, Tuning};
-use crate::note::Note;
+use crate::common::{AudioDuration, Beat, EqualTemperament, InputError, Tuning};
 use crate::pitchclass::{PitchClass, TwelveTone};
 use byteorder::{BigEndian, LittleEndian, WriteBytesExt};
 use rodio::{OutputStream, Sink, Source};
@@ -15,13 +14,12 @@ use std::time::Duration;
 
 #[cfg(feature = "midi")]
 use {
-    crate::midi::common::{iter_track_items, MIDIEvent},
-    crate::midi::parser::MIDI,
-    crate::midi::track::TrackItem,
+    crate::midi::common::MIDIEvent, crate::midi::parser::MIDI, crate::midi::track::TrackItem,
+    crate::note::Note,
 };
 
 /// An enum representing the amount of bits per sample to use while exporting a WAV file.
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum BitsPerSample {
     /// Represents 8 bits per sample
     EIGHT = 8,
@@ -38,13 +36,34 @@ impl fmt::Display for BitsPerSample {
     }
 }
 
+impl TryFrom<usize> for BitsPerSample {
+    type Error = InputError;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        match value {
+            8 => Ok(Self::EIGHT),
+            16 => Ok(Self::SIXTEEN),
+            24 => Ok(Self::TWENTYFOUR),
+            _ => Err(InputError {
+                message: String::from("could not convert invalid usize to bits per sample"),
+            }),
+        }
+    }
+}
+
+impl From<BitsPerSample> for usize {
+    fn from(value: BitsPerSample) -> Self {
+        value as Self
+    }
+}
+
 #[derive(Clone, Debug)]
-struct PlayableAudio {
+struct AudioBuffer {
     audio: Vec<f32>,
     index: usize,
 }
 
-impl PlayableAudio {
+impl AudioBuffer {
     pub fn new(audio: &[f32]) -> Self {
         Self {
             audio: Vec::from(audio),
@@ -53,7 +72,7 @@ impl PlayableAudio {
     }
 }
 
-impl Iterator for PlayableAudio {
+impl Iterator for AudioBuffer {
     type Item = f32;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -63,7 +82,7 @@ impl Iterator for PlayableAudio {
     }
 }
 
-impl Source for PlayableAudio {
+impl Source for AudioBuffer {
     fn channels(&self) -> u16 {
         1
     }
@@ -81,6 +100,14 @@ impl Source for PlayableAudio {
     }
 }
 
+impl PartialEq for AudioBuffer {
+    fn eq(&self, other: &Self) -> bool {
+        self.audio == other.audio
+    }
+}
+
+impl Eq for AudioBuffer {}
+
 /// A structure which can be used to play audio through the speakers of the current machine or to
 /// export audio into a WAV file.
 pub struct AudioPlayer<PitchClassType: PitchClass = TwelveTone> {
@@ -90,7 +117,7 @@ pub struct AudioPlayer<PitchClassType: PitchClass = TwelveTone> {
     sink: Sink,
     _stream: OutputStream,
     processor: AudioProcessor,
-    synth_ref: SynthRc,
+    synth_ref: SynthRef,
     tuning: Box<dyn Tuning<PitchClassType>>,
     buffer: Vec<f32>,
 }
@@ -113,8 +140,7 @@ impl<PitchClassType: PitchClass> AudioPlayer<PitchClassType> {
             });
         }
         let mut processor = AudioProcessor::new();
-        let oscillator = WavetableOscillator::default();
-        let default_synth_ref = processor.register_synth(Box::new(oscillator));
+        let default_synth_ref = processor.register_synth(WavetableOscillator::default());
         Ok(Self {
             tempo: 120.0,
             speed: 1f32,
@@ -134,9 +160,9 @@ impl<PitchClassType: PitchClass> AudioPlayer<PitchClassType> {
     /// # Parameters
     ///
     /// - `synth`: A synthesizer that implements the [`Synth`] trait.
-    pub fn set_synth(&mut self, synth: impl Synth + 'static) {
+    pub fn set_synth(&mut self, synth: impl Synth + Sync + Send + 'static) {
         self.processor.unregister_synth(&self.synth_ref);
-        let synth_ref = self.processor.register_synth(Box::new(synth));
+        let synth_ref = self.processor.register_synth(synth);
         self.synth_ref = synth_ref;
     }
 
@@ -284,7 +310,7 @@ impl<PitchClassType: PitchClass> AudioPlayer<PitchClassType> {
     pub fn push_rhythm(
         &mut self,
         playables: &[impl Playable<PitchClassType>],
-        rhythm: Rhythm,
+        rhythm: Vec<Beat>,
         total_notes: usize,
     ) {
         if playables.is_empty() || rhythm.is_empty() {
@@ -297,9 +323,10 @@ impl<PitchClassType: PitchClass> AudioPlayer<PitchClassType> {
         }
     }
 
-    /// Starts playing all the audio in the queue through the current speaker.
+    /// Starts playing all the audio in the queue through the current speaker. Pauses the current
+    /// thread while playing.
     pub fn play(&self) {
-        let audio = PlayableAudio::new(&self.buffer);
+        let audio = AudioBuffer::new(&self.buffer);
         self.sink.append(audio);
         self.sink.play();
         self.sink.sleep_until_end();
@@ -372,32 +399,40 @@ impl AudioPlayer<TwelveTone> {
     /// # Parameters
     ///
     /// - `midi`: A reference to the [`MIDI`] to be played.
-    /// - `synth`: The synthesizer that will be used to play all the tracks of the MIDI item, which
-    ///   must implement the [`Synth`] trait.
-    /// - `custom_tempo`: An [`Option<f32>`] which if defined changes the tempo of the MIDI item. If
-    ///   it is not defined then the original tempo of the MIDI item is used.
+    /// - `synths`: An array of synthesizers that will be used to play all the tracks of the MIDI
+    ///   item, which must implement the [`Synth`] trait. If no synths are provided the default
+    ///   synth is used. If there are less synths than tracks, then the synths are wrapped around to
+    ///   fit multiple tracks.
     pub fn push_midi(
         &mut self,
         midi: &MIDI,
-        synth: impl Synth + Clone + 'static,
+        synths: &[impl Synth + Sync + Send + Clone + 'static],
     ) -> Result<(), InputError> {
+        use std::sync::Arc;
+
         if midi.is_empty() {
             return Err(InputError {
                 message: String::from("midi object is empty"),
             });
         }
-        let mut synth_ref_vec: Vec<SynthRc> = Vec::new();
-        for _ in 0..midi.get_num_tracks() {
-            let oscillator = synth.clone();
-            let synth_ref = self.processor.register_synth(Box::new(oscillator));
-            synth_ref_vec.push(synth_ref);
+        let mut synth_ref_vec: Vec<SynthRef> = Vec::new();
+        if synths.is_empty() {
+            synth_ref_vec.push(Arc::clone(&self.synth_ref))
+        } else {
+            for index in 0..usize::min(midi.get_num_tracks(), synths.len()) {
+                synth_ref_vec.push(self.processor.register_synth(synths[index].clone()));
+            }
+        }
+        let looping_synth_count = synth_ref_vec.len();
+        for index in looping_synth_count..midi.get_num_tracks() {
+            synth_ref_vec.push(Arc::clone(&synth_ref_vec[index % looping_synth_count]));
         }
         let mut curr_tempo = 120;
-        for (track_index, track_item) in iter_track_items(midi) {
+        for (track_index, track_item) in midi.iter_track_items() {
             let synth = &synth_ref_vec[track_index];
             match track_item {
                 TrackItem::Event(event) => match event {
-                    MIDIEvent::NoteOn(mut note) => {
+                    MIDIEvent::NoteOn(note) => {
                         self.processor.start_frequency(
                             self.tuning.get_frequency(
                                 self.base_frequency,
@@ -407,7 +442,7 @@ impl AudioPlayer<TwelveTone> {
                             synth,
                         );
                     }
-                    MIDIEvent::NoteOff(mut note) => {
+                    MIDIEvent::NoteOff(note) => {
                         self.processor.stop_frequency(
                             self.tuning.get_frequency(
                                 self.base_frequency,

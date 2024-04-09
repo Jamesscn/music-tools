@@ -4,8 +4,10 @@ use crate::interval::Interval;
 use crate::note::Note;
 use crate::pitchclass::{PitchClass, TwelveTone};
 use crate::scale::Scale;
+use std::convert::Infallible;
 use std::error::Error;
 use std::fmt;
+use std::str::FromStr;
 
 /// A trait representing any type that can be used as a synthesizer for the audio processor.
 pub trait Synth {
@@ -146,7 +148,7 @@ impl fmt::Display for ArpeggioDirection {
 }
 
 /// An error which is returned when audio could not be played.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct AudioPlayError {
     /// A more specific message that explains why specific audio could not be played.
     pub message: String,
@@ -157,6 +159,30 @@ impl Error for AudioPlayError {}
 impl fmt::Display for AudioPlayError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "audio could not be played - {}", self.message)
+    }
+}
+
+impl From<&str> for AudioPlayError {
+    fn from(value: &str) -> Self {
+        Self {
+            message: value.to_string(),
+        }
+    }
+}
+
+impl From<String> for AudioPlayError {
+    fn from(value: String) -> Self {
+        Self { message: value }
+    }
+}
+
+impl FromStr for AudioPlayError {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self {
+            message: s.to_string(),
+        })
     }
 }
 

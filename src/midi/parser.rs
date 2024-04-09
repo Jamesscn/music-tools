@@ -1,16 +1,17 @@
 use super::common::{beat_to_ticks, ticks_to_beat, MIDIEvent, Ticks};
 use super::track::{Track, TrackItem};
-use crate::common::{Fraction, InputError};
+use crate::common::{Beat, Fraction, InputError};
 use crate::note::Note;
 use apres::MIDIEvent as Apres_MIDIEvent;
 use apres::MIDI as Apres_MIDI;
+use std::collections::VecDeque;
 use std::path::Path;
 use std::slice::Iter;
 use std::time::Duration;
 
 /// A structure which holds a MIDI object that can be imported from or exported to a MIDI file,
 /// containing a set of [`Track`] objects.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct MIDI {
     ticks_per_quarter_note: Ticks,
     tracks: Vec<Track>,
@@ -19,7 +20,10 @@ pub struct MIDI {
 impl MIDI {
     /// Creates an empty MIDI file with no tracks
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            ticks_per_quarter_note: 360,
+            tracks: Vec::new(),
+        }
     }
 
     /// Imports a MIDI object from a MIDI file. The return value is a [`Result`] which can be either
@@ -190,14 +194,21 @@ impl MIDI {
     pub fn get_tick_duration(&self, tempo: f32) -> Duration {
         Duration::from_micros((60000000.0 / (tempo * self.ticks_per_quarter_note as f32)) as u64)
     }
+
+    pub fn iter_track_items(&self) -> TrackItemIterator {
+        TrackItemIterator {
+            item_queues: self
+                .tracks
+                .iter()
+                .map(|track| track.clone().into_iter().collect::<VecDeque<TrackItem>>())
+                .collect(),
+        }
+    }
 }
 
 impl Default for MIDI {
     fn default() -> Self {
-        Self {
-            ticks_per_quarter_note: 360,
-            tracks: Vec::new(),
-        }
+        Self::new()
     }
 }
 
@@ -216,5 +227,64 @@ impl IntoIterator for MIDI {
 
     fn into_iter(self) -> Self::IntoIter {
         self.tracks.into_iter()
+    }
+}
+
+pub struct TrackItemIterator {
+    item_queues: Vec<VecDeque<TrackItem>>,
+}
+
+impl Iterator for TrackItemIterator {
+    type Item = (usize, TrackItem);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut next_track_index: Option<usize> = None;
+        let mut min_wait_beats: Option<Beat> = None;
+        for (track_index, track) in self.item_queues.iter().enumerate() {
+            if let Some(track_item) = track.front() {
+                match track_item {
+                    TrackItem::Event(_) => {
+                        next_track_index = Some(track_index);
+                        min_wait_beats = None;
+                        break;
+                    }
+                    TrackItem::Rest(beat) => {
+                        if beat.get_as_float() > 0.0 {
+                            let mut update_min_ticks = true;
+                            if let Some(value) = min_wait_beats {
+                                if value <= *beat {
+                                    update_min_ticks = false;
+                                }
+                            }
+                            if update_min_ticks {
+                                next_track_index = Some(track_index);
+                                min_wait_beats = Some(*beat);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if let Some(wait_beats) = min_wait_beats {
+            let next_track_index = next_track_index.unwrap();
+            for (track_index, track) in self.item_queues.iter_mut().enumerate() {
+                if track_index == next_track_index {
+                    continue;
+                }
+                if let Some(TrackItem::Rest(beat)) = track.front_mut() {
+                    if wait_beats < *beat {
+                        *beat -= wait_beats;
+                    } else {
+                        track.pop_front();
+                    }
+                }
+            }
+        };
+        next_track_index.map(|track_index| {
+            (
+                track_index,
+                self.item_queues[track_index].pop_front().unwrap(),
+            )
+        })
     }
 }
