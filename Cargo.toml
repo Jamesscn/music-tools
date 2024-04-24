@@ -21,6 +21,16 @@ audio = ["dep:rodio", "dep:ordered-float", "dep:byteorder"]
 midi = ["dep:apres"]
 
 [[example]]
+name = "custom_interval"
+path = "examples/custom_interval.rs"
+required-features = ["audio"]
+
+[[example]]
+name = "custom_scale"
+path = "examples/custom_scale.rs"
+required-features = []
+
+[[example]]
 name = "midi_in"
 path = "examples/midi_in.rs"
 required-features = ["audio", "midi"]
@@ -58,4 +68,9 @@ required-features = ["audio"]
 [[example]]
 name = "play_wavetable"
 path = "examples/play_wavetable.rs"
+required-features = ["audio"]
+
+[[example]]
+name = "seven_tone_equal_temperament"
+path = "examples/seven_tone_equal_temperament.rs"
 required-features = ["audio"]

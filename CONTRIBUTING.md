@@ -2,6 +2,14 @@
 
 Contributions are allowed however they should adhere to the guidelines stated below.
 
+## Commits
+
+Commit messages must follow the Conventional Commits specification (see <https://www.conventionalcommits.org/en/v1.0.0/>).
+
+## Thread safety
+
+Given that this library can be sometimes used in contexts requiring multiple threads (for example in a background thread of a game), it is important to prefer the usage of thread safe types. For example, OnceLock should be preferred over OnceCell and Mutex should be preferred over RefCell.
+
 ## Linting and format
 
 Any code must be formatted with the rustfmt configuration included in this repository. All clippy lints must also pass, and exceptions should be avoided if possible.
