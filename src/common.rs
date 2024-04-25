@@ -1,5 +1,3 @@
-use crate::note::Note;
-use crate::pitchclass::PitchClass;
 use std::any::Any;
 use std::convert::Infallible;
 use std::error::Error;
@@ -343,6 +341,7 @@ impl fmt::Display for TriadQuality {
     }
 }
 
+/* TODO
 pub trait Tuning<PitchClassType: PitchClass> {
     fn get_frequency(
         &self,
@@ -423,6 +422,7 @@ impl Default for PythagoreanTuning {
         Self::new(12)
     }
 }
+*/
 
 /// An error which is returned when a function receives an input that was not in the expected
 /// format.
