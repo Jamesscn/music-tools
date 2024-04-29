@@ -1,10 +1,11 @@
+use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::Hash;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Interval {
-    name: String,
+    name: Cow<'static, str>,
     semitones: usize,
     letter_classes: usize,
 }
@@ -12,7 +13,7 @@ pub struct Interval {
 impl Interval {
     pub fn new(name: &str, semitones: usize, letter_classes: usize) -> Self {
         Self {
-            name: name.to_string(),
+            name: Cow::Owned(name.to_string()),
             semitones,
             letter_classes,
         }
@@ -35,16 +36,11 @@ impl fmt::Display for Interval {
 
 macro_rules! interval {
     ($name: ident, $semitones: expr, $letter_classes: expr) => {
-        impl Interval {
-            #[allow(non_snake_case)]
-            pub fn $name() -> Self {
-                Self {
-                    name: stringify!($name).replace('_', " ").to_string(),
-                    semitones: $semitones,
-                    letter_classes: $letter_classes,
-                }
-            }
-        }
+        pub const $name: Interval = Interval {
+            name: Cow::Borrowed(stringify!($name)),
+            semitones: $semitones,
+            letter_classes: $letter_classes,
+        };
     };
 }
 
@@ -77,7 +73,7 @@ interval!(PERFECT_OCTAVE, 12, 7);
 
 impl Default for Interval {
     fn default() -> Self {
-        Self::PERFECT_UNISON()
+        PERFECT_UNISON
     }
 }
 

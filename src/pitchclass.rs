@@ -2,11 +2,11 @@ use crate::common::InputError;
 use crate::interval::Interval;
 use concat_idents::concat_idents;
 use regex::Regex;
-use std::{cmp::Ordering, fmt};
+use std::{borrow::Cow, cmp::Ordering, fmt};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct PitchClass {
-    letter_class: String,
+    letter_class: Cow<'static, str>,
     letter_class_semitones: usize,
     accidental: isize,
     offset_func: fn(&Self, isize, isize) -> Option<Self>,
@@ -54,7 +54,7 @@ impl PitchClass {
     }
 
     pub fn get_letter_class(&self) -> String {
-        self.letter_class.clone()
+        self.letter_class.to_string()
     }
 
     pub fn get_semitones(&self) -> usize {
@@ -90,7 +90,7 @@ impl PitchClass {
 
 impl fmt::Display for PitchClass {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut name = self.letter_class.clone();
+        let mut name = self.letter_class.to_string();
         let (accidental_char, repeat_times) = match self.accidental.cmp(&0) {
             Ordering::Greater => ('♯', self.accidental),
             Ordering::Equal => (' ', 0),
@@ -121,7 +121,7 @@ pub trait PitchClassSystem {
             None
         } else {
             Some(PitchClass {
-                letter_class: new_letter_class,
+                letter_class: Cow::Owned(new_letter_class),
                 letter_class_semitones: new_semitones as usize,
                 accidental,
                 ..pitch_class.clone()
@@ -174,29 +174,33 @@ impl PitchClassSystem for TwelveTone {
     }
 
     fn get_semitones_for_letter_class(letter_class: &str) -> usize {
-        match letter_class {
-            "A" => 9,
-            "B" => 11,
-            "C" => 0,
-            "D" => 2,
-            "E" => 4,
-            "F" => 5,
-            "G" => 7,
-            _ => panic!("invalid letter class"),
-        }
+        twelve_tone_semitones(letter_class)
+    }
+}
+
+const fn twelve_tone_semitones(letter_class: &str) -> usize {
+    match letter_class.as_bytes() {
+        b"A" => 9,
+        b"B" => 11,
+        b"C" => 0,
+        b"D" => 2,
+        b"E" => 4,
+        b"F" => 5,
+        b"G" => 7,
+        _ => panic!("invalid letter class"),
     }
 }
 
 macro_rules! regex_match_case {
     ($pitch_class_letter: ident $(, $suffix:expr)*) => {
         match $pitch_class_letter {
-            "A" | "a" => concat_idents!(fn_name = A, $($suffix),*{TwelveTone::fn_name()}),
-            "B" | "b" => concat_idents!(fn_name = B, $($suffix),*{TwelveTone::fn_name()}),
-            "C" | "c" => concat_idents!(fn_name = C, $($suffix),*{TwelveTone::fn_name()}),
-            "D" | "d" => concat_idents!(fn_name = D, $($suffix),*{TwelveTone::fn_name()}),
-            "E" | "e" => concat_idents!(fn_name = E, $($suffix),*{TwelveTone::fn_name()}),
-            "F" | "f" => concat_idents!(fn_name = F, $($suffix),*{TwelveTone::fn_name()}),
-            "G" | "g" => concat_idents!(fn_name = G, $($suffix),*{TwelveTone::fn_name()}),
+            "A" | "a" => concat_idents!(fn_name = A, $($suffix),*{fn_name}),
+            "B" | "b" => concat_idents!(fn_name = B, $($suffix),*{fn_name}),
+            "C" | "c" => concat_idents!(fn_name = C, $($suffix),*{fn_name}),
+            "D" | "d" => concat_idents!(fn_name = D, $($suffix),*{fn_name}),
+            "E" | "e" => concat_idents!(fn_name = E, $($suffix),*{fn_name}),
+            "F" | "f" => concat_idents!(fn_name = F, $($suffix),*{fn_name}),
+            "G" | "g" => concat_idents!(fn_name = G, $($suffix),*{fn_name}),
             _ => unreachable!(),
         }
     };
@@ -229,18 +233,18 @@ impl TwelveTone {
 
     pub fn from_semitones(semitones: usize) -> PitchClass {
         match semitones {
-            0 => Self::C(),
-            1 => Self::C_SHARP(),
-            2 => Self::D(),
-            3 => Self::D_SHARP(),
-            4 => Self::E(),
-            5 => Self::F(),
-            6 => Self::F_SHARP(),
-            7 => Self::G(),
-            8 => Self::G_SHARP(),
-            9 => Self::A(),
-            10 => Self::A_SHARP(),
-            11 => Self::B(),
+            0 => C,
+            1 => C_SHARP,
+            2 => D,
+            3 => D_SHARP,
+            4 => E,
+            5 => F,
+            6 => F_SHARP,
+            7 => G,
+            8 => G_SHARP,
+            9 => A,
+            10 => A_SHARP,
+            11 => B,
             _ => unimplemented!(),
         }
     }
@@ -248,80 +252,63 @@ impl TwelveTone {
 
 macro_rules! pitch_class {
     ($letter_class: ident) => {
-        impl TwelveTone {
+        #[allow(non_snake_case)]
+        pub const $letter_class: PitchClass = PitchClass {
+                letter_class: Cow::Borrowed(stringify!($letter_class)),
+                letter_class_semitones: twelve_tone_semitones(stringify!($letter_class)),
+                accidental: 0,
+                offset_func: TwelveTone::offset,
+                offset_lax_func: TwelveTone::offset_lax,
+                num_classes_func: TwelveTone::get_num_pitch_classes,
+        };
+
+        concat_idents!(fn_name = $letter_class, _, FLAT {
             #[allow(non_snake_case)]
-            pub fn $letter_class() -> PitchClass {
-                let letter_class = stringify!($letter_class);
-                PitchClass {
-                    letter_class: letter_class.to_string(),
-                    letter_class_semitones: Self::get_semitones_for_letter_class(letter_class),
-                    accidental: 0,
+            pub const fn_name: PitchClass = PitchClass {
+                    letter_class: Cow::Borrowed(stringify!($letter_class)),
+                    letter_class_semitones: twelve_tone_semitones(stringify!($letter_class)),
+                    accidental: -1,
                     offset_func: TwelveTone::offset,
                     offset_lax_func: TwelveTone::offset_lax,
                     num_classes_func: TwelveTone::get_num_pitch_classes,
-                }
-            }
+            };
+        });
 
-            concat_idents!(fn_name = $letter_class, _, FLAT {
-                #[allow(non_snake_case)]
-                pub fn fn_name() -> PitchClass {
-                    let letter_class = stringify!($letter_class);
-                    PitchClass {
-                        letter_class: letter_class.to_string(),
-                        letter_class_semitones: Self::get_semitones_for_letter_class(letter_class),
-                        accidental: -1,
-                        offset_func: TwelveTone::offset,
-                        offset_lax_func: TwelveTone::offset_lax,
-                        num_classes_func: TwelveTone::get_num_pitch_classes,
-                    }
-                }
-            });
+        concat_idents!(fn_name = $letter_class, _, SHARP {
+            #[allow(non_snake_case)]
+            pub const fn_name: PitchClass = PitchClass {
+                    letter_class: Cow::Borrowed(stringify!($letter_class)),
+                    letter_class_semitones: twelve_tone_semitones(stringify!($letter_class)),
+                    accidental: 1,
+                    offset_func: TwelveTone::offset,
+                    offset_lax_func: TwelveTone::offset_lax,
+                    num_classes_func: TwelveTone::get_num_pitch_classes,
+            };
+        });
 
-            concat_idents!(fn_name = $letter_class, _, SHARP {
-                #[allow(non_snake_case)]
-                pub fn fn_name() -> PitchClass {
-                    let letter_class = stringify!($letter_class);
-                    PitchClass {
-                        letter_class: letter_class.to_string(),
-                        letter_class_semitones: Self::get_semitones_for_letter_class(letter_class),
-                        accidental: 1,
-                        offset_func: TwelveTone::offset,
-                        offset_lax_func: TwelveTone::offset_lax,
-                        num_classes_func: TwelveTone::get_num_pitch_classes,
-                    }
-                }
-            });
+        concat_idents!(fn_name = $letter_class, _, DOUBLE, _, FLAT {
+            #[allow(non_snake_case)]
+            pub const fn_name: PitchClass = PitchClass {
+                    letter_class: Cow::Borrowed(stringify!($letter_class)),
+                    letter_class_semitones: twelve_tone_semitones(stringify!($letter_class)),
+                    accidental: -2,
+                    offset_func: TwelveTone::offset,
+                    offset_lax_func: TwelveTone::offset_lax,
+                    num_classes_func: TwelveTone::get_num_pitch_classes,
+            };
+        });
 
-            concat_idents!(fn_name = $letter_class, _, DOUBLE, _, FLAT {
-                #[allow(non_snake_case)]
-                pub fn fn_name() -> PitchClass {
-                    let letter_class = stringify!($letter_class);
-                    PitchClass {
-                        letter_class: letter_class.to_string(),
-                        letter_class_semitones: Self::get_semitones_for_letter_class(letter_class),
-                        accidental: -2,
-                        offset_func: TwelveTone::offset,
-                        offset_lax_func: TwelveTone::offset_lax,
-                        num_classes_func: TwelveTone::get_num_pitch_classes,
-                    }
-                }
-            });
-
-            concat_idents!(fn_name = $letter_class, _, DOUBLE, _, SHARP {
-                #[allow(non_snake_case)]
-                pub fn fn_name() -> PitchClass {
-                    let letter_class = stringify!($letter_class);
-                    PitchClass {
-                        letter_class: letter_class.to_string(),
-                        letter_class_semitones: Self::get_semitones_for_letter_class(letter_class),
-                        accidental: 2,
-                        offset_func: TwelveTone::offset,
-                        offset_lax_func: TwelveTone::offset_lax,
-                        num_classes_func: TwelveTone::get_num_pitch_classes,
-                    }
-                }
-            });
-        }
+        concat_idents!(fn_name = $letter_class, _, DOUBLE, _, SHARP {
+            #[allow(non_snake_case)]
+            pub const fn_name: PitchClass = PitchClass {
+                    letter_class: Cow::Borrowed(stringify!($letter_class)),
+                    letter_class_semitones: twelve_tone_semitones(stringify!($letter_class)),
+                    accidental: 2,
+                    offset_func: TwelveTone::offset,
+                    offset_lax_func: TwelveTone::offset_lax,
+                    num_classes_func: TwelveTone::get_num_pitch_classes,
+            };
+        });
     };
 }
 

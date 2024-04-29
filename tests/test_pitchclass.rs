@@ -1,9 +1,9 @@
-use music_tools::pitchclass::TwelveTone;
+use music_tools::pitchclass::*;
 
 #[test]
 fn test_twelve_tone() {
     //Test augmenting and diminishing C
-    let p = TwelveTone::C();
+    let p = C;
     assert_eq!(p.clone().to_string(), "C");
     assert_eq!(
         p.clone().diminish().map(|p| p.to_string()),
@@ -45,7 +45,7 @@ fn test_twelve_tone() {
     );
 
     //Test augmenting and diminishing C flag
-    let p = TwelveTone::C_FLAT();
+    let p = C_FLAT;
     assert_eq!(p.clone().to_string(), "C♭");
     assert_eq!(
         p.clone().diminish().map(|p| p.to_string()),
@@ -88,32 +88,17 @@ fn test_twelve_tone() {
     );
 
     //Test obtaining pitch classes from strings
-    assert_eq!(TwelveTone::from_string("A"), Ok(TwelveTone::A()));
-    assert_eq!(TwelveTone::from_string("C"), Ok(TwelveTone::C()));
-    assert_eq!(TwelveTone::from_string("E"), Ok(TwelveTone::E()));
-    assert_eq!(TwelveTone::from_string("A♮"), Ok(TwelveTone::A()));
-    assert_eq!(TwelveTone::from_string("Bb"), Ok(TwelveTone::B_FLAT()));
-    assert_eq!(TwelveTone::from_string("D#"), Ok(TwelveTone::D_SHARP()));
-    assert_eq!(
-        TwelveTone::from_string("Fbb"),
-        Ok(TwelveTone::F_DOUBLE_FLAT())
-    );
-    assert_eq!(
-        TwelveTone::from_string("G##"),
-        Ok(TwelveTone::G_DOUBLE_SHARP())
-    );
-    assert_eq!(
-        TwelveTone::from_string("F♭♭"),
-        Ok(TwelveTone::F_DOUBLE_FLAT())
-    );
-    assert_eq!(
-        TwelveTone::from_string("G♯♯"),
-        Ok(TwelveTone::G_DOUBLE_SHARP())
-    );
-    assert_eq!(
-        TwelveTone::from_string("Gx"),
-        Ok(TwelveTone::G_DOUBLE_SHARP())
-    );
+    assert_eq!(TwelveTone::from_string("A"), Ok(A));
+    assert_eq!(TwelveTone::from_string("C"), Ok(C));
+    assert_eq!(TwelveTone::from_string("E"), Ok(E));
+    assert_eq!(TwelveTone::from_string("A♮"), Ok(A));
+    assert_eq!(TwelveTone::from_string("Bb"), Ok(B_FLAT));
+    assert_eq!(TwelveTone::from_string("D#"), Ok(D_SHARP));
+    assert_eq!(TwelveTone::from_string("Fbb"), Ok(F_DOUBLE_FLAT));
+    assert_eq!(TwelveTone::from_string("G##"), Ok(G_DOUBLE_SHARP));
+    assert_eq!(TwelveTone::from_string("F♭♭"), Ok(F_DOUBLE_FLAT));
+    assert_eq!(TwelveTone::from_string("G♯♯"), Ok(G_DOUBLE_SHARP));
+    assert_eq!(TwelveTone::from_string("Gx"), Ok(G_DOUBLE_SHARP));
     assert!(TwelveTone::from_string("H").is_err());
     assert!(TwelveTone::from_string("1").is_err());
     assert!(TwelveTone::from_string("Some text").is_err());
